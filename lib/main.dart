@@ -1,29 +1,53 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'providers/auth_provider.dart';
-import 'screens/login_screen.dart';
+import 'package:window_manager/window_manager.dart';
 
-void main() {
-  runApp(const MyApp());
+import 'core/constants/app_routes.dart';
+import 'core/theme/app_theme.dart';
+import 'features/auth/auth_notifier.dart';
+import 'features/auth/presentation/pages/login_page.dart';
+import 'features/auth/presentation/pages/student_home_page.dart';
+import 'features/auth/presentation/pages/teacher_home_page.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await windowManager.ensureInitialized();
+
+  await windowManager.waitUntilReadyToShow(
+    const WindowOptions(
+      title: 'Refuerzo Escolar',
+      minimumSize: Size(1024, 680),
+    ),
+    () async {
+      await windowManager.show();
+      await windowManager.focus();
+      await Future.delayed(const Duration(milliseconds: 200));
+      await windowManager.maximize(); 
+    },
+  );
+
+  runApp(const AppEscuela());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class AppEscuela extends StatelessWidget {
+  const AppEscuela({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => AuthNotifier()),
       ],
       child: MaterialApp(
-        title: 'Refuerzo Académico',
+        title: 'Refuerzo Escolar',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
-          useMaterial3: true,
-        ),
-        home: const LoginScreen(),
+        theme: AppTheme.light,
+        initialRoute: AppRoutes.login,
+        routes: {
+          AppRoutes.login: (_) => const LoginPage(),
+          AppRoutes.teacherHome: (_) => const TeacherHomePage(),
+          AppRoutes.studentHome: (_) => const StudentHomePage(),
+        },
       ),
     );
   }
