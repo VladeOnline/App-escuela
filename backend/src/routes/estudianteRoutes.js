@@ -6,10 +6,11 @@ const {
   editarEstudiante,
   eliminarEstudiante
 } = require('../controllers/estudianteController');
+const { verificarToken, soloDocente } = require('../middleware/authMiddleware');
 
-router.get('/', obtenerEstudiantes);
-router.post('/', crearEstudiante);
-router.put('/:id', editarEstudiante);
-router.delete('/:id', eliminarEstudiante);
+router.get('/', verificarToken, obtenerEstudiantes);
+router.post('/', verificarToken, soloDocente, crearEstudiante);
+router.put('/:id', verificarToken, soloDocente, editarEstudiante);
+router.delete('/:id', verificarToken, soloDocente, eliminarEstudiante);
 
 module.exports = router;
