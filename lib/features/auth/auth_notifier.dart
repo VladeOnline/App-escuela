@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/errors/app_failure.dart';
+import '../../services/auth_service.dart';
 
 /// Estado de autenticación.
 enum AuthStatus { unauthenticated, loading, authenticated, failure }
@@ -54,33 +55,24 @@ class AuthNotifier extends ChangeNotifier {
   /// Cuando el Back esté listo, reemplaza el mock por:
   ///   final response = await AuthService.login(password, role);
   ///   setAuth(response.token, response.role);
-  Future<bool> login({
-    required String password,
-    required String role,
-  }) async {
-    _emit(_state.copyWith(status: AuthStatus.loading));
+ Future<bool> login({
+  required String password,
+  required String role,
+}) async {
+  _emit(_state.copyWith(status: AuthStatus.loading));
 
-    // Simulación de llamada al Back.
-    await Future.delayed(const Duration(milliseconds: 600));
-
-    final isValid = _mockValidate(password: password, role: role);
-
-    if (isValid) {
-      // Aquí el Back proveerá el JWT real en lugar del mock token.
-      _emit(_state.copyWith(
-        status: AuthStatus.authenticated,
-        token: 'mock_token_${role}_${DateTime.now().millisecondsSinceEpoch}',
-        role: role,
-      ));
-      return true;
-    } else {
-      _emit(_state.copyWith(
-        status: AuthStatus.failure,
-        failure: const AuthFailure('Contraseña incorrecta. Intenta de nuevo.'),
-      ));
-      return false;
-    }
+  try {
+    final response = await AuthService.login('docente', password, role);
+    setAuth(response['token'], response['usuario']['rol']);
+    return true;
+  } catch (e) {
+    _emit(_state.copyWith(
+      status: AuthStatus.failure,
+      failure: const AuthFailure('Credenciales incorrectas. Intenta de nuevo.'),
+    ));
+    return false;
   }
+}
 
   /// RF-06: Cierre de sesión seguro.
   void logout() {

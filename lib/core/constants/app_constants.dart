@@ -35,5 +35,5 @@ abstract class AppConstants {
 
   // API (del equipo — api_config original)
   // Cambiar la URL cuando Back defina el endpoint de producción.
-  static const apiBaseUrl = 'http://10.0.2.2:3000/api';
+  static const apiBaseUrl = 'http://localhost:3000/api';
 }
