@@ -55,7 +55,7 @@ class AuthNotifier extends ChangeNotifier {
   /// Cuando el Back esté listo, reemplaza el mock por:
   ///   final response = await AuthService.login(password, role);
   ///   setAuth(response.token, response.role);
- Future<bool> login({
+Future<bool> login({
   required String password,
   required String role,
 }) async {
@@ -66,9 +66,19 @@ class AuthNotifier extends ChangeNotifier {
     setAuth(response['token'], response['usuario']['rol']);
     return true;
   } catch (e) {
+    // Si el backend no está disponible, usa mock
+    final isValid = password == AppConstants.mockTeacherPassword;
+    if (isValid) {
+      _emit(_state.copyWith(
+        status: AuthStatus.authenticated,
+        token: 'mock_token',
+        role: role,
+      ));
+      return true;
+    }
     _emit(_state.copyWith(
       status: AuthStatus.failure,
-      failure: const AuthFailure('Credenciales incorrectas. Intenta de nuevo.'),
+      failure: const AuthFailure('Credenciales incorrectas.'),
     ));
     return false;
   }
