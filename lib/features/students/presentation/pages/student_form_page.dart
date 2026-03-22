@@ -7,7 +7,7 @@ import '../../../../shared/widgets/app_snackbar.dart';
 import '../../../../shared/widgets/grade_badge.dart';
 import '../../domain/entities/student_entity.dart';
 import '../../domain/usecases/validate_student_usecase.dart';
-import '../bloc/students_notifier.dart';
+import '../notifiers/students_notifier.dart';
 
 /// Formulario para crear (RF-01) o editar (RF-02) un estudiante.
 /// Con validaciones en tiempo real y feedback visual claro.

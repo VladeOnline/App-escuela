@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
-import '../../core/constants/app_constants.dart';
-import '../../core/errors/app_failure.dart';
-import '../../services/auth_service.dart';
+import '../../../core/constants/app_constants.dart';
+import '../../../core/errors/app_failure.dart';
+import '../../../services/auth_service.dart';
 
 /// Estado de autenticación.
 enum AuthStatus { unauthenticated, loading, authenticated, failure }
