@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Ejercicio = require('../models/ejercicioModel');
 const Resultado = require('../models/resultadoModel');
 const Evaluacion = require('../models/evaluacionModel');
@@ -10,29 +11,79 @@ const crearEjercicio = async (req, res) => {
   try {
     const { contenido_id, evaluacion_id, pregunta, opciones, respuesta_correcta, dificultad } = req.body;
 
+    // RF-29: validar campos obligatorios
     if (!contenido_id || !evaluacion_id || !pregunta || !respuesta_correcta || !dificultad) {
       return res.status(400).json({
-        mensaje: 'Faltan campos: contenido_id, evaluacion_id, pregunta, respuesta_correcta, dificultad'
+        mensaje: 'Faltan campos obligatorios: contenido_id, evaluacion_id, pregunta, respuesta_correcta, dificultad'
       });
+    }
+
+    // Validar IDs de Mongo
+    if (
+      !mongoose.Types.ObjectId.isValid(contenido_id) ||
+      !mongoose.Types.ObjectId.isValid(evaluacion_id)
+    ) {
+      return res.status(400).json({
+        mensaje: 'contenido_id o evaluacion_id no tienen un formato válido'
+      });
+    }
+
+    // Validar texto vacío
+    if (
+      pregunta.trim() === '' ||
+      respuesta_correcta.trim() === '' ||
+      dificultad.trim() === ''
+    ) {
+      return res.status(400).json({
+        mensaje: 'Pregunta, respuesta_correcta y dificultad no pueden ir vacíos'
+      });
+    }
+
+    // RF-11: validar dificultad
+    const dificultadesValidas = ['facil', 'medio', 'dificil'];
+    if (!dificultadesValidas.includes(dificultad.trim().toLowerCase())) {
+      return res.status(400).json({
+        mensaje: 'La dificultad debe ser: facil, medio o dificil'
+      });
+    }
+
+    // RF-29: validar opciones si vienen
+    if (opciones && !Array.isArray(opciones)) {
+      return res.status(400).json({
+        mensaje: 'El campo opciones debe ser un arreglo'
+      });
+    }
+
+    if (opciones && opciones.length > 0) {
+      const opcionesLimpias = opciones.map(op => op.trim()).filter(op => op !== '');
+
+      if (opcionesLimpias.length < 2) {
+        return res.status(400).json({
+          mensaje: 'Debe haber al menos 2 opciones válidas'
+        });
+      }
+
+      if (!opcionesLimpias.includes(respuesta_correcta.trim())) {
+        return res.status(400).json({
+          mensaje: 'La respuesta correcta debe estar dentro de las opciones'
+        });
+      }
     }
 
     const evaluacion = await Evaluacion.findById(evaluacion_id);
     if (!evaluacion) {
-      return res.status(404).json({ mensaje: 'La evaluación indicada no existe' });
-    }
-
-    const dificultadesValidas = ['facil', 'medio', 'dificil'];
-    if (!dificultadesValidas.includes(dificultad)) {
-      return res.status(400).json({ mensaje: 'Dificultad debe ser: facil, medio o dificil' });
+      return res.status(404).json({
+        mensaje: 'La evaluación indicada no existe'
+      });
     }
 
     const nuevoEjercicio = new Ejercicio({
       contenido_id,
       evaluacion_id,
-      pregunta,
-      opciones,
-      respuesta_correcta,
-      dificultad,
+      pregunta: pregunta.trim(),
+      opciones: opciones ? opciones.map(op => op.trim()) : [],
+      respuesta_correcta: respuesta_correcta.trim(),
+      dificultad: dificultad.trim().toLowerCase(),
       activo: true
     });
 
@@ -44,10 +95,73 @@ const crearEjercicio = async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({ mensaje: 'Error al crear el ejercicio', error: error.message });
+    res.status(500).json({
+      mensaje: 'Error al crear el ejercicio',
+      error: error.message
+    });
   }
 };
+// RF-12: Activar o desactivar ejercicio
+const cambiarEstadoEjercicio = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { activo } = req.body;
 
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        mensaje: 'ID de ejercicio inválido'
+      });
+    }
+
+    if (typeof activo !== 'boolean') {
+      return res.status(400).json({
+        mensaje: 'El campo activo debe ser true o false'
+      });
+    }
+
+    const ejercicioActualizado = await Ejercicio.findByIdAndUpdate(
+      id,
+      { activo },
+      { new: true }
+    );
+
+    if (!ejercicioActualizado) {
+      return res.status(404).json({
+        mensaje: 'Ejercicio no encontrado'
+      });
+    }
+
+    res.status(200).json({
+      mensaje: activo
+        ? 'Ejercicio activado correctamente'
+        : 'Ejercicio desactivado correctamente',
+      ejercicio: ejercicioActualizado
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      mensaje: 'Error al cambiar el estado del ejercicio',
+      error: error.message
+    });
+  }
+};
+const obtenerEjercicios = async (req, res) => {
+  try {
+    const ejercicios = await Ejercicio.find()
+      .populate('contenido_id')
+      .populate('evaluacion_id');
+
+    res.status(200).json({
+      total: ejercicios.length,
+      ejercicios
+    });
+  } catch (error) {
+    res.status(500).json({
+      mensaje: 'Error al obtener ejercicios',
+      error: error.message
+    });
+  }
+};
 // ─────────────────────────────────────────────
 // RF-13 + RF-14 (PASO 1): El estudiante responde UNA pregunta
 //
@@ -226,7 +340,10 @@ const obtenerResultadosPorEvaluacion = async (req, res) => {
 
 module.exports = {
   crearEjercicio,
+  cambiarEstadoEjercicio,
+  obtenerEjercicios,
   responderPregunta,
   finalizarEvaluacion,
   obtenerResultadosPorEvaluacion
+
 };
