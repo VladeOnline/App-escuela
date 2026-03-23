@@ -9,104 +9,68 @@ import '../../domain/entities/student_entity.dart';
 import '../notifiers/students_notifier.dart';
 import 'student_form_page.dart';
 
-/// Pantalla principal de gestión de estudiantes.
-/// Implementa RF-01 (ver lista), RF-02 (editar), RF-03 (eliminar), RF-31 (buscar).
 class StudentListPage extends StatefulWidget {
   const StudentListPage({super.key, required this.notifier});
   final StudentsNotifier notifier;
-
   @override
   State<StudentListPage> createState() => _StudentListPageState();
 }
 
 class _StudentListPageState extends State<StudentListPage> {
-  final _searchController = TextEditingController();
-  int? _selectedGrade;
+  final _searchCtrl = TextEditingController();
+  int? _grade;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      widget.notifier.loadStudents();
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => widget.notifier.loadStudents());
     widget.notifier.addListener(_onStateChange);
   }
 
   @override
   void dispose() {
-    _searchController.dispose();
+    _searchCtrl.dispose();
     widget.notifier.removeListener(_onStateChange);
     super.dispose();
   }
 
   void _onStateChange() {
     if (!mounted) return;
-    final state = widget.notifier.state;
-
-    if (state.successMessage != null) {
-      AppSnackbar.showSuccess(context, state.successMessage!);
-      widget.notifier.clearMessage();
-    }
-    if (state.failure != null) {
-      AppSnackbar.showError(context, state.failure!.message);
-    }
+    final s = widget.notifier.state;
+    if (s.successMessage != null) { AppSnackbar.showSuccess(context, s.successMessage!); widget.notifier.clearMessage(); }
+    if (s.failure != null) AppSnackbar.showError(context, s.failure!.message);
     setState(() {});
   }
 
-  void _onSearch(String query) {
-    widget.notifier.search(name: query, grade: _selectedGrade);
+  void _search(String q) => widget.notifier.search(name: q, grade: _grade);
+
+  void _filterGrade(int? g) {
+    setState(() => _grade = g);
+    widget.notifier.search(name: _searchCtrl.text, grade: g);
   }
 
-  void _onGradeFilter(int? grade) {
-    setState(() => _selectedGrade = grade);
-    widget.notifier.search(
-      name: _searchController.text,
-      grade: grade,
-    );
+  Future<void> _addStudent() async {
+    final ok = await Navigator.of(context).push<bool>(MaterialPageRoute(builder: (_) => StudentFormPage(notifier: widget.notifier)));
+    if (ok == true && mounted) widget.notifier.loadStudents();
   }
 
-  Future<void> _onAddStudent() async {
-    final created = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(
-        builder: (_) => StudentFormPage(notifier: widget.notifier),
-      ),
-    );
-    if (created == true && mounted) {
-      widget.notifier.loadStudents();
-    }
-  }
+  Future<void> _editStudent(StudentEntity s) async =>
+    Navigator.of(context).push<bool>(MaterialPageRoute(builder: (_) => StudentFormPage(notifier: widget.notifier, student: s)));
 
-  Future<void> _onEditStudent(StudentEntity student) async {
-    await Navigator.of(context).push<bool>(
-      MaterialPageRoute(
-        builder: (_) => StudentFormPage(
-          notifier: widget.notifier,
-          student: student,
-        ),
-      ),
-    );
-  }
-
-  Future<void> _onDeleteStudent(StudentEntity student) async {
-    final confirmed = await ConfirmDialog.show(
-      context,
+  Future<void> _deleteStudent(StudentEntity s) async {
+    final ok = await ConfirmDialog.show(context,
       title: 'Eliminar estudiante',
-      content:
-          '¿Seguro que quieres eliminar a ${student.fullName}?\nEsta acción no se puede deshacer.',
-      confirmLabel: 'Eliminar',
-      cancelLabel: 'Cancelar',
-      isDestructive: true,
-      icon: Icons.delete_outline_rounded,
+      content: '¿Seguro que quieres eliminar a ${s.fullName}?\nEsta acción no se puede deshacer.',
+      confirmLabel: 'Eliminar', cancelLabel: 'Cancelar',
+      isDestructive: true, icon: Icons.delete_outline_rounded,
     );
-
-    if (confirmed && mounted) {
-      await widget.notifier.deleteStudent(student.id);
-    }
+    if (ok && mounted) await widget.notifier.deleteStudent(s.id);
   }
 
   @override
   Widget build(BuildContext context) {
     final state = widget.notifier.state;
+    final hasFilters = _searchCtrl.text.isNotEmpty || _grade != null;
 
     return Scaffold(
       backgroundColor: AppColors.surface,
@@ -116,12 +80,10 @@ class _StudentListPageState extends State<StudentListPage> {
           Padding(
             padding: const EdgeInsets.only(right: AppSpacing.md),
             child: FilledButton.icon(
-              onPressed: _onAddStudent,
+              onPressed: _addStudent,
               icon: const Icon(Icons.person_add_alt_1_rounded, size: 18),
               label: const Text('Nuevo estudiante'),
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.primary,
-              ),
+              style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
             ),
           ),
         ],
@@ -129,30 +91,18 @@ class _StudentListPageState extends State<StudentListPage> {
       body: Column(
         children: [
           _SearchBar(
-            controller: _searchController,
-            selectedGrade: _selectedGrade,
-            onSearch: _onSearch,
-            onGradeFilter: _onGradeFilter,
-            onClear: () {
-              _searchController.clear();
-              _selectedGrade = null;
-              widget.notifier.clearFilters();
-            },
+            controller: _searchCtrl,
+            selectedGrade: _grade,
+            onSearch: _search,
+            onGradeFilter: _filterGrade,
+            onClear: () { _searchCtrl.clear(); setState(() => _grade = null); widget.notifier.clearFilters(); },
           ),
           Expanded(
             child: state.isLoading
-                ? const _LoadingState()
+                ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
                 : state.isEmpty
-                    ? _EmptyState(
-                        hasFilters: _searchController.text.isNotEmpty ||
-                            _selectedGrade != null,
-                        onAdd: _onAddStudent,
-                      )
-                    : _StudentGrid(
-                        students: state.students,
-                        onEdit: _onEditStudent,
-                        onDelete: _onDeleteStudent,
-                      ),
+                    ? _EmptyState(hasFilters: hasFilters, onAdd: _addStudent)
+                    : _StudentGrid(students: state.students, onEdit: _editStudent, onDelete: _deleteStudent),
           ),
         ],
       ),
@@ -160,17 +110,8 @@ class _StudentListPageState extends State<StudentListPage> {
   }
 }
 
-// ─── Barra de búsqueda ────────────────────────────────────────────────────────
-
 class _SearchBar extends StatelessWidget {
-  const _SearchBar({
-    required this.controller,
-    required this.selectedGrade,
-    required this.onSearch,
-    required this.onGradeFilter,
-    required this.onClear,
-  });
-
+  const _SearchBar({required this.controller, required this.selectedGrade, required this.onSearch, required this.onGradeFilter, required this.onClear});
   final TextEditingController controller;
   final int? selectedGrade;
   final ValueChanged<String> onSearch;
@@ -184,7 +125,6 @@ class _SearchBar extends StatelessWidget {
       color: AppColors.surfaceCard,
       child: Column(
         children: [
-          // Campo de búsqueda (RF-31)
           TextField(
             controller: controller,
             onChanged: onSearch,
@@ -192,38 +132,22 @@ class _SearchBar extends StatelessWidget {
               hintText: 'Buscar por nombre...',
               prefixIcon: const Icon(Icons.search_rounded, size: 20),
               suffixIcon: controller.text.isNotEmpty || selectedGrade != null
-                  ? IconButton(
-                      icon: const Icon(Icons.close_rounded, size: 18),
-                      onPressed: onClear,
-                    )
+                  ? IconButton(icon: const Icon(Icons.close_rounded, size: 18), onPressed: onClear)
                   : null,
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+              contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
-          // Filtro por grado (RF-31)
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                _GradeChip(
-                  label: 'Todos',
-                  isSelected: selectedGrade == null,
-                  onTap: () => onGradeFilter(null),
-                ),
+                _GradeChip(label: 'Todos', isSelected: selectedGrade == null, onTap: () => onGradeFilter(null)),
                 const SizedBox(width: AppSpacing.sm),
-                ...AppConstants.grades.map(
-                  (g) => Padding(
-                    padding: const EdgeInsets.only(right: AppSpacing.sm),
-                    child: _GradeChip(
-                      label: '$g°',
-                      color: AppColors.forGrade(g),
-                      isSelected: selectedGrade == g,
-                      onTap: () => onGradeFilter(g),
-                    ),
-                  ),
-                ),
+                ...AppConstants.grades.map((g) => Padding(
+                  padding: const EdgeInsets.only(right: AppSpacing.sm),
+                  child: _GradeChip(label: '$g°', color: AppColors.forGrade(g), isSelected: selectedGrade == g, onTap: () => onGradeFilter(g)),
+                )),
               ],
             ),
           ),
@@ -234,13 +158,7 @@ class _SearchBar extends StatelessWidget {
 }
 
 class _GradeChip extends StatelessWidget {
-  const _GradeChip({
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-    this.color,
-  });
-
+  const _GradeChip({required this.label, required this.isSelected, required this.onTap, this.color});
   final String label;
   final bool isSelected;
   final VoidCallback onTap;
@@ -248,43 +166,25 @@ class _GradeChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final chipColor = color ?? AppColors.primary;
+    final c = color ?? AppColors.primary;
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? chipColor.withOpacity(0.12) : Colors.transparent,
+          color: isSelected ? c.withOpacity(0.12) : Colors.transparent,
           borderRadius: const BorderRadius.all(AppRadius.full),
-          border: Border.all(
-            color: isSelected ? chipColor : AppColors.border,
-            width: isSelected ? 1.5 : 1,
-          ),
+          border: Border.all(color: isSelected ? c : AppColors.border, width: isSelected ? 1.5 : 1),
         ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? chipColor : AppColors.textSecondary,
-            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-            fontSize: 13,
-            fontFamily: 'Nunito',
-          ),
-        ),
+        child: Text(label, style: TextStyle(color: isSelected ? c : AppColors.textSecondary, fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500, fontSize: 13, fontFamily: 'Nunito')),
       ),
     );
   }
 }
 
-// ─── Grid de estudiantes ──────────────────────────────────────────────────────
-
 class _StudentGrid extends StatelessWidget {
-  const _StudentGrid({
-    required this.students,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
+  const _StudentGrid({required this.students, required this.onEdit, required this.onDelete});
   final List<StudentEntity> students;
   final ValueChanged<StudentEntity> onEdit;
   final ValueChanged<StudentEntity> onDelete;
@@ -293,144 +193,90 @@ class _StudentGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.md),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final columns = constraints.maxWidth > 900
-              ? 4
-              : constraints.maxWidth > 600
-                  ? 3
-                  : 2;
-
-          return GridView.builder(
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: columns,
-              crossAxisSpacing: AppSpacing.md,
-              mainAxisSpacing: AppSpacing.md,
-              childAspectRatio: 1.1,
-            ),
-            itemCount: students.length,
-            itemBuilder: (_, index) => _StudentCard(
-              student: students[index],
-              onEdit: onEdit,
-              onDelete: onDelete,
-            ),
-          );
-        },
-      ),
+      child: LayoutBuilder(builder: (_, constraints) {
+        final cols = constraints.maxWidth > 900 ? 4 : constraints.maxWidth > 600 ? 3 : 2;
+        return GridView.builder(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: cols, crossAxisSpacing: AppSpacing.md,
+            mainAxisSpacing: AppSpacing.md, childAspectRatio: 0.85,
+          ),
+          itemCount: students.length,
+          itemBuilder: (_, i) => _StudentCard(student: students[i], onEdit: onEdit, onDelete: onDelete),
+        );
+      }),
     );
   }
 }
 
 class _StudentCard extends StatelessWidget {
-  const _StudentCard({
-    required this.student,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
+  const _StudentCard({required this.student, required this.onEdit, required this.onDelete});
   final StudentEntity student;
   final ValueChanged<StudentEntity> onEdit;
   final ValueChanged<StudentEntity> onDelete;
 
   @override
   Widget build(BuildContext context) {
+    final gradeColor = AppColors.forGrade(student.grade);
     return Card(
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () => onEdit(student),
+        mouseCursor: SystemMouseCursors.click,
         borderRadius: const BorderRadius.all(AppRadius.large),
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Stack(
                 children: [
-                  StudentAvatar(
-                    initials: student.initials,
-                    grade: student.grade,
-                    radius: 22,
+                  Container(
+                    width: double.infinity,
+                    color: gradeColor.withOpacity(0.07),
+                    child: Center(child: StudentAvatar(initials: student.initials, grade: student.grade, radius: 36)),
                   ),
-                  const Spacer(),
-                  PopupMenuButton<String>(
-                    icon: const Icon(
-                      Icons.more_vert_rounded,
-                      size: 18,
-                      color: AppColors.textHint,
+                  // TODO(back): reemplazar StudentAvatar con Image.network(student.photoUrl)
+                  Positioned(
+                    top: AppSpacing.xs, right: AppSpacing.xs,
+                    child: MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                      child: PopupMenuButton<String>(
+                        tooltip: 'Opciones',
+                        color: AppColors.surfaceCard,
+                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(AppRadius.large), side: BorderSide(color: AppColors.border)),
+                        icon: const Icon(Icons.more_vert_rounded, size: 18, color: AppColors.textHint),
+                        itemBuilder: (_) => [
+                          PopupMenuItem(mouseCursor: SystemMouseCursors.click, value: 'edit', child: const Row(children: [Icon(Icons.edit_outlined, size: 16), SizedBox(width: 8), Text('Editar')])),
+                          PopupMenuItem(mouseCursor: SystemMouseCursors.click, value: 'delete', child: const Row(children: [Icon(Icons.delete_outline_rounded, size: 16, color: AppColors.error), SizedBox(width: 8), Text('Eliminar', style: TextStyle(color: AppColors.error))])),
+                        ],
+                        onSelected: (action) {
+                          if (action == 'edit') onEdit(student);
+                          if (action == 'delete') onDelete(student);
+                        },
+                      ),
                     ),
-                    itemBuilder: (_) => [
-                      const PopupMenuItem(
-                        value: 'edit',
-                        child: Row(
-                          children: [
-                            Icon(Icons.edit_outlined, size: 16),
-                            SizedBox(width: 8),
-                            Text('Editar'),
-                          ],
-                        ),
-                      ),
-                      const PopupMenuItem(
-                        value: 'delete',
-                        child: Row(
-                          children: [
-                            Icon(Icons.delete_outline_rounded,
-                                size: 16, color: AppColors.error),
-                            SizedBox(width: 8),
-                            Text('Eliminar',
-                                style: TextStyle(color: AppColors.error)),
-                          ],
-                        ),
-                      ),
-                    ],
-                    onSelected: (action) {
-                      if (action == 'edit') onEdit(student);
-                      if (action == 'delete') onDelete(student);
-                    },
                   ),
                 ],
               ),
-              Column(
+            ),
+            const Divider(height: 1, color: AppColors.border),
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    student.fullName,
-                    style: Theme.of(context).textTheme.titleMedium,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  Text(student.fullName, style: Theme.of(context).textTheme.titleMedium, maxLines: 1, overflow: TextOverflow.ellipsis),
                   const SizedBox(height: AppSpacing.xs),
-                  Row(
-                    children: [
-                      GradeBadge(grade: student.grade, size: GradeBadgeSize.small),
-                      const SizedBox(width: AppSpacing.sm),
-                      Text(
-                        '${student.age} años',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontSize: 12,
-                            ),
-                      ),
-                    ],
-                  ),
+                  Row(children: [
+                    GradeBadge(grade: student.grade, size: GradeBadgeSize.small),
+                    const SizedBox(width: AppSpacing.sm),
+                    Text('${student.age} años', style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 12)),
+                  ]),
                 ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
-    );
-  }
-}
-
-// ─── Estados: Loading y Empty ─────────────────────────────────────────────────
-
-class _LoadingState extends StatelessWidget {
-  const _LoadingState();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: CircularProgressIndicator(color: AppColors.primary),
     );
   }
 }
@@ -441,50 +287,24 @@ class _EmptyState extends StatelessWidget {
   final VoidCallback onAdd;
 
   @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.08),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              hasFilters ? Icons.search_off_rounded : Icons.people_outline_rounded,
-              size: 40,
-              color: AppColors.primary.withOpacity(0.5),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            hasFilters
-                ? 'No se encontraron estudiantes'
-                : 'Aún no hay estudiantes',
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: AppColors.textSecondary,
-                ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            hasFilters
-                ? 'Intenta con otro nombre o grado'
-                : 'Agrega el primer estudiante para comenzar',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          if (!hasFilters) ...[
-            const SizedBox(height: AppSpacing.lg),
-            ElevatedButton.icon(
-              onPressed: onAdd,
-              icon: const Icon(Icons.person_add_alt_1_rounded, size: 18),
-              label: const Text('Agregar estudiante'),
-            ),
-          ],
+  Widget build(BuildContext context) => Center(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(width: 80, height: 80,
+          decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.08), shape: BoxShape.circle),
+          child: Icon(hasFilters ? Icons.search_off_rounded : Icons.people_outline_rounded, size: 40, color: AppColors.primary.withOpacity(0.5))),
+        const SizedBox(height: AppSpacing.md),
+        Text(hasFilters ? 'No se encontraron estudiantes' : 'Aún no hay estudiantes',
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: AppColors.textSecondary)),
+        const SizedBox(height: AppSpacing.sm),
+        Text(hasFilters ? 'Intenta con otro nombre o grado' : 'Agrega el primer estudiante para comenzar',
+            style: Theme.of(context).textTheme.bodyMedium),
+        if (!hasFilters) ...[
+          const SizedBox(height: AppSpacing.lg),
+          ElevatedButton.icon(onPressed: onAdd, icon: const Icon(Icons.person_add_alt_1_rounded, size: 18), label: const Text('Agregar estudiante')),
         ],
-      ),
-    );
-  }
+      ],
+    ),
+  );
 }

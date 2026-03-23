@@ -1,5 +1,3 @@
-/// Entidad de dominio: Estudiante.
-/// Esta es la representación pura, sin dependencias de UI ni BD.
 class StudentEntity {
   final String id;
   final String fullName;
@@ -7,6 +5,7 @@ class StudentEntity {
   final int age;
   final bool isActive;
   final DateTime createdAt;
+  final List<String> conditions;
 
   const StudentEntity({
     required this.id,
@@ -15,6 +14,7 @@ class StudentEntity {
     required this.age,
     this.isActive = true,
     required this.createdAt,
+    this.conditions = const [],
   });
 
   StudentEntity copyWith({
@@ -24,6 +24,7 @@ class StudentEntity {
     int? age,
     bool? isActive,
     DateTime? createdAt,
+    List<String>? conditions,
   }) {
     return StudentEntity(
       id: id ?? this.id,
@@ -32,10 +33,10 @@ class StudentEntity {
       age: age ?? this.age,
       isActive: isActive ?? this.isActive,
       createdAt: createdAt ?? this.createdAt,
+      conditions: conditions ?? this.conditions,
     );
   }
 
-  /// Nombre corto (primer nombre) — útil para UI de estudiantes.
   String get firstName => fullName.split(' ').first;
 
   /// Iniciales para avatar.

@@ -1,12 +1,8 @@
 import 'package:uuid/uuid.dart';
-
 import '../../../../core/errors/app_failure.dart';
 import '../../domain/entities/student_entity.dart';
 import '../../domain/repositories/student_repository.dart';
 
-/// Implementación mock del repositorio.
-/// Usa memoria local. El Back la reemplazará con la versión MongoDB.
-/// El contrato (StudentRepository) NO cambia, solo esta implementación.
 class MockStudentRepository implements StudentRepository {
   MockStudentRepository() {
     _seed();
@@ -15,7 +11,6 @@ class MockStudentRepository implements StudentRepository {
   final _uuid = const Uuid();
   final List<StudentEntity> _students = [];
 
-  /// Datos de prueba para que el equipo pueda ver la app funcionando.
   void _seed() {
     final seeds = [
       ('María González', 1, 7),
@@ -77,17 +72,17 @@ class MockStudentRepository implements StudentRepository {
     required String fullName,
     required int grade,
     required int age,
+    List<String> conditions = const [],
   }) async {
     await _simulateDelay();
-
     final student = StudentEntity(
       id: _uuid.v4(),
       fullName: fullName.trim(),
       grade: grade,
       age: age,
+      conditions: conditions,
       createdAt: DateTime.now(),
     );
-
     _students.add(student);
     return (student: student, failure: null);
   }
@@ -98,22 +93,12 @@ class MockStudentRepository implements StudentRepository {
     required String fullName,
     required int grade,
     required int age,
+    List<String> conditions = const [],
   }) async {
     await _simulateDelay();
-
     final index = _students.indexWhere((s) => s.id == id);
-    if (index == -1) {
-      return (
-        student: null,
-        failure: const NotFoundFailure('Estudiante no encontrado'),
-      );
-    }
-
-    final updated = _students[index].copyWith(
-      fullName: fullName.trim(),
-      grade: grade,
-      age: age,
-    );
+    if (index == -1) return (student: null, failure: const NotFoundFailure('Estudiante no encontrado'));
+    final updated = _students[index].copyWith(fullName: fullName.trim(), grade: grade, age: age, conditions: conditions);
     _students[index] = updated;
     return (student: updated, failure: null);
   }
