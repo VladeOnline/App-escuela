@@ -6,7 +6,7 @@ import '../../../../shared/widgets/app_snackbar.dart';
 import '../../../../shared/widgets/confirm_dialog.dart';
 import '../../../../shared/widgets/grade_badge.dart';
 import '../../domain/entities/student_entity.dart';
-import '../bloc/students_notifier.dart';
+import '../../../students/presentation/notifiers/students_notifier.dart';
 import 'student_form_page.dart';
 
 /// Pantalla principal de gestión de estudiantes.

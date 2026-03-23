@@ -4,7 +4,7 @@ import '../../../../core/constants/app_routes.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../students/data/repositories/mock_student_repository.dart';
 import '../../../students/domain/usecases/validate_student_usecase.dart';
-import '../../../students/presentation/bloc/students_notifier.dart';
+import '../../../students/presentation/notifiers/students_notifier.dart';
 import '../../../students/presentation/pages/student_list_page.dart';
 
 /// Pantalla principal del docente.

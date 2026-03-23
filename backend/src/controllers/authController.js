@@ -60,5 +60,29 @@ const registrarDocente = async (req, res) => {
     res.status(500).json({ message: 'Error en el servidor', error: error.message });
   }
 };
+const registrarEstudiante = async (req, res) => {
+  try {
+    const { nombre, username, password, edad, grado } = req.body;
 
-module.exports = { login, registrarDocente };
+    const existe = await Usuario.findOne({ username });
+    if (existe) {
+      return res.status(400).json({ message: 'El usuario ya existe' });
+    }
+
+    const password_hash = await bcrypt.hash(password, 10);
+    const usuario = new Usuario({
+      nombre,
+      username,
+      password_hash,
+      rol: 'estudiante'
+    });
+
+    await usuario.save();
+    res.status(201).json({ message: 'Estudiante registrado correctamente' });
+
+  } catch (error) {
+    res.status(500).json({ message: 'Error en el servidor', error: error.message });
+  }
+};
+
+module.exports = { login, registrarDocente, registrarEstudiante };

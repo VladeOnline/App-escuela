@@ -89,10 +89,11 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     setState(() => _isLoading = true);
 
     final auth = context.read<AuthNotifier>();
-    final success = await auth.login(
-      password: _passwordController.text,
-      role: _selectedRole!,
-    );
+   final success = await auth.login(
+  username: _usernameController.text,
+  password: _passwordController.text,
+  role: _selectedRole ?? AppConstants.roleTeacher,
+);
 
     if (!mounted) return;
     setState(() => _isLoading = false);
