@@ -3,10 +3,10 @@ import 'package:provider/provider.dart';
 
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../../../features/auth/auth_notifier.dart';
+import '../../../../features/auth/presentation/auth_notifier.dart';
 import '../../../../features/students/data/repositories/mock_student_repository.dart';
 import '../../../../features/students/domain/usecases/validate_student_usecase.dart';
-import '../../../../features/students/presentation/bloc/students_notifier.dart';
+import '../../../../features/students/presentation/notifiers/students_notifier.dart';
 import '../../../../features/modules/data/repositories/mock_module_repository.dart';
 import '../../../../features/modules/domain/entities/module_entities.dart';
 import '../../../../features/modules/presentation/pages/modules_page.dart';
@@ -111,7 +111,6 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
             child: Column(
               children: [
                 TeacherTopbar(
-                  title: _sectionTitles[_selectedIndex] ?? 'Inicio',
                   teacherName: _teacherName,
                   onLogout: _onLogout,
                 ),
