@@ -8,4 +8,4 @@ const resultadoSchema = new mongoose.Schema({
   fecha: { type: Date, default: Date.now }
 });
 
-module.exports = mongoose.model('Resultado', resultadoSchema);
+module.exports = mongoose.model('Resultado', resultadoSchema, 'resultados')

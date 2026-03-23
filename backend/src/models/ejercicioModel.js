@@ -14,4 +14,4 @@ const ejercicioSchema = new mongoose.Schema({
   activo: { type: Boolean, default: true }
 });
  
-module.exports = mongoose.model('Ejercicio', ejercicioSchema);
+module.exports = mongoose.model('Ejercicio', ejercicioSchema, 'ejercicios');
