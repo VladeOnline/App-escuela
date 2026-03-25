@@ -84,33 +84,33 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     });
   }
 
-  Future<void> _onLogin() async {
-    if (!_formKey.currentState!.validate()) return;
-    setState(() => _isLoading = true);
+ Future<void> _onLogin() async {
+  if (!_formKey.currentState!.validate()) return;
+  setState(() => _isLoading = true);
 
-    final auth = context.read<AuthNotifier>();
-   final success = await auth.login(
-  username: _usernameController.text,
-  password: _passwordController.text,
-  role: _selectedRole ?? AppConstants.roleTeacher,
-);
+  final auth = context.read<AuthNotifier>();
+  final success = await auth.login(
+    username: _usernameController.text,
+    password: _passwordController.text,
+    role: _selectedRole ?? AppConstants.roleTeacher,
+  );
 
-    if (!mounted) return;
-    setState(() => _isLoading = false);
+  if (!mounted) return;
+  setState(() => _isLoading = false);
 
-    if (success) {
-      final route = _selectedRole == AppConstants.roleTeacher
-          ? AppRoutes.teacherHome
-          : AppRoutes.studentHome;
-      Navigator.of(context).pushReplacementNamed(route);
-    } else {
-      final failure = auth.state.failure;
-      if (failure != null) {
-        AppSnackbar.showError(context, failure.message);
-        auth.clearFailure();
-      }
+  if (success) {
+    final route = _selectedRole == AppConstants.roleTeacher
+        ? AppRoutes.teacherHome
+        : AppRoutes.studentHome;
+    Navigator.of(context).pushReplacementNamed(route);
+  } else {
+    final failure = auth.state.failure;
+    if (failure != null) {
+      AppSnackbar.showError(context, failure.message);
+      auth.clearFailure();
     }
   }
+}
 
   @override
   Widget build(BuildContext context) {
