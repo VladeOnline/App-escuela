@@ -8,4 +8,4 @@ const evaluacionSchema = new mongoose.Schema({
   activa: { type: Boolean, default: true }
 });
 
-module.exports = mongoose.model('Evaluacion', evaluacionSchema);
+module.exports = mongoose.model('Evaluacion', evaluacionSchema, 'evaluaciones');
