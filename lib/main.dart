@@ -4,7 +4,7 @@ import 'package:window_manager/window_manager.dart';
 
 import 'core/constants/app_routes.dart';
 import 'core/theme/app_theme.dart';
-import 'features/auth/auth_notifier.dart';
+import 'features/auth/presentation/auth_notifier.dart';
 import 'features/auth/presentation/pages/login_page.dart';
 import 'features/students/presentation/pages/student_home_page.dart';
 import 'features/teacher/presentation/pages/teacher_dashboard_page.dart';

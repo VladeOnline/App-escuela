@@ -5,7 +5,7 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../shared/widgets/app_snackbar.dart';
-import '../../auth_notifier.dart';
+import '../auth_notifier.dart';
 import '../widgets/animated_login_background.dart';
 import '../widgets/login_credentials_card.dart';
 import '../widgets/login_left_panel.dart';

@@ -3,10 +3,9 @@ import 'package:provider/provider.dart';
 
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../../../features/auth/auth_notifier.dart';
+import '../../../auth/presentation/auth_notifier.dart';
 import '../../../../features/students/data/repositories/mock_student_repository.dart';
 import '../../../../features/students/domain/usecases/validate_student_usecase.dart';
-import '../../../../features/students/presentation/bloc/students_notifier.dart';
 import '../../../../features/modules/data/repositories/mock_module_repository.dart';
 import '../../../../features/modules/domain/entities/module_entities.dart';
 import '../../../../features/modules/presentation/pages/modules_page.dart';
@@ -14,6 +13,7 @@ import '../../../../features/students/presentation/pages/student_list_page.dart'
 import '../widgets/dashboard/stats_overview_row.dart';
 import '../widgets/layout/teacher_sidebar.dart';
 import '../widgets/layout/teacher_topbar.dart';
+import '../../../students/presentation/notifiers/students_notifier.dart';
 
 /// Shell principal del panel docente.
 ///

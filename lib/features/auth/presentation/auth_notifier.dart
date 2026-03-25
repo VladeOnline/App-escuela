@@ -57,7 +57,7 @@ class AuthNotifier extends ChangeNotifier {
   ///   setAuth(response.token, response.role);
 Future<bool> login({
   required String password,
-  required String role,
+  required String role, required String username,
 }) async {
   _emit(_state.copyWith(status: AuthStatus.loading));
 
