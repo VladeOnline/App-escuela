@@ -4,10 +4,10 @@ import 'package:window_manager/window_manager.dart';
 
 import 'core/constants/app_routes.dart';
 import 'core/theme/app_theme.dart';
-import 'features/auth/auth_notifier.dart';
+import 'features/auth/presentation/auth_notifier.dart';
 import 'features/auth/presentation/pages/login_page.dart';
-import 'features/auth/presentation/pages/student_home_page.dart';
-import 'features/auth/presentation/pages/teacher_home_page.dart';
+import 'features/students/presentation/pages/student_home_page.dart';
+import 'features/teacher/presentation/pages/teacher_dashboard_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,7 +45,7 @@ class AppEscuela extends StatelessWidget {
         initialRoute: AppRoutes.login,
         routes: {
           AppRoutes.login: (_) => const LoginPage(),
-          AppRoutes.teacherHome: (_) => const TeacherHomePage(),
+          AppRoutes.teacherHome: (_) => const TeacherDashboardPage(),
           AppRoutes.studentHome: (_) => const StudentHomePage(),
         },
       ),

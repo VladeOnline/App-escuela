@@ -3,8 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../auth_notifier.dart';
-
+import '../../../auth/presentation/auth_notifier.dart';
 /// Pantalla principal del estudiante — Sprint 1 (placeholder).
 /// El módulo completo se desarrolla en Sprint 3.
 /// Por ahora permite verificar que el login por rol funciona correctamente.
