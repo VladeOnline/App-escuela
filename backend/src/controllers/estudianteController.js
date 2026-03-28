@@ -1,4 +1,6 @@
 const Estudiante = require('../models/studentModel');
+const Usuario = require('../models/userModel');
+const bcrypt = require('bcryptjs');
 
 const obtenerEstudiantes = async (req, res) => {
   try {
@@ -18,9 +20,40 @@ const obtenerEstudiantes = async (req, res) => {
 const crearEstudiante = async (req, res) => {
   try {
     const { nombre, edad, grado } = req.body;
-    const estudiante = new Estudiante({ nombre, edad, grado });
+
+    const username = nombre.trim();
+    const passwordPlana = `${nombre.trim()}${edad}`;
+    const password_hash = await bcrypt.hash(passwordPlana, 10);
+
+    const usuarioExiste = await Usuario.findOne({ username });
+    if (usuarioExiste) {
+      return res.status(400).json({ message: 'Ya existe un estudiante con ese nombre' });
+    }
+
+    const usuario = new Usuario({
+      nombre,
+      username,
+      password_hash,
+      rol: 'estudiante'
+    });
+    await usuario.save();
+
+    const estudiante = new Estudiante({
+      usuario_id: usuario._id,
+      nombre,
+      edad,
+      grado
+    });
     await estudiante.save();
-    res.status(201).json(estudiante);
+
+    res.status(201).json({
+      estudiante,
+      credenciales: {
+        username,
+        password: passwordPlana
+      }
+    });
+
   } catch (error) {
     res.status(500).json({ message: 'Error al crear estudiante', error: error.message });
   }
