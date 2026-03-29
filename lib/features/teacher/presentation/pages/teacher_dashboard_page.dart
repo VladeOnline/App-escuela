@@ -414,7 +414,6 @@ class _StudentsCardState extends State<_StudentsCard> {
                       ),
                       child: DropdownButton<int?>(
                         value: _grade,
-                        mouseCursor: SystemMouseCursors.click,
                         hint: const Text(
                           'Grado',
                           style: TextStyle(fontFamily: 'Nunito', fontSize: 14),
