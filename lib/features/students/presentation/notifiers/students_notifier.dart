@@ -156,8 +156,12 @@ class StudentsNotifier extends ChangeNotifier {
     }
 
     await loadStudents();
+    final generatedUsername = result.generatedUsername ?? fullName.trim();
+    final generatedPassword =
+        result.generatedPassword ?? '${fullName.trim()}${ageText.trim()}';
     _emit(_state.copyWith(
-      successMessage: 'Estudiante registrado correctamente',
+      successMessage:
+          'Estudiante registrado. Usuario: $generatedUsername | Contraseña: $generatedPassword',
     ));
     return true;
   }

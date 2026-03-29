@@ -6,6 +6,9 @@ import 'core/constants/app_routes.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/presentation/auth_notifier.dart';
 import 'features/auth/presentation/pages/login_page.dart';
+import 'features/students/data/repositories/api_student_repository.dart';
+import 'features/students/domain/usecases/validate_student_usecase.dart';
+import 'features/students/presentation/notifiers/students_notifier.dart';
 import 'features/students/presentation/pages/student_home_page.dart';
 import 'features/teacher/presentation/pages/teacher_dashboard_page.dart';
 
@@ -22,7 +25,7 @@ void main() async {
       await windowManager.show();
       await windowManager.focus();
       await Future.delayed(const Duration(milliseconds: 200));
-      await windowManager.maximize(); 
+      await windowManager.maximize();
     },
   );
 
@@ -37,6 +40,16 @@ class AppEscuela extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthNotifier()),
+        ChangeNotifierProxyProvider<AuthNotifier, StudentsNotifier>(
+          create: (_) => StudentsNotifier(
+            repository: ApiStudentRepository(token: ''),
+            validator: ValidateStudentUseCase(),
+          ),
+          update: (_, auth, previous) => StudentsNotifier(
+            repository: ApiStudentRepository(token: auth.state.token ?? ''),
+            validator: ValidateStudentUseCase(),
+          ),
+        ),
       ],
       child: MaterialApp(
         title: 'Refuerzo Escolar',

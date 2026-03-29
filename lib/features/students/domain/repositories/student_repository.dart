@@ -15,7 +15,13 @@ abstract interface class StudentRepository {
   });
 
   /// Registra un nuevo estudiante (RF-01).
-  Future<({StudentEntity? student, AppFailure? failure})> create({
+  Future<
+      ({
+        StudentEntity? student,
+        String? generatedUsername,
+        String? generatedPassword,
+        AppFailure? failure
+      })> create({
     required String fullName,
     required int grade,
     required int age,

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../core/constants/app_constants.dart';
+import '../core/errors/app_failure.dart';
 
 class AuthService {
   static Future<Map<String, dynamic>> login(
@@ -18,7 +19,13 @@ class AuthService {
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      throw Exception('Credenciales incorrectas');
+      try {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final message = data['message']?.toString();
+        throw AuthFailure(message ?? 'Credenciales incorrectas.');
+      } catch (_) {
+        throw const AuthFailure('Credenciales incorrectas.');
+      }
     }
   }
 }

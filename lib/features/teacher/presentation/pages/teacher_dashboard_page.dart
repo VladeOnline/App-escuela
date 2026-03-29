@@ -4,8 +4,6 @@ import 'package:provider/provider.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../auth/presentation/auth_notifier.dart';
-import '../../../../features/students/data/repositories/mock_student_repository.dart';
-import '../../../../features/students/domain/usecases/validate_student_usecase.dart';
 import '../../../../features/modules/data/repositories/mock_module_repository.dart';
 import '../../../../features/modules/domain/entities/module_entities.dart';
 import '../../../../features/modules/presentation/pages/modules_page.dart';
@@ -36,12 +34,6 @@ class TeacherDashboardPage extends StatefulWidget {
 class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
   int _selectedIndex = 0;
 
-  /// Repositorio mock — el Back lo reemplazará con la implementación real.
-  late final StudentsNotifier _studentsNotifier = StudentsNotifier(
-    repository: MockStudentRepository(),
-    validator: const ValidateStudentUseCase(),
-  );
-
   // Repositorio de módulos — compartido entre Lectura y Escritura.
   final _moduleRepository = MockModuleRepository();
 
@@ -55,7 +47,6 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
 
   @override
   void dispose() {
-    _studentsNotifier.dispose();
     super.dispose();
   }
 
@@ -71,9 +62,11 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
   }
 
   Widget _buildContent(int index) {
+    final studentsNotifier = context.read<StudentsNotifier>();
+
     switch (index) {
       case 0:
-        return _DashboardView(notifier: _studentsNotifier);
+        return _DashboardView(notifier: studentsNotifier);
       case 1:
         return ModulesPage(
           moduleType: ModuleType.reading,

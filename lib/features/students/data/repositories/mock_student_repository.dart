@@ -73,23 +73,36 @@ class MockStudentRepository implements StudentRepository {
   }
 
   @override
-  Future<({StudentEntity? student, AppFailure? failure})> create({
+  Future<
+      ({
+        StudentEntity? student,
+        String? generatedUsername,
+        String? generatedPassword,
+        AppFailure? failure
+      })> create({
     required String fullName,
     required int grade,
     required int age,
   }) async {
     await _simulateDelay();
 
+    final trimmedName = fullName.trim();
+
     final student = StudentEntity(
       id: _uuid.v4(),
-      fullName: fullName.trim(),
+      fullName: trimmedName,
       grade: grade,
       age: age,
       createdAt: DateTime.now(),
     );
 
     _students.add(student);
-    return (student: student, failure: null);
+    return (
+      student: student,
+      generatedUsername: trimmedName,
+      generatedPassword: '$trimmedName$age',
+      failure: null,
+    );
   }
 
   @override

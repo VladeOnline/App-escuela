@@ -21,6 +21,10 @@ final class AuthFailure extends AppFailure {
   const AuthFailure(super.message);
 }
 
+final class ServerFailure extends AppFailure {
+  const ServerFailure(super.message);
+}
+
 final class UnexpectedFailure extends AppFailure {
   const UnexpectedFailure(super.message);
 }

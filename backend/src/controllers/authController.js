@@ -1,4 +1,5 @@
 const Usuario = require('../models/userModel');
+const Estudiante = require('../models/studentModel');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
@@ -30,7 +31,6 @@ const login = async (req, res) => {
         rol: usuario.rol
       }
     });
-
   } catch (error) {
     res.status(500).json({ message: 'Error en el servidor', error: error.message });
   }
@@ -54,12 +54,12 @@ const registrarDocente = async (req, res) => {
     });
 
     await usuario.save();
-    res.status(201).json({ message: 'Docente registrado correctamente' });
-
+    res.status(201).json({ message: 'Docente registrado correctamente', usuario });
   } catch (error) {
     res.status(500).json({ message: 'Error en el servidor', error: error.message });
   }
 };
+
 const registrarEstudiante = async (req, res) => {
   try {
     const { nombre, username, password, edad, grado } = req.body;
@@ -78,8 +78,21 @@ const registrarEstudiante = async (req, res) => {
     });
 
     await usuario.save();
-    res.status(201).json({ message: 'Estudiante registrado correctamente' });
 
+    const estudiante = new Estudiante({
+      usuario_id: usuario._id,
+      nombre,
+      edad,
+      grado
+    });
+
+    await estudiante.save();
+
+    res.status(201).json({
+      message: 'Estudiante registrado correctamente',
+      usuario,
+      estudiante
+    });
   } catch (error) {
     res.status(500).json({ message: 'Error en el servidor', error: error.message });
   }
