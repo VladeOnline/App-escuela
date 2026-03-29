@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
-
 import '../../../../../core/theme/app_theme.dart';
 
-// ─── Modelo de ítem de navegación ────────────────────────────────────────────
+// ─── Modelos ───
 
-/// Representa una entrada del menú lateral.
-/// Puede tener subitems (submenu desplegable).
 class NavItem {
   const NavItem({
     required this.icon,
@@ -14,16 +11,11 @@ class NavItem {
     this.index,
     this.children = const [],
   });
-
   final IconData icon;
   final IconData activeIcon;
   final String label;
-
-  /// null si el ítem tiene subitems (es un grupo, no una página).
   final int? index;
-
   final List<NavSubItem> children;
-
   bool get hasChildren => children.isNotEmpty;
 }
 
@@ -33,20 +25,13 @@ class NavSubItem {
     required this.label,
     required this.index,
   });
-
   final IconData icon;
   final String label;
   final int index;
 }
 
-// ─── Sidebar ──────────────────────────────────────────────────────────────────
+// ─── Sidebar ───
 
-/// Sidebar colapsable del panel docente.
-///
-/// Estado de colapso: [ValueNotifier<bool>] local porque es estado
-/// puramente de UI (no afecta al negocio ni a otros widgets).
-/// Regla: si el estado no cruza el árbol de widgets ni tiene lógica
-/// de negocio → queda en el widget, no en un Notifier global.
 class TeacherSidebar extends StatefulWidget {
   const TeacherSidebar({
     super.key,
@@ -55,117 +40,76 @@ class TeacherSidebar extends StatefulWidget {
     required this.onSelectIndex,
     required this.onLogout,
   });
-
   final int selectedIndex;
   final String teacherName;
   final ValueChanged<int> onSelectIndex;
   final VoidCallback onLogout;
 
-  /// Ancho cuando está expandido.
-  static const double expandedWidth = 220;
-
-  /// Ancho cuando está colapsado (solo íconos).
-  static const double collapsedWidth = 68;
+  static const double expandedWidth = 260;
+  static const double collapsedWidth = 72;
 
   @override
   State<TeacherSidebar> createState() => _TeacherSidebarState();
 }
 
 class _TeacherSidebarState extends State<TeacherSidebar> {
-  /// Estado de colapso — local porque es puramente UI.
   bool _collapsed = false;
-
-  /// Qué grupo de subitems está expandido (por label del NavItem padre).
   String? _expandedGroup;
 
   static const _navItems = [
-    NavItem(
-      icon: Icons.home_outlined,
-      activeIcon: Icons.home_rounded,
-      label: 'Inicio',
-      index: 0,
-    ),
+    NavItem(icon: Icons.home_outlined, activeIcon: Icons.home_rounded, label: 'Inicio', index: 0),
     NavItem(
       icon: Icons.menu_book_outlined,
       activeIcon: Icons.menu_book_rounded,
       label: 'Módulos',
       children: [
-        NavSubItem(
-          icon: Icons.chrome_reader_mode_outlined,
-          label: 'Lectura',
-          index: 1,
-        ),
-        NavSubItem(
-          icon: Icons.edit_note_rounded,
-          label: 'Escritura',
-          index: 2,
-        ),
+        NavSubItem(icon: Icons.chrome_reader_mode_outlined, label: 'Lectura', index: 1),
+        NavSubItem(icon: Icons.edit_note_rounded, label: 'Escritura', index: 2),
       ],
     ),
-    NavItem(
-      icon: Icons.bar_chart_outlined,
-      activeIcon: Icons.bar_chart_rounded,
-      label: 'Reportes',
-      index: 3,
-    ),
-    NavItem(
-      icon: Icons.settings_outlined,
-      activeIcon: Icons.settings_rounded,
-      label: 'Ajustes',
-      index: 4,
-    ),
+    NavItem(icon: Icons.bar_chart_outlined, activeIcon: Icons.bar_chart_rounded, label: 'Reportes', index: 3),
+    NavItem(icon: Icons.settings_outlined, activeIcon: Icons.settings_rounded, label: 'Ajustes', index: 4),
   ];
 
   void _toggleCollapse() => setState(() {
         _collapsed = !_collapsed;
-        // Al colapsar cerramos cualquier submenu abierto.
         if (_collapsed) _expandedGroup = null;
       });
 
   void _toggleGroup(String label) => setState(() {
-        _expandedGroup = _expandedGroup == label ? null : label;
+        if (_collapsed) {
+          _collapsed = false;
+          _expandedGroup = label;
+        } else {
+          _expandedGroup = _expandedGroup == label ? null : label;
+        }
       });
 
-  bool _isGroupActive(NavItem item) {
-    return item.children.any((sub) => sub.index == widget.selectedIndex);
-  }
+  bool _isGroupActive(NavItem item) =>
+      item.children.any((s) => s.index == widget.selectedIndex);
 
   @override
   Widget build(BuildContext context) {
-    final width =
-        _collapsed ? TeacherSidebar.collapsedWidth : TeacherSidebar.expandedWidth;
-
     return AnimatedContainer(
       duration: const Duration(milliseconds: 220),
       curve: Curves.easeInOut,
-      width: width,
+      width: _collapsed ? TeacherSidebar.collapsedWidth : TeacherSidebar.expandedWidth,
       decoration: const BoxDecoration(
         color: AppColors.surfaceCard,
         border: Border(right: BorderSide(color: AppColors.border)),
       ),
       child: Column(
         children: [
-          // ── Header: logo + botón de colapso ──
-          _SidebarHeader(
+          _TeacherAvatarHeader(
+            teacherName: widget.teacherName,
             collapsed: _collapsed,
             onToggle: _toggleCollapse,
           ),
-
-          // ── Saludo + avatar ──
-          if (!_collapsed)
-            _TeacherGreeting(teacherName: widget.teacherName),
-
-          const SizedBox(height: AppSpacing.sm),
           const Divider(height: 1, color: AppColors.border),
           const SizedBox(height: AppSpacing.sm),
-
-          // ── Navegación ──
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.sm,
-                vertical: AppSpacing.xs,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
               children: _navItems.map((item) {
                 if (item.hasChildren) {
                   return _GroupNavItem(
@@ -187,160 +131,109 @@ class _TeacherSidebarState extends State<TeacherSidebar> {
               }).toList(),
             ),
           ),
-
           const Divider(height: 1, color: AppColors.border),
-
-          // ── Botón de cerrar sesión ──
-          _LogoutButton(
-            collapsed: _collapsed,
-            onLogout: widget.onLogout,
-          ),
+          _LogoutButton(collapsed: _collapsed, onLogout: widget.onLogout),
         ],
       ),
     );
   }
 }
 
-// ─── Header con logo y toggle ─────────────────────────────────────────────────
+// ─── Avatar header ───
 
-class _SidebarHeader extends StatelessWidget {
-  const _SidebarHeader({
+// TODO(back): reemplazar [teacherName] con el nombre real desde AuthNotifier.state.
+class _TeacherAvatarHeader extends StatelessWidget {
+  const _TeacherAvatarHeader({
+    required this.teacherName,
     required this.collapsed,
     required this.onToggle,
   });
-
+  final String teacherName;
   final bool collapsed;
   final VoidCallback onToggle;
 
+  String get _greeting {
+    final h = DateTime.now().hour;
+    if (h < 12) return '¡Buenos días,';
+    if (h < 18) return '¡Buenas tardes,';
+    return '¡Buenas noches,';
+  }
+
+  Widget _avatar(double size) => Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: AppColors.primary, width: 2.5),
+          boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.15), blurRadius: 8, offset: const Offset(0, 2))],
+        ),
+        // TODO(back): reemplazar Image.asset con la imagen real del docente.
+       // Conectar con el campo de foto de perfil que devuelva el endpoint de login.
+        child: ClipOval(child: Image.asset('assets/images/buho_profesor.png', fit: BoxFit.cover)),
+      );
+
+  Widget _collapseBtn({required bool expanded}) => MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: IconButton(
+          mouseCursor: SystemMouseCursors.click,
+          onPressed: onToggle,
+          tooltip: expanded ? 'Colapsar menú' : 'Expandir menú',
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          icon: AnimatedRotation(
+            turns: expanded ? 0 : 0.5,
+            duration: const Duration(milliseconds: 220),
+            child: const Icon(Icons.chevron_left_rounded, color: AppColors.textHint, size: 22),
+          ),
+        ),
+      );
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 60,
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-      child: Row(
+    if (collapsed) {
+      return Column(
         children: [
-          // Logo de la app
-          Container(
-            width: 36,
-            height: 36,
-            decoration: const BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.all(AppRadius.medium),
-            ),
-            child: const Icon(Icons.school_rounded, color: Colors.white, size: 20),
-          ),
-          if (!collapsed) ...[
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              child: Text(
-                'Refuerzo Escolar',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w800,
-                    ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-          const Spacer(),
-          // Botón de colapso
-          IconButton(
-            onPressed: onToggle,
-            tooltip: collapsed ? 'Expandir menú' : 'Colapsar menú',
-            icon: AnimatedRotation(
-              turns: collapsed ? 0.5 : 0,
-              duration: const Duration(milliseconds: 220),
-              child: const Icon(
-                Icons.chevron_left_rounded,
-                color: AppColors.textHint,
-                size: 22,
-              ),
-            ),
+          SizedBox(height: 36, child: Center(child: _collapseBtn(expanded: false))),
+          const Divider(height: 1, color: AppColors.border),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+            child: Center(child: _avatar(50)),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// ─── Saludo del docente ───────────────────────────────────────────────────────
-
-class _TeacherGreeting extends StatelessWidget {
-  const _TeacherGreeting({required this.teacherName});
-
-  final String teacherName;
-
-  /// Devuelve el saludo según la hora del día.
-  String get _greeting {
-    final hour = DateTime.now().hour;
-    if (hour < 12) return '¡Buenos días';
-    if (hour < 18) return '¡Buenas tardes';
-    return '¡Buenas noches';
-  }
-
-  @override
-  Widget build(BuildContext context) {
+      );
+    }
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.md,
-        AppSpacing.md,
-        AppSpacing.md,
-        AppSpacing.sm,
-      ),
+      padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.xs, AppSpacing.md),
       child: Row(
         children: [
-          // Avatar del docente
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: AppColors.primary, width: 2),
-            ),
-            child: ClipOval(
-              child: Image.asset(
-                'assets/images/buho_profesor.png',
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
+          _avatar(64),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Text(_greeting, style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 12.5, color: AppColors.textHint)),
+                const SizedBox(height: 2),
                 Text(
-                  '$_greeting,',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontSize: 11,
-                      ),
-                ),
-                Text(
-                  'Prof. $teacherName',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: AppColors.primary,
-                      ),
+                  'Prof. $teacherName!',
+                  // TODO(back): reemplazar con el nombre real desde AuthNotifier.state.
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppColors.primary, fontWeight: FontWeight.w700),
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
           ),
+          _collapseBtn(expanded: true),
         ],
       ),
     );
   }
 }
 
-// ─── Ítem de navegación simple ────────────────────────────────────────────────
+// ─── Nav items ───
 
 class _SingleNavItem extends StatelessWidget {
-  const _SingleNavItem({
-    required this.item,
-    required this.collapsed,
-    required this.isActive,
-    required this.onTap,
-  });
-
+  const _SingleNavItem({required this.item, required this.collapsed, required this.isActive, required this.onTap});
   final NavItem item;
   final bool collapsed;
   final bool isActive;
@@ -351,54 +244,36 @@ class _SingleNavItem extends StatelessWidget {
     return Tooltip(
       message: collapsed ? item.label : '',
       preferBelow: false,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: const BorderRadius.all(AppRadius.medium),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          margin: const EdgeInsets.symmetric(vertical: 2),
-          padding: EdgeInsets.symmetric(
-            horizontal: AppSpacing.sm,
-            vertical: collapsed ? AppSpacing.sm : 10,
-          ),
-          decoration: BoxDecoration(
-            color: isActive
-                ? AppColors.primary.withOpacity(0.10)
-                : Colors.transparent,
-            borderRadius: const BorderRadius.all(AppRadius.medium),
-          ),
-          child: Row(
-            mainAxisAlignment: collapsed
-                ? MainAxisAlignment.center
-                : MainAxisAlignment.start,
-            children: [
-              Icon(
-                isActive ? item.activeIcon : item.icon,
-                color: isActive ? AppColors.primary : AppColors.textHint,
-                size: 20,
-              ),
-              if (!collapsed) ...[
-                const SizedBox(width: AppSpacing.sm),
-                Text(
-                  item.label,
-                  style: TextStyle(
-                    color: isActive ? AppColors.primary : AppColors.textSecondary,
-                    fontWeight:
-                        isActive ? FontWeight.w700 : FontWeight.w500,
-                    fontSize: 14,
-                    fontFamily: 'Nunito',
-                  ),
-                ),
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: InkWell(
+          onTap: onTap,
+          mouseCursor: SystemMouseCursors.click,
+          borderRadius: const BorderRadius.all(AppRadius.medium),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            margin: const EdgeInsets.symmetric(vertical: 2),
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: collapsed ? AppSpacing.sm : 10),
+            decoration: BoxDecoration(
+              color: isActive ? AppColors.primary.withOpacity(0.10) : Colors.transparent,
+              borderRadius: const BorderRadius.all(AppRadius.medium),
+            ),
+            child: Row(
+              mainAxisAlignment: collapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
+              children: [
+                Icon(isActive ? item.activeIcon : item.icon, color: isActive ? AppColors.primary : AppColors.textHint, size: 20),
+                if (!collapsed) ...[
+                  const SizedBox(width: AppSpacing.sm),
+                  Text(item.label, style: TextStyle(color: isActive ? AppColors.primary : AppColors.textSecondary, fontWeight: isActive ? FontWeight.w700 : FontWeight.w500, fontSize: 14, fontFamily: 'Nunito')),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),
     );
   }
 }
-
-// ─── Ítem de grupo (con subitems desplegables) ────────────────────────────────
 
 class _GroupNavItem extends StatelessWidget {
   const _GroupNavItem({
@@ -410,7 +285,6 @@ class _GroupNavItem extends StatelessWidget {
     required this.onToggle,
     required this.onSelectIndex,
   });
-
   final NavItem item;
   final bool collapsed;
   final bool isExpanded;
@@ -421,98 +295,60 @@ class _GroupNavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Cuando está colapsado, el grupo se muestra como un ícono simple
-    // que expande el sidebar y luego muestra los subitems.
     if (collapsed) {
       return Tooltip(
         message: item.label,
         preferBelow: false,
-        child: InkWell(
-          onTap: onToggle,
-          borderRadius: const BorderRadius.all(AppRadius.medium),
-          child: Container(
-            margin: const EdgeInsets.symmetric(vertical: 2),
-            padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-            child: Icon(
-              isGroupActive ? item.activeIcon : item.icon,
-              color: isGroupActive ? AppColors.primary : AppColors.textHint,
-              size: 20,
+        child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: InkWell(
+            onTap: onToggle,
+            borderRadius: const BorderRadius.all(AppRadius.medium),
+            child: Container(
+              margin: const EdgeInsets.symmetric(vertical: 2),
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm, horizontal: AppSpacing.xs),
+              child: Center(child: Icon(isGroupActive ? item.activeIcon : item.icon, color: isGroupActive ? AppColors.primary : AppColors.textHint, size: 20)),
             ),
           ),
         ),
       );
     }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Cabecera del grupo
-        InkWell(
-          onTap: onToggle,
-          borderRadius: const BorderRadius.all(AppRadius.medium),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            margin: const EdgeInsets.symmetric(vertical: 2),
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.sm,
-              vertical: 10,
-            ),
-            decoration: BoxDecoration(
-              color: isGroupActive
-                  ? AppColors.primary.withOpacity(0.10)
-                  : Colors.transparent,
-              borderRadius: const BorderRadius.all(AppRadius.medium),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  isGroupActive ? item.activeIcon : item.icon,
-                  color:
-                      isGroupActive ? AppColors.primary : AppColors.textHint,
-                  size: 20,
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: Text(
-                    item.label,
-                    style: TextStyle(
-                      color: isGroupActive
-                          ? AppColors.primary
-                          : AppColors.textSecondary,
-                      fontWeight: isGroupActive
-                          ? FontWeight.w700
-                          : FontWeight.w500,
-                      fontSize: 14,
-                      fontFamily: 'Nunito',
-                    ),
+        MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: InkWell(
+            mouseCursor: SystemMouseCursors.click,
+            onTap: onToggle,
+            borderRadius: const BorderRadius.all(AppRadius.medium),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              margin: const EdgeInsets.symmetric(vertical: 2),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 10),
+              decoration: BoxDecoration(
+                color: isGroupActive ? AppColors.primary.withOpacity(0.10) : Colors.transparent,
+                borderRadius: const BorderRadius.all(AppRadius.medium),
+              ),
+              child: Row(
+                children: [
+                  Icon(isGroupActive ? item.activeIcon : item.icon, color: isGroupActive ? AppColors.primary : AppColors.textHint, size: 20),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(child: Text(item.label, style: TextStyle(color: isGroupActive ? AppColors.primary : AppColors.textSecondary, fontWeight: isGroupActive ? FontWeight.w700 : FontWeight.w500, fontSize: 14, fontFamily: 'Nunito'))),
+                  AnimatedRotation(
+                    turns: isExpanded ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 200),
+                    child: Icon(Icons.keyboard_arrow_down_rounded, color: isGroupActive ? AppColors.primary : AppColors.textHint, size: 18),
                   ),
-                ),
-                AnimatedRotation(
-                  turns: isExpanded ? 0.5 : 0,
-                  duration: const Duration(milliseconds: 200),
-                  child: Icon(
-                    Icons.keyboard_arrow_down_rounded,
-                    color: isGroupActive
-                        ? AppColors.primary
-                        : AppColors.textHint,
-                    size: 18,
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
-        // Subitems animados
         AnimatedCrossFade(
           firstChild: const SizedBox.shrink(),
-          secondChild: _SubItemList(
-            children: item.children,
-            selectedIndex: selectedIndex,
-            onSelectIndex: onSelectIndex,
-          ),
-          crossFadeState: isExpanded
-              ? CrossFadeState.showSecond
-              : CrossFadeState.showFirst,
+          secondChild: _SubItemList(children: item.children, selectedIndex: selectedIndex, onSelectIndex: onSelectIndex),
+          crossFadeState: isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
           duration: const Duration(milliseconds: 200),
         ),
       ],
@@ -520,15 +356,8 @@ class _GroupNavItem extends StatelessWidget {
   }
 }
 
-// ─── Lista de subitems ────────────────────────────────────────────────────────
-
 class _SubItemList extends StatelessWidget {
-  const _SubItemList({
-    required this.children,
-    required this.selectedIndex,
-    required this.onSelectIndex,
-  });
-
+  const _SubItemList({required this.children, required this.selectedIndex, required this.onSelectIndex});
   final List<NavSubItem> children;
   final int selectedIndex;
   final ValueChanged<int> onSelectIndex;
@@ -536,62 +365,75 @@ class _SubItemList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      // Indentación visual para indicar jerarquía.
-      padding: const EdgeInsets.only(left: AppSpacing.lg),
-      child: Column(
-        children: children.map((sub) {
-          final isActive = selectedIndex == sub.index;
-          return InkWell(
-            onTap: () => onSelectIndex(sub.index),
-            borderRadius: const BorderRadius.all(AppRadius.medium),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
-              margin: const EdgeInsets.symmetric(vertical: 2),
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.sm,
-                vertical: 8,
-              ),
-              decoration: BoxDecoration(
-                color: isActive
-                    ? AppColors.primary.withOpacity(0.08)
-                    : Colors.transparent,
-                borderRadius: const BorderRadius.all(AppRadius.medium),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    sub.icon,
-                    color: isActive ? AppColors.primary : AppColors.textHint,
-                    size: 16,
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Text(
-                    sub.label,
-                    style: TextStyle(
-                      color: isActive
-                          ? AppColors.primary
-                          : AppColors.textSecondary,
-                      fontWeight:
-                          isActive ? FontWeight.w700 : FontWeight.w500,
-                      fontSize: 13,
-                      fontFamily: 'Nunito',
+      padding: const EdgeInsets.only(left: AppSpacing.md, bottom: AppSpacing.xs),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(width: 12, child: CustomPaint(painter: _BranchLinePainter(color: AppColors.primary.withOpacity(0.55)))),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Column(
+                children: children.map((sub) {
+                  final isActive = selectedIndex == sub.index;
+                  return MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    child: InkWell(
+                      onTap: () => onSelectIndex(sub.index),
+                      mouseCursor: SystemMouseCursors.click,
+                      borderRadius: const BorderRadius.all(AppRadius.medium),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 150),
+                        margin: const EdgeInsets.symmetric(vertical: 2),
+                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 9),
+                        decoration: BoxDecoration(
+                          color: isActive ? AppColors.primary.withOpacity(0.08) : Colors.transparent,
+                          borderRadius: const BorderRadius.all(AppRadius.medium),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(sub.icon, color: isActive ? AppColors.primary : AppColors.textHint, size: 16),
+                            const SizedBox(width: AppSpacing.sm),
+                            Text(sub.label, style: TextStyle(color: isActive ? AppColors.primary : AppColors.textSecondary, fontWeight: isActive ? FontWeight.w700 : FontWeight.w500, fontSize: 13, fontFamily: 'Nunito')),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                  );
+                }).toList(),
               ),
             ),
-          );
-        }).toList(),
+          ],
+        ),
       ),
     );
   }
 }
 
-// ─── Botón de cerrar sesión ───────────────────────────────────────────────────
+// ─── Painter ───
+
+class _BranchLinePainter extends CustomPainter {
+  const _BranchLinePainter({required this.color});
+  final Color color;
+  static const double _d = 5.0;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = color..strokeWidth = 2..style = PaintingStyle.fill;
+    final cx = size.width / 2;
+    canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(cx - 1, 7.0, 2, size.height * 0.58), const Radius.circular(2)), paint);
+    final dt = size.height - _d * 4;
+    canvas.drawPath(Path()..moveTo(cx, dt)..lineTo(cx + _d, dt + _d)..lineTo(cx, dt + _d * 2)..lineTo(cx - _d, dt + _d)..close(), paint);
+  }
+
+  @override
+  bool shouldRepaint(_BranchLinePainter old) => old.color != color;
+}
+
+// ─── Logout ───
 
 class _LogoutButton extends StatelessWidget {
   const _LogoutButton({required this.collapsed, required this.onLogout});
-
   final bool collapsed;
   final VoidCallback onLogout;
 
@@ -600,33 +442,22 @@ class _LogoutButton extends StatelessWidget {
     return Tooltip(
       message: collapsed ? 'Cerrar sesión' : '',
       preferBelow: false,
-      child: InkWell(
-        onTap: onLogout,
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: Row(
-            mainAxisAlignment: collapsed
-                ? MainAxisAlignment.center
-                : MainAxisAlignment.start,
-            children: [
-              const Icon(
-                Icons.logout_rounded,
-                color: AppColors.error,
-                size: 20,
-              ),
-              if (!collapsed) ...[
-                const SizedBox(width: AppSpacing.sm),
-                Text(
-                  'Cerrar sesión',
-                  style: TextStyle(
-                    color: AppColors.error,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                    fontFamily: 'Nunito',
-                  ),
-                ),
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: InkWell(
+          onTap: onLogout,
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Row(
+              mainAxisAlignment: collapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
+              children: [
+                const Icon(Icons.logout_rounded, color: AppColors.error, size: 20),
+                if (!collapsed) ...[
+                  const SizedBox(width: AppSpacing.sm),
+                  Text('Cerrar sesión', style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w600, fontSize: 14, fontFamily: 'Nunito')),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),

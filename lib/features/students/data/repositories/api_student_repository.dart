@@ -37,11 +37,15 @@ class ApiStudentRepository implements StudentRepository {
   }
 
   StudentEntity _studentFromJson(Map<String, dynamic> json) {
+    final rawConditions = json['conditions'] ?? json['condiciones'];
     return StudentEntity(
       id: json['_id'],
       fullName: json['nombre'],
       grade: json['grado'],
       age: json['edad'],
+      conditions: rawConditions is List
+          ? rawConditions.map((e) => e.toString()).toList()
+          : const [],
       createdAt: DateTime.parse(json['creado_en']),
     );
   }
@@ -128,6 +132,7 @@ class ApiStudentRepository implements StudentRepository {
     required String fullName,
     required int grade,
     required int age,
+    List<String> conditions = const [],
   }) async {
     try {
       final response = await http.post(
@@ -137,6 +142,7 @@ class ApiStudentRepository implements StudentRepository {
           'nombre': fullName,
           'grado': grade,
           'edad': age,
+          'conditions': conditions,
         }),
       );
 
@@ -178,6 +184,7 @@ class ApiStudentRepository implements StudentRepository {
     required String fullName,
     required int grade,
     required int age,
+    List<String> conditions = const [],
   }) async {
     try {
       final response = await http.put(
@@ -187,6 +194,7 @@ class ApiStudentRepository implements StudentRepository {
           'nombre': fullName,
           'grado': grade,
           'edad': age,
+          'conditions': conditions,
         }),
       );
 

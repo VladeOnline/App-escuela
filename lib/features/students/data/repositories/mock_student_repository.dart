@@ -4,9 +4,6 @@ import '../../../../core/errors/app_failure.dart';
 import '../../domain/entities/student_entity.dart';
 import '../../domain/repositories/student_repository.dart';
 
-/// Implementación mock del repositorio.
-/// Usa memoria local. El Back la reemplazará con la versión MongoDB.
-/// El contrato (StudentRepository) NO cambia, solo esta implementación.
 class MockStudentRepository implements StudentRepository {
   MockStudentRepository() {
     _seed();
@@ -15,15 +12,14 @@ class MockStudentRepository implements StudentRepository {
   final _uuid = const Uuid();
   final List<StudentEntity> _students = [];
 
-  /// Datos de prueba para que el equipo pueda ver la app funcionando.
   void _seed() {
     final seeds = [
-      ('María González', 1, 7),
-      ('Carlos Rodríguez', 2, 8),
-      ('Sofía Jiménez', 3, 9),
-      ('Luis Pérez', 4, 10),
+      ('Maria Gonzalez', 1, 7),
+      ('Carlos Rodriguez', 2, 8),
+      ('Sofia Jimenez', 3, 9),
+      ('Luis Perez', 4, 10),
       ('Valeria Mora', 5, 11),
-      ('Andrés Castro', 6, 12),
+      ('Andres Castro', 6, 12),
       ('Isabella Vargas', 1, 6),
       ('Diego Herrera', 3, 9),
     ];
@@ -83,16 +79,17 @@ class MockStudentRepository implements StudentRepository {
     required String fullName,
     required int grade,
     required int age,
+    List<String> conditions = const [],
   }) async {
     await _simulateDelay();
 
     final trimmedName = fullName.trim();
-
     final student = StudentEntity(
       id: _uuid.v4(),
       fullName: trimmedName,
       grade: grade,
       age: age,
+      conditions: conditions,
       createdAt: DateTime.now(),
     );
 
@@ -111,9 +108,9 @@ class MockStudentRepository implements StudentRepository {
     required String fullName,
     required int grade,
     required int age,
+    List<String> conditions = const [],
   }) async {
     await _simulateDelay();
-
     final index = _students.indexWhere((s) => s.id == id);
     if (index == -1) {
       return (
@@ -126,6 +123,7 @@ class MockStudentRepository implements StudentRepository {
       fullName: fullName.trim(),
       grade: grade,
       age: age,
+      conditions: conditions,
     );
     _students[index] = updated;
     return (student: updated, failure: null);

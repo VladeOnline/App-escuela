@@ -1,13 +1,9 @@
 import 'package:flutter/foundation.dart';
 
+import '../../../../core/errors/app_failure.dart';
 import '../../domain/entities/student_entity.dart';
 import '../../domain/repositories/student_repository.dart';
 import '../../domain/usecases/validate_student_usecase.dart';
-import '../../../../core/errors/app_failure.dart';
-
-// ─────────────────────────────────────────────
-// Estado
-// ─────────────────────────────────────────────
 
 enum StudentsStatus { initial, loading, success, failure }
 
@@ -51,11 +47,6 @@ class StudentsState {
   bool get isLoading => status == StudentsStatus.loading;
 }
 
-// ─────────────────────────────────────────────
-// Notifier (ChangeNotifier — sin dependencias extra de BLoC pkg)
-// El equipo puede migrarlo a flutter_bloc si ya lo tienen instalado.
-// ─────────────────────────────────────────────
-
 class StudentsNotifier extends ChangeNotifier {
   StudentsNotifier({
     required StudentRepository repository,
@@ -73,8 +64,6 @@ class StudentsNotifier extends ChangeNotifier {
     _state = next;
     notifyListeners();
   }
-
-  // ── RF-01 / RF-31: Cargar y buscar estudiantes ──
 
   Future<void> loadStudents() async {
     _emit(_state.copyWith(status: StudentsStatus.loading));
@@ -125,12 +114,11 @@ class StudentsNotifier extends ChangeNotifier {
     loadStudents();
   }
 
-  // ── RF-01: Registrar estudiante ──
-
   Future<bool> createStudent({
     required String fullName,
     required String ageText,
     required int? grade,
+    List<String> conditions = const [],
   }) async {
     final errors = _validator.validate(
       fullName: fullName,
@@ -140,11 +128,11 @@ class StudentsNotifier extends ChangeNotifier {
     if (errors.isNotEmpty) return false;
 
     _emit(_state.copyWith(status: StudentsStatus.loading));
-
     final result = await _repository.create(
       fullName: fullName,
       grade: grade!,
       age: int.parse(ageText.trim()),
+      conditions: conditions,
     );
 
     if (result.failure != null) {
@@ -166,13 +154,12 @@ class StudentsNotifier extends ChangeNotifier {
     return true;
   }
 
-  // ── RF-02: Editar estudiante ──
-
   Future<bool> updateStudent({
     required String id,
     required String fullName,
     required String ageText,
     required int? grade,
+    List<String> conditions = const [],
   }) async {
     final errors = _validator.validate(
       fullName: fullName,
@@ -182,12 +169,12 @@ class StudentsNotifier extends ChangeNotifier {
     if (errors.isNotEmpty) return false;
 
     _emit(_state.copyWith(status: StudentsStatus.loading));
-
     final result = await _repository.update(
       id: id,
       fullName: fullName,
       grade: grade!,
       age: int.parse(ageText.trim()),
+      conditions: conditions,
     );
 
     if (result.failure != null) {
@@ -204,8 +191,6 @@ class StudentsNotifier extends ChangeNotifier {
     ));
     return true;
   }
-
-  // ── RF-03: Eliminar estudiante ──
 
   Future<bool> deleteStudent(String id) async {
     _emit(_state.copyWith(status: StudentsStatus.loading));
@@ -225,8 +210,6 @@ class StudentsNotifier extends ChangeNotifier {
     ));
     return true;
   }
-
-  // ── RF-42: Desactivar estudiante ──
 
   Future<bool> deactivateStudent(String id) async {
     _emit(_state.copyWith(status: StudentsStatus.loading));
