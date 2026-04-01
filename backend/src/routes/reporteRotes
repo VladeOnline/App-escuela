@@ -1,0 +1,19 @@
+const express = require('express');
+const router = express.Router();
+
+const {
+  obtenerReporteIndividual,
+  obtenerReportePorGrado,
+  obtenerProgresoGraficas
+} = require('../controllers/reporteController');
+
+// RF-17
+router.get('/individual/:estudianteId', obtenerReporteIndividual);
+
+// RF-18
+router.get('/grado/:grado', obtenerReportePorGrado);
+
+// RF-16
+router.get('/progreso/:estudianteId', obtenerProgresoGraficas);
+
+module.exports = router;

@@ -3,6 +3,7 @@ const router = express.Router();
 
 const {
   crearEjercicio,
+  cambiarDificultadEjercicio,
   cambiarEstadoEjercicio,
   obtenerEjercicios,
   responderPregunta,
@@ -15,7 +16,8 @@ router.post('/', crearEjercicio);
 
 // RF-12: activar/desactivar ejercicio
 router.patch('/:id/estado', cambiarEstadoEjercicio);
-
+// RF-11: cambiar dificultad de ejercicio
+router.patch('/:id/dificultad', cambiarDificultadEjercicio);
 // Obtener ejercicios
 router.get('/', obtenerEjercicios);
 
