@@ -5,7 +5,9 @@ const evaluacionSchema = new mongoose.Schema({
   titulo: { type: String, required: true },
   tiempo_limite: { type: Number, required: true },
   intentos_max: { type: Number, required: true },
-  activa: { type: Boolean, default: true }
+  instrucciones: { type: String, default: '' },
+  activa: { type: Boolean, default: true },
+  creado_en: { type: Date, default: Date.now }
 });
 
 module.exports = mongoose.model('Evaluacion', evaluacionSchema, 'evaluaciones');

@@ -3,6 +3,7 @@ const Ejercicio = require('../models/ejercicioModel');
 const Resultado = require('../models/resultadoModel');
 const Evaluacion = require('../models/evaluacionModel');
 const Respuesta = require('../models/respuestamodel'); // modelo nuevo
+const { registrarLog } = require('../utils/helpers');
 
 // ─────────────────────────────────────────────
 // RF-10: El docente crea un ejercicio
@@ -139,6 +140,11 @@ const cambiarDificultadEjercicio = async (req, res) => {
 
     const ejercicioGuardado = await nuevoEjercicio.save();
 
+    // RF-26: Registrar acción administrativa
+    if (req.usuario && req.usuario.id) {
+      await registrarLog(req.usuario.id, `Creó ejercicio: "${pregunta.trim()}" en evaluación ${evaluacion_id}`);
+    }
+
     res.status(201).json({
       mensaje: 'Ejercicio creado exitosamente',
       ejercicio: ejercicioGuardado
@@ -219,6 +225,10 @@ const obtenerEjercicios = async (req, res) => {
 // Flutter sigue recibiendo si fue correcta o no para mostrar el ✅ o ❌,
 // pero ya no necesitamos confiar en lo que Flutter nos diga al finalizar.
 // ─────────────────────────────────────────────
+// �────────────────────────────────────────────
+// RF-24: Retroalimentación inmediata al responder
+// RF-13: Guardar respuestas en la BD
+// RF-14: Calificar respuestas
 const responderPregunta = async (req, res) => {
   try {
     // Ahora necesitamos también estudiante_id y evaluacion_id para guardar la respuesta
@@ -253,7 +263,7 @@ const responderPregunta = async (req, res) => {
       return res.status(400).json({ mensaje: 'Ya respondiste este ejercicio en esta evaluación' });
     }
 
-    // ── RF-14: Comparamos la respuesta con la correcta ──
+    // ── RF-24: Comparamos la respuesta con la correcta ──
     const esCorrecta = respuesta_dada.trim().toLowerCase() === ejercicio.respuesta_correcta.trim().toLowerCase();
 
     // Calculamos los puntos según dificultad
@@ -277,11 +287,17 @@ const responderPregunta = async (req, res) => {
 
     await nuevaRespuesta.save();
 
-    // Respondemos a Flutter para que muestre el ✅ o ❌
+    // ── RF-24: Devolver retroalimentación inmediata ──
     res.status(201).json({
-      esCorrecta,
-      puntosObtenidos,
-      respuestaCorrecta: esCorrecta ? null : ejercicio.respuesta_correcta
+      mensaje: 'Respuesta registrada',
+      retroalimentacion: {
+        esCorrecta,
+        puntosObtenidos,
+        respuestaCorrecta: ejercicio.respuesta_correcta,
+        explicacion: esCorrecta 
+          ? '✅ ¡Respuesta correcta!' 
+          : `❌ Respuesta incorrecta. La respuesta correcta es: ${ejercicio.respuesta_correcta}`
+      }
     });
 
   } catch (error) {
