@@ -14,6 +14,8 @@ app.use(express.json());
 app.use('/api/auth', require('./src/routes/authRoutes'));
 app.use('/api/estudiantes', require('./src/routes/estudianteRoutes'));
 app.use('/api/ejercicios', require('./src/routes/EjercicioRoutes'));
+app.use('/api/materias', require('./src/routes/materiaRoutes'));
+app.use('/api/contenidos', require('./src/routes/contenidoRoutes'));
 
 app.get('/', (req, res) => {
   res.json({ message: 'API Refuerzo Académico funcionando ✅' });

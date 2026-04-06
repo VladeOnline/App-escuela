@@ -1,0 +1,215 @@
+{
+  "info": {
+    "_postman_id": "f3e5b4df-0a06-4ff9-98bb-6f8bd78b0d1c",
+    "name": "RF07_RF08_App_Escuela",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "materia_id",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "01 - Registrar Docente (opcional)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Amy Docente\",\n  \"username\": \"amy.docente\",\n  \"password\": \"123456\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/registrar",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "registrar"
+          ]
+        }
+      }
+    },
+    {
+      "name": "02 - Login Docente",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"amy.docente\",\n  \"password\": \"123456\",\n  \"rol\": \"docente\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const json = pm.response.json();",
+              "if (json && json.token) {",
+              "  pm.collectionVariables.set('token', json.token);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Crear Materia (RF-07)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Matematica\",\n  \"grado\": 4\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/materias",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "materias"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const json = pm.response.json();",
+              "if (json && json.materia && json.materia._id) {",
+              "  pm.collectionVariables.set('materia_id', json.materia._id);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Listar Materias",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/materias",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "materias"
+          ]
+        }
+      }
+    },
+    {
+      "name": "05 - Crear Contenido por Materia (RF-08)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"materia_id\": \"{{materia_id}}\",\n  \"titulo\": \"Fracciones equivalentes\",\n  \"descripcion\": \"Introduccion a fracciones equivalentes con ejercicios base\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/contenidos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "contenidos"
+          ]
+        }
+      }
+    },
+    {
+      "name": "06 - Listar Contenidos por Materia",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/contenidos?materia_id={{materia_id}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "contenidos"
+          ],
+          "query": [
+            {
+              "key": "materia_id",
+              "value": "{{materia_id}}"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
