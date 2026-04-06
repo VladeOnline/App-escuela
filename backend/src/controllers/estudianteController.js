@@ -2,6 +2,13 @@ const Estudiante = require('../models/studentModel');
 const Usuario = require('../models/userModel');
 const bcrypt = require('bcryptjs');
 
+const normalizeConditions = (value) => {
+  if (!Array.isArray(value)) return [];
+  return [...new Set(value
+    .map((c) => String(c).trim())
+    .filter((c) => c.length > 0))];
+};
+
 const obtenerEstudiantes = async (req, res) => {
   try {
     const { nombre, grado } = req.query;
@@ -19,7 +26,8 @@ const obtenerEstudiantes = async (req, res) => {
 
 const crearEstudiante = async (req, res) => {
   try {
-    const { nombre, edad, grado } = req.body;
+    const { nombre, edad, grado, conditions } = req.body;
+    const normalizedConditions = normalizeConditions(conditions);
 
     const username = nombre.trim();
     const passwordPlana = `${nombre.trim()}${edad}`;
@@ -42,7 +50,8 @@ const crearEstudiante = async (req, res) => {
       usuario_id: usuario._id,
       nombre,
       edad,
-      grado
+      grado,
+      conditions: normalizedConditions
     });
     await estudiante.save();
 
@@ -61,9 +70,14 @@ const crearEstudiante = async (req, res) => {
 
 const editarEstudiante = async (req, res) => {
   try {
+    const updates = { ...req.body };
+    if (updates.conditions !== undefined) {
+      updates.conditions = normalizeConditions(updates.conditions);
+    }
+
     const estudiante = await Estudiante.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      updates,
       { new: true }
     );
     if (!estudiante) return res.status(404).json({ message: 'Estudiante no encontrado' });
@@ -81,7 +95,21 @@ const eliminarEstudiante = async (req, res) => {
       { new: true }
     );
     if (!estudiante) return res.status(404).json({ message: 'Estudiante no encontrado' });
-    res.json({ message: 'Estudiante eliminado correctamente' });
+
+    // Mantiene sincronizado el estado del usuario asociado.
+    if (estudiante.usuario_id) {
+      await Usuario.findByIdAndUpdate(
+        estudiante.usuario_id,
+        { activo: false },
+        { new: true }
+      );
+    }
+
+    res.json({
+      message: 'Estudiante eliminado correctamente',
+      estudiante_id: estudiante._id,
+      usuario_id: estudiante.usuario_id,
+    });
   } catch (error) {
     res.status(500).json({ message: 'Error al eliminar estudiante', error: error.message });
   }

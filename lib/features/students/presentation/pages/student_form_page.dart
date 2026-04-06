@@ -452,15 +452,58 @@ class _ConditionsSection extends StatelessWidget {
                       duration: const Duration(milliseconds: 150),
                       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
                       decoration: BoxDecoration(
-                        color: isSel ? AppColors.primary.withOpacity(0.08) : AppColors.surface,
+                        color: isSel ? AppColors.success.withOpacity(0.10) : AppColors.surface,
                         borderRadius: const BorderRadius.all(AppRadius.medium),
-                        border: Border.all(color: isSel ? AppColors.primary.withOpacity(0.4) : AppColors.border, width: isSel ? 1.5 : 1)),
+                        border: Border.all(
+                          color: isSel ? AppColors.success.withOpacity(0.55) : AppColors.border,
+                          width: isSel ? 1.7 : 1,
+                        ),
+                        boxShadow: isSel
+                            ? [
+                                BoxShadow(
+                                  color: AppColors.success.withOpacity(0.12),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ]
+                            : null,
+                      ),
                       child: Row(children: [
-                        Icon(isSel ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded, size: 16, color: isSel ? AppColors.primary : AppColors.textHint),
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 150),
+                          width: 18,
+                          height: 18,
+                          decoration: BoxDecoration(
+                            color: isSel ? AppColors.success : Colors.transparent,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isSel ? AppColors.success : AppColors.textHint,
+                              width: 1.6,
+                            ),
+                          ),
+                          child: isSel
+                              ? const Icon(
+                                  Icons.check_rounded,
+                                  size: 13,
+                                  color: Colors.white,
+                                )
+                              : null,
+                        ),
                         const SizedBox(width: AppSpacing.xs),
                         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
-                          Text(c.$1, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, fontFamily: 'Nunito', color: isSel ? AppColors.primary : AppColors.textPrimary)),
-                          Text(c.$2, style: const TextStyle(fontSize: 10, fontFamily: 'Nunito', color: AppColors.textHint), maxLines: 1, overflow: TextOverflow.ellipsis),
+                          Text(c.$1, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, fontFamily: 'Nunito', color: isSel ? AppColors.success : AppColors.textPrimary)),
+                          Text(
+                            c.$2,
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontFamily: 'Nunito',
+                              color: isSel
+                                  ? AppColors.success.withOpacity(0.70)
+                                  : AppColors.textHint,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ])),
                       ]),
                     ),
