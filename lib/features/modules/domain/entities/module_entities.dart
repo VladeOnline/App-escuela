@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'subject.dart';
+
+export 'subject.dart';
+
 // ─── Enums ────────────────────────────────────────────────────────────────────
 
 /// Tipo de módulo académico disponible en el sistema.
@@ -97,6 +101,7 @@ class ExerciseEntity {
   final String instructions;
   final ExerciseType type;
   final DifficultyLevel difficulty;
+  final Subject subject;
   final bool isActive;
 
   /// Contenido específico del ejercicio según su tipo.
@@ -114,6 +119,7 @@ class ExerciseEntity {
     required this.type,
     required this.difficulty,
     required this.content,
+    this.subject = Subject.spanish,
     this.isActive = true,
   });
 

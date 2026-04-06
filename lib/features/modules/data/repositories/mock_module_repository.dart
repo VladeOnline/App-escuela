@@ -44,18 +44,40 @@ class MockModuleRepository {
     await Future.delayed(const Duration(milliseconds: 200));
     final index = _exercises.indexWhere((e) => e.id == id);
     if (index != -1) {
-      final e = _exercises[index];
-      _exercises[index] = ExerciseEntity(
-        id: e.id,
-        moduleId: e.moduleId,
-        title: e.title,
-        instructions: e.instructions,
-        type: e.type,
-        difficulty: e.difficulty,
-        content: e.content,
-        isActive: !e.isActive,
-      );
+      _exercises[index] = _copyWithActive(_exercises[index], !_exercises[index].isActive);
     }
+  }
+
+  /// TODO(back): reemplazar con PATCH /api/exercises/bulk-toggle
+  /// Activa o desactiva varios ejercicios en una sola operación.
+  Future<void> setExercisesActive(Iterable<String> ids, {required bool isActive}) async {
+    await Future.delayed(const Duration(milliseconds: 250));
+    final idSet = ids.toSet();
+    for (var i = 0; i < _exercises.length; i++) {
+      if (idSet.contains(_exercises[i].id)) {
+        _exercises[i] = _copyWithActive(_exercises[i], isActive);
+      }
+    }
+  }
+
+  /// TODO(back): reemplazar con DELETE /api/exercises/:id
+  Future<void> deleteExercise(String id) async {
+    await Future.delayed(const Duration(milliseconds: 200));
+    _exercises.removeWhere((e) => e.id == id);
+  }
+
+  ExerciseEntity _copyWithActive(ExerciseEntity e, bool isActive) {
+    return ExerciseEntity(
+      id: e.id,
+      moduleId: e.moduleId,
+      title: e.title,
+      instructions: e.instructions,
+      type: e.type,
+      difficulty: e.difficulty,
+      subject: e.subject,
+      content: e.content,
+      isActive: isActive,
+    );
   }
 
   // ─── Datos seed ───────────────────────────────────────────────────────────
@@ -116,6 +138,7 @@ class MockModuleRepository {
           'Lee el texto con atención y luego selecciona la respuesta correcta.',
       type: ExerciseType.multipleChoice,
       difficulty: DifficultyLevel.basic,
+      subject: Subject.spanish,
       content: {
         'passage':
             'El sol salió muy temprano esa mañana. Lucía se despertó, se lavó la cara y desayunó con su mamá. Después tomó su mochila y caminó hacia la escuela. Cuando llegó, sus amigos ya estaban jugando en el patio.',
@@ -138,6 +161,7 @@ class MockModuleRepository {
           'Lee la afirmación y decide si es verdadera o falsa según el texto.',
       type: ExerciseType.trueOrFalse,
       difficulty: DifficultyLevel.basic,
+      subject: Subject.socialStudies,
       content: {
         'passage':
             'El sol salió muy temprano esa mañana. Lucía se despertó, se lavó la cara y desayunó con su mamá. Después tomó su mochila y caminó hacia la escuela. Cuando llegó, sus amigos ya estaban jugando en el patio.',
@@ -153,6 +177,7 @@ class MockModuleRepository {
       instructions: 'Escribe la palabra que falta según el texto leído.',
       type: ExerciseType.fillInTheBlank,
       difficulty: DifficultyLevel.intermediate,
+      subject: Subject.science,
       content: {
         'passage':
             'El sol salió muy temprano esa mañana. Lucía se despertó, se lavó la cara y desayunó con su mamá. Después tomó su mochila y caminó hacia la escuela.',
@@ -172,6 +197,7 @@ class MockModuleRepository {
           'Selecciona si la palabra subrayada está escrita correctamente.',
       type: ExerciseType.multipleChoice,
       difficulty: DifficultyLevel.basic,
+      subject: Subject.civics,
       content: {
         'question':
             '¿Cuál de estas opciones está escrita correctamente?',
@@ -195,6 +221,7 @@ class MockModuleRepository {
           'Arrastra las palabras para formar una oración con sentido.',
       type: ExerciseType.ordering,
       difficulty: DifficultyLevel.intermediate,
+      subject: Subject.math,
       content: {
         'words': ['la', 'Ana', 'pintó', 'mariposa', 'una'],
         'correctOrder': ['Ana', 'pintó', 'una', 'mariposa'],
@@ -209,7 +236,8 @@ class MockModuleRepository {
       instructions:
           'Decide si la siguiente afirmación sobre ortografía es correcta.',
       type: ExerciseType.trueOrFalse,
-      difficulty: DifficultyLevel.basic,
+      difficulty: DifficultyLevel.advanced,
+      subject: Subject.spanish,
       content: {
         'statement':
             'Los nombres de personas siempre se escriben con letra mayúscula.',
