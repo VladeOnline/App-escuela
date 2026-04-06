@@ -271,6 +271,51 @@ class _StudentCard extends StatelessWidget {
                     const SizedBox(width: AppSpacing.sm),
                     Text('${student.age} años', style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 12)),
                   ]),
+                  if (student.conditions.isNotEmpty) ...[
+                    const SizedBox(height: AppSpacing.sm),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        ...student.conditions.take(2).map(
+                          (c) => Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withOpacity(0.10),
+                              borderRadius: const BorderRadius.all(AppRadius.full),
+                            ),
+                            child: Text(
+                              c,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                fontFamily: 'Nunito',
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ),
+                        ),
+                        if (student.conditions.length > 2)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppColors.surface,
+                              borderRadius: const BorderRadius.all(AppRadius.full),
+                              border: Border.all(color: AppColors.border),
+                            ),
+                            child: Text(
+                              '+${student.conditions.length - 2}',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                fontFamily: 'Nunito',
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),
