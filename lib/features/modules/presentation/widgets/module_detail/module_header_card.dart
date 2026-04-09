@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../domain/entities/module_entities.dart';
 
-/// Header del módulo: título, ícono, descripción corta y filtro por materia.
 class ModuleHeaderCard extends StatelessWidget {
   const ModuleHeaderCard({
     super.key,
@@ -13,8 +12,6 @@ class ModuleHeaderCard extends StatelessWidget {
   });
 
   final ModuleEntity module;
-
-  /// `null` significa "todas las materias".
   final Subject? selectedSubject;
   final ValueChanged<Subject?> onSubjectChanged;
 
@@ -22,14 +19,24 @@ class ModuleHeaderCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.md),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.surfaceCard,
+        gradient: LinearGradient(
+          colors: [
+            AppColors.primary.withOpacity(0.08),
+            AppColors.primaryLight.withOpacity(0.04),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: const BorderRadius.all(AppRadius.large),
-        border: Border.all(color: AppColors.success.withOpacity(0.5), width: 2),
+        border: Border.all(
+          color: AppColors.primary.withOpacity(0.2),
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.success.withOpacity(0.08),
+            color: AppColors.primary.withOpacity(0.08),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -56,10 +63,20 @@ class ModuleHeaderCard extends StatelessWidget {
             children: [
               Expanded(child: _TitleBlock(module: module)),
               Container(
-                width: 1,
-                height: 56,
-                color: AppColors.border,
-                margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                width: 2,
+                height: 64,
+                margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.transparent,
+                      AppColors.primary.withOpacity(0.2),
+                      Colors.transparent,
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                ),
               ),
               _SubjectFilter(
                 selected: selectedSubject,
@@ -73,7 +90,7 @@ class ModuleHeaderCard extends StatelessWidget {
   }
 }
 
-// ─── Bloque del título ───────────────────────────────────────────────────────
+// ─── Bloque del título ───
 
 class _TitleBlock extends StatelessWidget {
   const _TitleBlock({required this.module});
@@ -84,13 +101,20 @@ class _TitleBlock extends StatelessWidget {
     return Row(
       children: [
         Container(
-          width: 44,
-          height: 44,
+          width: 56,
+          height: 56,
           decoration: BoxDecoration(
-            color: AppColors.success.withOpacity(0.12),
+            color: AppColors.primary,
             borderRadius: const BorderRadius.all(AppRadius.medium),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withOpacity(0.4),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-          child: Icon(module.type.icon, color: AppColors.success, size: 24),
+          child: Icon(module.type.icon, color: Colors.white, size: 28),
         ),
         const SizedBox(width: AppSpacing.md),
         Expanded(
@@ -104,21 +128,22 @@ class _TitleBlock extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   fontSize: 20,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w700,
                   color: AppColors.textPrimary,
                   fontFamily: 'Nunito',
+                  letterSpacing: 0.2,
                 ),
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: 4),
               Text(
                 module.description,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                  fontSize: 12,
+                  fontSize: 13,
                   color: AppColors.textSecondary,
                   fontFamily: 'Nunito',
-                  height: 1.3,
+                  height: 1.4,
                 ),
               ),
             ],
@@ -129,12 +154,26 @@ class _TitleBlock extends StatelessWidget {
   }
 }
 
-// ─── Filtro de materia (dropdown) ────────────────────────────────────────────
+// ─── Filtro de materia (dropdown) ───
 
 class _SubjectFilter extends StatelessWidget {
   const _SubjectFilter({required this.selected, required this.onChanged});
   final Subject? selected;
   final ValueChanged<Subject?> onChanged;
+
+  // Helper para no repetir MouseRegion en cada item
+  DropdownMenuItem<T> _buildItem<T>({
+    required T? value,
+    required Widget child,
+  }) {
+    return DropdownMenuItem<T>(
+      value: value,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: child,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -142,48 +181,84 @@ class _SubjectFilter extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Text(
-          'Materia',
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            color: AppColors.textHint,
-            fontFamily: 'Nunito',
-            letterSpacing: 0.4,
-          ),
+        Row(
+          children: [
+            const Icon(
+              Icons.filter_list_rounded,
+              size: 14,
+              color: AppColors.textSecondary,
+            ),
+            const SizedBox(width: 6),
+            const Text(
+              'Materia',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textSecondary,
+                fontFamily: 'Nunito',
+                letterSpacing: 0.4,
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 6),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: Colors.white,
             borderRadius: const BorderRadius.all(AppRadius.medium),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(
+              color: AppColors.primary.withOpacity(0.3),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withOpacity(0.08),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<Subject?>(
+              mouseCursor: SystemMouseCursors.click,
               value: selected,
               isDense: true,
-              icon: const Icon(Icons.expand_more_rounded, size: 18),
+              icon: const Icon(
+                Icons.expand_more_rounded,
+                size: 20,
+                color: AppColors.primary,
+              ),
               style: const TextStyle(
-                fontSize: 13,
+                fontSize: 14,
                 fontWeight: FontWeight.w700,
                 color: AppColors.textPrimary,
                 fontFamily: 'Nunito',
               ),
+              borderRadius: const BorderRadius.all(AppRadius.medium),
               items: [
-                const DropdownMenuItem<Subject?>(
+                _buildItem<Subject?>(
                   value: null,
-                  child: Text('Todas'),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.grid_view_rounded,
+                        size: 16,
+                        color: AppColors.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      const Text('Todas'),
+                    ],
+                  ),
                 ),
                 ...Subject.values.map(
-                  (s) => DropdownMenuItem<Subject?>(
+                  (s) => _buildItem<Subject?>(
                     value: s,
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(s.icon, size: 14, color: s.color),
-                        const SizedBox(width: 6),
+                        Icon(s.icon, size: 16, color: s.color),
+                        const SizedBox(width: 8),
                         Text(s.shortLabel),
                       ],
                     ),

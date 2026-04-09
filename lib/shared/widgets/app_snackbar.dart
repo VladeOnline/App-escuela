@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 
-/// Helper centralizado para mostrar notificaciones visuales.
-/// Todas las notificaciones de la app pasan por aquí para garantizar
-/// consistencia visual y poder cambiarlas en un solo lugar.
 class AppSnackbar {
   AppSnackbar._();
 
@@ -55,21 +52,40 @@ class AppSnackbar {
         SnackBar(
           content: Row(
             children: [
-              Icon(icon, color: Colors.white, size: 20),
-              const SizedBox(width: 10),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: const BorderRadius.all(AppRadius.small),
+                ),
+                child: Icon(icon, color: Colors.white, size: 20),
+              ),
+              const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   message,
                   style: const TextStyle(
                     color: Colors.white,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    fontFamily: 'Nunito',
                   ),
                 ),
               ),
             ],
           ),
           backgroundColor: backgroundColor,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          margin: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 14,
+          ),
           duration: const Duration(seconds: 3),
+          elevation: 6,
         ),
       );
   }
