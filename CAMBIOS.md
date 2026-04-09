@@ -1,33 +1,75 @@
-# Cambios
+# CAMBIOS
 
-## Resumen
+## Resumen General
 
-Se integraron los avances de `feature/api-connection` y `feature/frontend-base` en una sola rama de trabajo, conectando la aplicacion Flutter con el backend real para autenticacion y gestion de estudiantes.
+Se integraron avances de frontend y backend en una sola línea de trabajo:
 
-## Lo que se hizo
+- Integración de `feature/api-connection` y `feature/frontend-base`.
+- Integración de `backend-rf-sprint1` con mejoras de reportes, seguridad y utilidades.
 
-- Se conecto el login de Flutter al backend real usando `username`, `password` y `rol`.
-- Se elimino el acceso mock que permitia entrar con credenciales falsas cuando fallaba el backend.
-- Se creo el repositorio API de estudiantes para listar, buscar, crear, editar y eliminar estudiantes usando el token del docente autenticado.
-- Se ajusto el dashboard docente para usar el backend real en lugar del repositorio mock.
-- Se mantuvieron e integraron los cambios visuales traidos desde `feature/frontend-base`.
-- Se mejoro el manejo de errores para mostrar mensajes del backend en Flutter.
-- Se dejo la creacion de estudiantes devolviendo credenciales generadas para login.
-- Se ajusto el backend para registrar estudiantes creando tanto el `Usuario` como el documento `Estudiante`.
-- Se fijo la carga de variables de entorno del backend desde `backend/.env`.
+## Integración Frontend + API
 
-## Funcionando actualmente en la app
+- Login Flutter conectado al backend real usando `username`, `password` y `rol`.
+- Eliminado acceso mock cuando fallaba backend.
+- Repositorio API de estudiantes para listar, buscar, crear, editar y eliminar.
+- Dashboard docente conectado a backend real.
+- Integradas mejoras visuales de `feature/frontend-base`.
+- Manejo de errores mejorado para mostrar mensajes del backend en Flutter.
+- Creación de estudiantes devolviendo credenciales generadas de login.
+- Ajuste backend para registrar `Usuario` y documento `Estudiante`.
+- Ajuste de carga de variables de entorno desde `backend/.env`.
 
-- Login de docente contra backend.
-- Login de estudiante contra backend.
-- Registro de estudiantes desde el panel docente.
-- Persistencia de estudiantes en MongoDB.
-- Consulta y busqueda de estudiantes desde el panel docente.
-- Edicion y eliminacion de estudiantes desde la interfaz.
-- Navegacion base del panel docente y vistas de modulos.
-- Interfaz actualizada del frontend base integrada en la rama.
+## Backend Sprint 1 (RF)
+
+### Modelos actualizados
+
+- `evaluacionModel`: campos `instrucciones` y `creado_en`.
+- `resultadoModel`: `tiempo_utilizado`, `preguntas_correctas`, `total_preguntas` e índices.
+
+### Middleware
+
+- `soloAdmin()` para acceso exclusivo admin.
+- `soloAdminODocente()` para acceso admin/docente.
+
+### Utilidades
+
+- `registrarLog(usuarioId, accion)`.
+- `esObjectIdValido(id)`.
+- `respuestaExitosa()` y `respuestaError()`.
+
+### Controllers
+
+- `ejercicioController`: logging en creación y retroalimentación estructurada (RF-24).
+- `reportesController`:
+  - `obtenerInstruccionesEvaluacion()` (RF-36, RF-37)
+  - `obtenerHistorialEvaluaciones()` (RF-41)
+  - `reiniciarPuntuacionesEstudiante()` (RF-44)
+
+### Rutas
+
+- `EjercicioRoutes`: middlewares de auth/rol en endpoints críticos.
+- `reporteRotes`: rutas de instrucciones, historial y reinicio con auth.
+
+## Requerimientos funcionales implementados
+
+- RF-24: Retroalimentación inmediata.
+- RF-25: Contraseñas cifradas.
+- RF-26: Logging de acciones.
+- RF-36: Instrucciones antes de evaluar.
+- RF-37: Tiempo restante.
+- RF-41: Historial de evaluaciones.
+- RF-44: Reinicio de puntuaciones.
+
+## Funcionando actualmente
+
+- Login docente y estudiante contra backend.
+- Registro/edición/eliminación de estudiantes con persistencia en MongoDB.
+- Consulta y búsqueda de estudiantes.
+- Navegación base del panel docente y vistas de módulos.
+- Endpoints de reportes e historial disponibles.
 
 ## Notas
 
-- El archivo `backend/.env` se mantuvo fuera de los commits para no subir credenciales sensibles.
-- La base de datos correcta definida para trabajar es `Sistema-Educativo`.
+- `backend/.env` se mantiene fuera de commits (credenciales sensibles).
+- Base de datos activa: `Sistema-Educativo`.
+- Cambios orientados a compatibilidad hacia atrás.
