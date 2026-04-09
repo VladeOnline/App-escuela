@@ -13,6 +13,7 @@ import '../widgets/module_detail/module_header_card.dart';
 import '../widgets/module_detail/selection_action_bar.dart';
 import 'exercise_detail_page.dart';
 import 'exercise_form_page.dart';
+
 class ModuleDetailPage extends StatefulWidget {
   const ModuleDetailPage({
     super.key,
@@ -52,36 +53,43 @@ class _ModuleDetailPageState extends State<ModuleDetailPage> {
   List<ExerciseEntity> _byLevel(DifficultyLevel d) =>
       _filteredExercises.where((e) => e.difficulty == d).toList();
 
-  // ─── Acciones de ejercicios ───
+  // ─── Acciones de ejercicios ───────────────────────────────────────────────
 
-  Future<void> _onCreateExercise() async {
+  /// Sin nivel preseleccionado — desde InfoPanel o estado vacío del módulo.
+  Future<void> _onCreateExercise() => _navigateToForm();
+
+  /// Con nivel preseleccionado — desde card "Agregar" o link vacío de nivel.
+  Future<void> _onCreateExerciseForLevel(DifficultyLevel level) =>
+      _navigateToForm(preselectedLevel: level);
+
+  /// Modo edición — carga los datos del ejercicio existente en el form.
+  Future<void> _onEditExercise(ExerciseEntity exercise) async {
+    final updated = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => ExerciseFormPage(
+          moduleId: widget.module.id,
+          moduleTitle: widget.module.title,
+          repository: widget.repository,
+          exerciseToEdit: exercise,
+        ),
+      ),
+    );
+    if (updated == true) _reload();
+  }
+
+  Future<void> _navigateToForm({DifficultyLevel? preselectedLevel}) async {
     final created = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
         builder: (_) => ExerciseFormPage(
           moduleId: widget.module.id,
           moduleTitle: widget.module.title,
           repository: widget.repository,
+          preselectedLevel: preselectedLevel,
         ),
       ),
     );
     if (created == true) _reload();
   }
-
-  // TODO(connect): cuando ExerciseFormPage soporte [preselectedLevel], reemplazar
-  // _onCreateExercise en _buildSections por este método para preseleccionar el nivel.
-  // Future<void> _onCreateExerciseForLevel(DifficultyLevel level) async {
-  //   final created = await Navigator.of(context).push<bool>(
-  //     MaterialPageRoute(
-  //       builder: (_) => ExerciseFormPage(
-  //         moduleId: widget.module.id,
-  //         moduleTitle: widget.module.title,
-  //         repository: widget.repository,
-  //         preselectedLevel: level,   // ← parámetro pendiente en ExerciseFormPage
-  //       ),
-  //     ),
-  //   );
-  //   if (created == true) _reload();
-  // }
 
   Future<void> _onTapExercise(ExerciseEntity exercise) async {
     if (_selectionLevel != null) {
@@ -197,9 +205,7 @@ class _ModuleDetailPageState extends State<ModuleDetailPage> {
             ],
           ),
           Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
+            left: 0, right: 0, bottom: 0,
             child: SelectionActionBar(
               visible: _selectionLevel != null,
               selectedCount: _selectedIds.length,
@@ -217,39 +223,35 @@ class _ModuleDetailPageState extends State<ModuleDetailPage> {
 
   // ─── Layouts ───
 
-  Widget _buildWideLayout() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(child: _buildExercisesCard()),
-        const SizedBox(width: AppSpacing.lg),
-        SizedBox(
-          width: 280,
-          child: InfoPanel(
+  Widget _buildWideLayout() => Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(child: _buildExercisesCard()),
+          const SizedBox(width: AppSpacing.lg),
+          SizedBox(
+            width: 280,
+            child: InfoPanel(
+              exercises: _filteredExercises,
+              isTeacher: widget.isTeacher,
+              onCreateExercise: _onCreateExercise,
+            ),
+          ),
+        ],
+      );
+
+  Widget _buildNarrowLayout() => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          InfoPanel(
             exercises: _filteredExercises,
             isTeacher: widget.isTeacher,
             onCreateExercise: _onCreateExercise,
           ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildNarrowLayout() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        InfoPanel(
-          exercises: _filteredExercises,
-          isTeacher: widget.isTeacher,
-          onCreateExercise: _onCreateExercise,
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        _buildExercisesCard(),
-        const SizedBox(height: 80),
-      ],
-    );
-  }
+          const SizedBox(height: AppSpacing.lg),
+          _buildExercisesCard(),
+          const SizedBox(height: 80),
+        ],
+      );
 
   Widget _buildExercisesCard() {
     final filtered = _filteredExercises;
@@ -295,11 +297,8 @@ class _ModuleDetailPageState extends State<ModuleDetailPage> {
           onToggleSelectionMode: () => _toggleSelectionMode(level),
           onTapExercise: _onTapExercise,
           onDeleteExercise: _onDeleteExercise,
-          // TODO(connect): implementar navegación a ExerciseFormPage en modo edición
-          onEditExercise: (exercise) {},
-          // TODO(connect): reemplazar por _onCreateExerciseForLevel(level)
-          // cuando ExerciseFormPage soporte preselectedLevel
-          onCreateExercise: _onCreateExercise,
+          onEditExercise: (exercise) => _onEditExercise(exercise),
+          onCreateExercise: () => _onCreateExerciseForLevel(level),
         ),
       );
     }
@@ -311,7 +310,6 @@ class _ModuleDetailPageState extends State<ModuleDetailPage> {
 
 class _PageHeader extends StatelessWidget {
   const _PageHeader({required this.onBack});
-
   final VoidCallback onBack;
 
   @override
@@ -333,9 +331,7 @@ class _PageHeader extends StatelessWidget {
         children: [
           const Positioned.fill(child: HeaderDecorativeFigures()),
           Positioned(
-            left: AppSpacing.md,
-            top: 0,
-            bottom: 0,
+            left: AppSpacing.md, top: 0, bottom: 0,
             child: Center(child: _BackButton(onTap: onBack)),
           ),
           Center(
@@ -356,11 +352,8 @@ class _PageHeader extends StatelessWidget {
   }
 }
 
-// ─── Botón "← Volver" ───
-
 class _BackButton extends StatelessWidget {
   const _BackButton({required this.onTap});
-
   final VoidCallback onTap;
 
   @override

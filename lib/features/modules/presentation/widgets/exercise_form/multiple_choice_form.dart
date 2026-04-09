@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../../core/theme/app_theme.dart';
-import '../../../domain/entities/module_entities.dart';
 import 'form_shared.dart';
 
 /// Formulario de contenido para ejercicios de selección múltiple.

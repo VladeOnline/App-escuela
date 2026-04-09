@@ -2,14 +2,21 @@ import 'package:flutter/material.dart';
 
 import '../../../../../../core/theme/app_theme.dart';
 
-// ─── Header (solo título) ─────────────────────────────────────────────────────
+// ─── Header (solo título) ───
 
 class ExFormHeader extends StatelessWidget {
-  const ExFormHeader({super.key, required this.moduleTitle});
+  const ExFormHeader({
+    super.key,
+    required this.moduleTitle,
+    this.isEditing = false,
+  });
+
   final String moduleTitle;
+  final bool isEditing;
 
   @override
   Widget build(BuildContext context) {
+    final prefix = isEditing ? 'Edición de ejercicio' : 'Nuevo ejercicio';
     return Container(
       height: 64,
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
@@ -20,7 +27,7 @@ class ExFormHeader extends StatelessWidget {
       ),
       child: Center(
         child: Text(
-          'Nuevo ejercicio — $moduleTitle',
+          '$prefix — $moduleTitle',
           overflow: TextOverflow.ellipsis,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
         ),
@@ -29,7 +36,7 @@ class ExFormHeader extends StatelessWidget {
   }
 }
 
-// ─── Botón volver (pill) ──────────────────────────────────────────────────────
+// ─── Botón volver (pill) ───
 
 class ExFormBackButton extends StatelessWidget {
   const ExFormBackButton({super.key, required this.onTap});
@@ -63,7 +70,7 @@ class ExFormBackButton extends StatelessWidget {
   }
 }
 
-// ─── Footer fijo ──────────────────────────────────────────────────────────────
+// ─── Footer fijo ───
 
 class ExFormFooter extends StatelessWidget {
   const ExFormFooter({
@@ -71,9 +78,11 @@ class ExFormFooter extends StatelessWidget {
     required this.isLoading,
     required this.onClear,
     required this.onSave,
+    this.isEditing = false,
   });
 
   final bool isLoading;
+  final bool isEditing;
   final VoidCallback onClear;
   final VoidCallback onSave;
 
@@ -101,21 +110,23 @@ class ExFormFooter extends StatelessWidget {
               const Spacer(),
               Container(width: 1, height: 28, color: AppColors.border),
               const SizedBox(width: AppSpacing.md),
-              OutlinedButton(
-                onPressed: isLoading ? null : onClear,
-                style: OutlinedButton.styleFrom(
-                  shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(AppRadius.medium)),
-                  minimumSize: const Size(0, 44),
-                ).copyWith(mouseCursor: const WidgetStatePropertyAll(SystemMouseCursors.click)),
-                child: const Text('Limpiar'),
-              ),
-              const SizedBox(width: AppSpacing.md),
+              if (!isEditing) ...[
+                OutlinedButton(
+                  onPressed: isLoading ? null : onClear,
+                  style: OutlinedButton.styleFrom(
+                    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(AppRadius.medium)),
+                    minimumSize: const Size(0, 44),
+                  ).copyWith(mouseCursor: const WidgetStatePropertyAll(SystemMouseCursors.click)),
+                  child: const Text('Limpiar'),
+                ),
+                const SizedBox(width: AppSpacing.md),
+              ],
               FilledButton.icon(
                 onPressed: isLoading ? null : onSave,
                 icon: isLoading
                     ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Icon(Icons.save_rounded, size: 18),
-                label: const Text('Guardar ejercicio'),
+                    : Icon(isEditing ? Icons.check_rounded : Icons.save_rounded, size: 18),
+                label: Text(isEditing ? 'Guardar cambios' : 'Guardar ejercicio'),
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   minimumSize: const Size(0, 44),

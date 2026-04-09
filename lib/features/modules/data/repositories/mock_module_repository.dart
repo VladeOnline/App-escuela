@@ -4,32 +4,22 @@ import '../../domain/entities/module_entities.dart';
 /// El Back reemplazará esto con llamadas reales a MongoDB.
 /// El contrato (métodos públicos) NO cambia — solo esta implementación.
 class MockModuleRepository {
-  // ─── Módulos mock ─────────────────────────────────────────────────────────
+  // ─── Módulos ───
 
-  List<ModuleEntity> getModulesByType(ModuleType type) {
-    return _modules.where((m) => m.type == type && m.isActive).toList();
-  }
+  List<ModuleEntity> getModulesByType(ModuleType type) =>
+      _modules.where((m) => m.type == type && m.isActive).toList();
 
   ModuleEntity? getModuleById(String id) {
-    try {
-      return _modules.firstWhere((m) => m.id == id);
-    } catch (_) {
-      return null;
-    }
+    try { return _modules.firstWhere((m) => m.id == id); } catch (_) { return null; }
   }
 
-  // ─── Ejercicios mock ──────────────────────────────────────────────────────
+  // ─── Ejercicios ───
 
-  List<ExerciseEntity> getExercisesByModule(String moduleId) {
-    return _exercises.where((e) => e.moduleId == moduleId).toList();
-  }
+  List<ExerciseEntity> getExercisesByModule(String moduleId) =>
+      _exercises.where((e) => e.moduleId == moduleId).toList();
 
   ExerciseEntity? getExerciseById(String id) {
-    try {
-      return _exercises.firstWhere((e) => e.id == id);
-    } catch (_) {
-      return null;
-    }
+    try { return _exercises.firstWhere((e) => e.id == id); } catch (_) { return null; }
   }
 
   /// TODO(back): reemplazar con POST /api/modules/:id/exercises
@@ -39,23 +29,32 @@ class MockModuleRepository {
     return exercise;
   }
 
+  /// TODO(back): reemplazar con PUT /api/exercises/:id
+  Future<ExerciseEntity> updateExercise(ExerciseEntity exercise) async {
+    await Future.delayed(const Duration(milliseconds: 400));
+    final index = _exercises.indexWhere((e) => e.id == exercise.id);
+    if (index != -1) {
+      _exercises[index] = exercise;
+    }
+    return exercise;
+  }
+
   /// TODO(back): reemplazar con PATCH /api/exercises/:id/toggle
   Future<void> toggleExercise(String id) async {
     await Future.delayed(const Duration(milliseconds: 200));
     final index = _exercises.indexWhere((e) => e.id == id);
     if (index != -1) {
-      _exercises[index] = _copyWithActive(_exercises[index], !_exercises[index].isActive);
+      _exercises[index] = _copyWith(_exercises[index], isActive: !_exercises[index].isActive);
     }
   }
 
   /// TODO(back): reemplazar con PATCH /api/exercises/bulk-toggle
-  /// Activa o desactiva varios ejercicios en una sola operación.
   Future<void> setExercisesActive(Iterable<String> ids, {required bool isActive}) async {
     await Future.delayed(const Duration(milliseconds: 250));
     final idSet = ids.toSet();
     for (var i = 0; i < _exercises.length; i++) {
       if (idSet.contains(_exercises[i].id)) {
-        _exercises[i] = _copyWithActive(_exercises[i], isActive);
+        _exercises[i] = _copyWith(_exercises[i], isActive: isActive);
       }
     }
   }
@@ -66,185 +65,59 @@ class MockModuleRepository {
     _exercises.removeWhere((e) => e.id == id);
   }
 
-  ExerciseEntity _copyWithActive(ExerciseEntity e, bool isActive) {
-    return ExerciseEntity(
-      id: e.id,
-      moduleId: e.moduleId,
-      title: e.title,
-      instructions: e.instructions,
-      type: e.type,
-      difficulty: e.difficulty,
-      subject: e.subject,
-      content: e.content,
-      isActive: isActive,
-    );
-  }
+  ExerciseEntity _copyWith(ExerciseEntity e, {bool? isActive}) => ExerciseEntity(
+        id: e.id,
+        moduleId: e.moduleId,
+        title: e.title,
+        instructions: e.instructions,
+        type: e.type,
+        difficulty: e.difficulty,
+        subject: e.subject,
+        content: e.content,
+        isActive: isActive ?? e.isActive,
+      );
 
-  // ─── Datos seed ───────────────────────────────────────────────────────────
+  // ─── Datos seed ───
 
   final List<ModuleEntity> _modules = [
     // LECTURA
-    ModuleEntity(
-      id: 'mod-lec-1',
-      title: 'Comprensión de textos',
-      description:
-          'Ejercicios para desarrollar la comprensión lectora mediante textos cortos y preguntas de análisis.',
-      type: ModuleType.reading,
-      grade: 2,
-      exerciseCount: 3,
-      createdAt: DateTime(2026, 2, 1),
-    ),
-    ModuleEntity(
-      id: 'mod-lec-2',
-      title: 'Vocabulario y sinónimos',
-      description:
-          'Actividades para ampliar el vocabulario e identificar sinónimos y antónimos en contexto.',
-      type: ModuleType.reading,
-      grade: 3,
-      exerciseCount: 2,
-      createdAt: DateTime(2026, 2, 5),
-    ),
+    ModuleEntity(id: 'mod-lec-1', title: 'Comprensión de textos', description: 'Ejercicios para desarrollar la comprensión lectora mediante textos cortos y preguntas de análisis.', type: ModuleType.reading, grade: 2, exerciseCount: 3, createdAt: DateTime(2024, 1, 15)),
+    ModuleEntity(id: 'mod-lec-2', title: 'Vocabulario y sinónimos', description: 'Actividades para ampliar el vocabulario e identificar sinónimos y antónimos en contexto.', type: ModuleType.reading, grade: 3, exerciseCount: 2, createdAt: DateTime(2024, 1, 20)),
+    ModuleEntity(id: 'mod-lec-3', title: 'Inferencia lectora', description: 'Ejercicios para desarrollar la capacidad de inferir información implícita en textos.', type: ModuleType.reading, grade: 4, exerciseCount: 0, createdAt: DateTime(2024, 2, 1)),
+    ModuleEntity(id: 'mod-lec-4', title: 'Textos informativos', description: 'Comprensión de textos expositivos y noticias adaptadas al nivel.', type: ModuleType.reading, grade: 5, exerciseCount: 0, createdAt: DateTime(2024, 2, 10)),
+    ModuleEntity(id: 'mod-lec-5', title: 'Literatura infantil', description: 'Análisis de cuentos, fábulas y poemas para desarrollar el gusto por la lectura.', type: ModuleType.reading, grade: 6, exerciseCount: 0, createdAt: DateTime(2024, 2, 15)),
     // ESCRITURA
-    ModuleEntity(
-      id: 'mod-esc-1',
-      title: 'Ortografía básica',
-      description:
-          'Práctica de reglas ortográficas fundamentales: uso de mayúsculas, puntuación y acento.',
-      type: ModuleType.writing,
-      grade: 2,
-      exerciseCount: 3,
-      createdAt: DateTime(2026, 2, 3),
-    ),
-    ModuleEntity(
-      id: 'mod-esc-2',
-      title: 'Construcción de oraciones',
-      description:
-          'Ejercicios para ordenar palabras y construir oraciones con sentido completo.',
-      type: ModuleType.writing,
-      grade: 3,
-      exerciseCount: 2,
-      createdAt: DateTime(2026, 2, 8),
-    ),
+    ModuleEntity(id: 'mod-esc-1', title: 'Ortografía básica', description: 'Práctica de reglas ortográficas fundamentales: uso de mayúsculas, puntuación y acento.', type: ModuleType.writing, grade: 2, exerciseCount: 3, createdAt: DateTime(2024, 1, 18)),
+    ModuleEntity(id: 'mod-esc-2', title: 'Construcción de oraciones', description: 'Ejercicios para ordenar palabras y construir oraciones con sentido completo.', type: ModuleType.writing, grade: 3, exerciseCount: 2, createdAt: DateTime(2024, 1, 25)),
+    ModuleEntity(id: 'mod-esc-3', title: 'Redacción de párrafos', description: 'Práctica de escritura estructurada con ideas principales y secundarias.', type: ModuleType.writing, grade: 4, exerciseCount: 0, createdAt: DateTime(2024, 2, 5)),
+    ModuleEntity(id: 'mod-esc-4', title: 'Conectores y coherencia', description: 'Uso de conectores textuales para mejorar la cohesión en los escritos.', type: ModuleType.writing, grade: 5, exerciseCount: 0, createdAt: DateTime(2024, 2, 12)),
+    ModuleEntity(id: 'mod-esc-5', title: 'Textos creativos', description: 'Escritura libre y creativa: cuentos cortos, poemas y descripciones.', type: ModuleType.writing, grade: 6, exerciseCount: 0, createdAt: DateTime(2024, 2, 18)),
   ];
 
   final List<ExerciseEntity> _exercises = [
-    // ── LECTURA: Comprensión de textos (mod-lec-1) ────────────────────────
-
-    ExerciseEntity(
-      id: 'ex-lec-1-1',
-      moduleId: 'mod-lec-1',
-      title: '¿De qué trata el cuento?',
-      instructions:
-          'Lee el texto con atención y luego selecciona la respuesta correcta.',
-      type: ExerciseType.multipleChoice,
-      difficulty: DifficultyLevel.basic,
-      subject: Subject.spanish,
-      content: {
-        'passage':
-            'El sol salió muy temprano esa mañana. Lucía se despertó, se lavó la cara y desayunó con su mamá. Después tomó su mochila y caminó hacia la escuela. Cuando llegó, sus amigos ya estaban jugando en el patio.',
-        'question': '¿Qué hizo Lucía después de desayunar?',
-        'options': [
-          'Se fue a dormir',
-          'Tomó su mochila y fue a la escuela',
-          'Llamó a sus amigos',
-          'Vio televisión',
-        ],
-        'correctIndex': 1,
-      },
-    ),
-
-    ExerciseEntity(
-      id: 'ex-lec-1-2',
-      moduleId: 'mod-lec-1',
-      title: '¿Verdadero o falso?',
-      instructions:
-          'Lee la afirmación y decide si es verdadera o falsa según el texto.',
-      type: ExerciseType.trueOrFalse,
-      difficulty: DifficultyLevel.basic,
-      subject: Subject.socialStudies,
-      content: {
-        'passage':
-            'El sol salió muy temprano esa mañana. Lucía se despertó, se lavó la cara y desayunó con su mamá. Después tomó su mochila y caminó hacia la escuela. Cuando llegó, sus amigos ya estaban jugando en el patio.',
-        'statement': 'Cuando Lucía llegó a la escuela, el patio estaba vacío.',
-        'correctAnswer': false,
-      },
-    ),
-
-    ExerciseEntity(
-      id: 'ex-lec-1-3',
-      moduleId: 'mod-lec-1',
-      title: 'Completa la oración',
-      instructions: 'Escribe la palabra que falta según el texto leído.',
-      type: ExerciseType.fillInTheBlank,
-      difficulty: DifficultyLevel.intermediate,
-      subject: Subject.science,
-      content: {
-        'passage':
-            'El sol salió muy temprano esa mañana. Lucía se despertó, se lavó la cara y desayunó con su mamá. Después tomó su mochila y caminó hacia la escuela.',
-        'template': 'Lucía caminó hacia la [BLANK] después de desayunar.',
-        'correctAnswer': 'escuela',
-        'hint': 'Es el lugar donde van los niños a aprender.',
-      },
-    ),
-
-    // ── ESCRITURA: Ortografía básica (mod-esc-1) ──────────────────────────
-
-    ExerciseEntity(
-      id: 'ex-esc-1-1',
-      moduleId: 'mod-esc-1',
-      title: '¿Con mayúscula o minúscula?',
-      instructions:
-          'Selecciona si la palabra subrayada está escrita correctamente.',
-      type: ExerciseType.multipleChoice,
-      difficulty: DifficultyLevel.basic,
-      subject: Subject.civics,
-      content: {
-        'question':
-            '¿Cuál de estas opciones está escrita correctamente?',
-        'options': [
-          'el perro se llama max.',
-          'El perro se llama Max.',
-          'el Perro se llama max.',
-          'El perro se llama max.',
-        ],
-        'correctIndex': 1,
-        'explanation':
-            'Los nombres propios y el inicio de oración siempre llevan mayúscula.',
-      },
-    ),
-
-    ExerciseEntity(
-      id: 'ex-esc-1-2',
-      moduleId: 'mod-esc-1',
-      title: 'Ordena las palabras',
-      instructions:
-          'Arrastra las palabras para formar una oración con sentido.',
-      type: ExerciseType.ordering,
-      difficulty: DifficultyLevel.intermediate,
-      subject: Subject.math,
-      content: {
-        'words': ['la', 'Ana', 'pintó', 'mariposa', 'una'],
-        'correctOrder': ['Ana', 'pintó', 'una', 'mariposa'],
-        'hint': 'La oración empieza con el nombre de la niña.',
-      },
-    ),
-
-    ExerciseEntity(
-      id: 'ex-esc-1-3',
-      moduleId: 'mod-esc-1',
-      title: '¿Verdad o mentira?',
-      instructions:
-          'Decide si la siguiente afirmación sobre ortografía es correcta.',
-      type: ExerciseType.trueOrFalse,
-      difficulty: DifficultyLevel.advanced,
-      subject: Subject.spanish,
-      content: {
-        'statement':
-            'Los nombres de personas siempre se escriben con letra mayúscula.',
-        'correctAnswer': true,
-        'explanation':
-            'Correcto. Los nombres propios de personas, lugares y animales llevan mayúscula.',
-      },
-    ),
+    // Módulo lectura grado 2
+    ExerciseEntity(id: 'ej-001', moduleId: 'mod-lec-1', title: '¿De qué trata el cuento?', instructions: 'Lee el siguiente fragmento y responde la pregunta.', type: ExerciseType.multipleChoice, difficulty: DifficultyLevel.basic, subject: Subject.spanish,
+      content: {'question': '¿Qué hizo Lucía después de desayunar?', 'options': ['Se fue a dormir', 'Tomó su mochila y fue a la escuela', 'Llamó a su mamá', 'Jugó en el jardín'], 'correctIndex': 1}),
+    ExerciseEntity(id: 'ej-002', moduleId: 'mod-lec-1', title: '¿Verdadero o falso?', instructions: 'Lee la afirmación y decide si es verdadera o falsa.', type: ExerciseType.trueOrFalse, difficulty: DifficultyLevel.basic, subject: Subject.socialStudies,
+      content: {'statement': 'Cuando Lucía llegó a la escuela, el patio estaba vacío.', 'correctAnswer': true}),
+    ExerciseEntity(id: 'ej-003', moduleId: 'mod-lec-1', title: 'Completa la oración', instructions: 'Escribe la palabra que falta en el espacio.', type: ExerciseType.fillInTheBlank, difficulty: DifficultyLevel.intermediate, subject: Subject.science,
+      content: {'template': 'Lucía caminó hacia la [BLANK] después de desayunar.', 'correctAnswer': 'escuela', 'hint': 'Es el lugar donde los niños van a aprender.'}),
+    // Módulo lectura grado 3
+    ExerciseEntity(id: 'ej-004', moduleId: 'mod-lec-2', title: 'Sinónimo de "alegre"', instructions: 'Selecciona el sinónimo correcto.', type: ExerciseType.multipleChoice, difficulty: DifficultyLevel.basic, subject: Subject.spanish,
+      content: {'question': '¿Cuál es el sinónimo de "alegre"?', 'options': ['Triste', 'Contento', 'Enojado', 'Cansado'], 'correctIndex': 1}),
+    ExerciseEntity(id: 'ej-005', moduleId: 'mod-lec-2', title: '"Rápido" y "veloz"', instructions: 'Determina si las palabras son sinónimas.', type: ExerciseType.trueOrFalse, difficulty: DifficultyLevel.basic, subject: Subject.spanish,
+      content: {'statement': '"Rápido" y "veloz" son sinónimos.', 'correctAnswer': true}),
+    // Módulo escritura grado 2
+    ExerciseEntity(id: 'ej-006', moduleId: 'mod-esc-1', title: 'Mayúscula al inicio', instructions: 'Completa la oración con la forma correcta.', type: ExerciseType.fillInTheBlank, difficulty: DifficultyLevel.basic, subject: Subject.spanish,
+      content: {'template': '[BLANK] niños juegan en el parque.', 'correctAnswer': 'Los', 'hint': 'Recuerda que las oraciones comienzan con mayúscula.'}),
+    ExerciseEntity(id: 'ej-007', moduleId: 'mod-esc-1', title: '¿Lleva punto final?', instructions: 'Decide si la oración necesita punto final.', type: ExerciseType.trueOrFalse, difficulty: DifficultyLevel.basic, subject: Subject.spanish,
+      content: {'statement': 'La oración "El perro corre por el jardín" lleva punto final.', 'correctAnswer': true}),
+    ExerciseEntity(id: 'ej-008', moduleId: 'mod-esc-1', title: 'Orden de la oración', instructions: 'Selecciona el orden correcto de las palabras.', type: ExerciseType.multipleChoice, difficulty: DifficultyLevel.intermediate, subject: Subject.spanish,
+      content: {'question': '¿Cuál es el orden correcto?', 'options': ['parque el en juegan niños Los', 'Los niños juegan en el parque', 'juegan Los niños parque el en', 'en Los niños el juegan parque'], 'correctIndex': 1}),
+    // Módulo escritura grado 3
+    ExerciseEntity(id: 'ej-009', moduleId: 'mod-esc-2', title: 'Construye la oración', instructions: 'Completa con la palabra adecuada.', type: ExerciseType.fillInTheBlank, difficulty: DifficultyLevel.basic, subject: Subject.spanish,
+      content: {'template': 'El [BLANK] vuela muy alto en el cielo.', 'correctAnswer': 'pájaro'}),
+    ExerciseEntity(id: 'ej-010', moduleId: 'mod-esc-2', title: 'Sujeto y predicado', instructions: 'Determina si la afirmación es correcta.', type: ExerciseType.trueOrFalse, difficulty: DifficultyLevel.intermediate, subject: Subject.spanish,
+      content: {'statement': 'En "La mariposa vuela", "La mariposa" es el sujeto.', 'correctAnswer': true}),
   ];
 }
