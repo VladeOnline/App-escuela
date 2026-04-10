@@ -3,13 +3,6 @@ import 'package:flutter/material.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../domain/entities/module_entities.dart';
 
-/// Mini-preview visual de un ejercicio para usarse como thumbnail dentro de
-/// una card. NO interactivo y NO toca BD: render puramente decorativo basado
-/// en el contenido del ejercicio.
-///
-/// En lugar de hacer `Transform.scale` del widget de ejercicio real (que se
-/// dimensiona para pantalla completa y queda ilegible al reducir), aquí
-/// renderizamos una representación simplificada y específica por tipo.
 class ExercisePreviewWidget extends StatelessWidget {
   const ExercisePreviewWidget({super.key, required this.exercise});
 
@@ -17,36 +10,34 @@ class ExercisePreviewWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: ClipRRect(
-        borderRadius: const BorderRadius.all(AppRadius.medium),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(AppSpacing.sm),
-          decoration: BoxDecoration(
-            color: exercise.subject.color.withOpacity(0.04),
-            border: Border.all(
-              color: exercise.subject.color.withOpacity(0.18),
-            ),
-            borderRadius: const BorderRadius.all(AppRadius.medium),
-          ),
+    return ClipRRect(
+      borderRadius: const BorderRadius.all(AppRadius.medium),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(AppSpacing.sm),
+        decoration: BoxDecoration(
+          color: exercise.subject.color.withOpacity(0.04),
+          border: Border.all(color: exercise.subject.color.withOpacity(0.18)),
+          borderRadius: const BorderRadius.all(AppRadius.medium),
+        ),
+        child: OverflowBox(
+          alignment: Alignment.topLeft,
+          maxHeight: double.infinity,
           child: _buildPreviewByType(),
         ),
       ),
     );
   }
 
-  Widget _buildPreviewByType() {
-    return switch (exercise.type) {
-      ExerciseType.multipleChoice => _MultipleChoicePreview(exercise: exercise),
-      ExerciseType.trueOrFalse => _TrueFalsePreview(exercise: exercise),
-      ExerciseType.fillInTheBlank => _FillBlankPreview(exercise: exercise),
-      ExerciseType.ordering => _OrderingPreview(exercise: exercise),
-    };
-  }
+  Widget _buildPreviewByType() => switch (exercise.type) {
+        ExerciseType.multipleChoice => _MultipleChoicePreview(exercise: exercise),
+        ExerciseType.trueOrFalse    => _TrueFalsePreview(exercise: exercise),
+        ExerciseType.fillInTheBlank => _FillBlankPreview(exercise: exercise),
+        ExerciseType.ordering       => _OrderingPreview(exercise: exercise),
+      };
 }
 
-// ─── Subwidgets por tipo ──────────────────────────────────────────────────────
+// ─── Previews por tipo ───
 
 class _MultipleChoicePreview extends StatelessWidget {
   const _MultipleChoicePreview({required this.exercise});
@@ -62,12 +53,10 @@ class _MultipleChoicePreview extends StatelessWidget {
       children: [
         _PreviewQuestion(text: question),
         const SizedBox(height: 6),
-        ...options.take(3).map(
-              (opt) => Padding(
-                padding: const EdgeInsets.only(bottom: 3),
-                child: _PreviewOptionPill(label: opt),
-              ),
-            ),
+        ...options.take(3).map((opt) => Padding(
+              padding: const EdgeInsets.only(bottom: 3),
+              child: _PreviewOptionPill(label: opt),
+            )),
       ],
     );
   }
@@ -86,8 +75,8 @@ class _TrueFalsePreview extends StatelessWidget {
       children: [
         _PreviewQuestion(text: statement),
         const SizedBox(height: 8),
-        Row(
-          children: const [
+        const Row(
+          children: [
             Expanded(child: _MiniPill(label: '✓ Verdadero', color: AppColors.success)),
             SizedBox(width: 6),
             Expanded(child: _MiniPill(label: '✗ Falso', color: AppColors.error)),
@@ -106,7 +95,7 @@ class _FillBlankPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     final template = (exercise.content['template'] as String? ?? '')
         .replaceAll('[BLANK]', '_____');
-    return _PreviewQuestion(text: template, maxLines: 4);
+    return _PreviewQuestion(text: template, maxLines: 5);
   }
 }
 
@@ -128,10 +117,10 @@ class _OrderingPreview extends StatelessWidget {
   }
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// ─── Helpers ───
 
 class _PreviewQuestion extends StatelessWidget {
-  const _PreviewQuestion({required this.text, this.maxLines = 2});
+  const _PreviewQuestion({required this.text, this.maxLines = 3});
   final String text;
   final int maxLines;
 
@@ -143,7 +132,7 @@ class _PreviewQuestion extends StatelessWidget {
       overflow: TextOverflow.ellipsis,
       style: const TextStyle(
         fontSize: 11,
-        height: 1.25,
+        height: 1.3,
         fontWeight: FontWeight.w600,
         color: AppColors.textPrimary,
         fontFamily: 'Nunito',
@@ -170,11 +159,7 @@ class _PreviewOptionPill extends StatelessWidget {
         label,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: const TextStyle(
-          fontSize: 9,
-          color: AppColors.textSecondary,
-          fontFamily: 'Nunito',
-        ),
+        style: const TextStyle(fontSize: 9, color: AppColors.textSecondary, fontFamily: 'Nunito'),
       ),
     );
   }

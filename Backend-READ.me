@@ -1,0 +1,220 @@
+# 📋 Backend Integration Guide — Refuerzo Escolar (Módulos & Ejercicios)
+
+> **Estado actual:** El frontend corre con datos mock hardcodeados en `MockModuleRepository`.
+> Todo lo que hay que reemplazar está marcado con `// TODO(back):` en ese archivo.
+> Este documento describe exactamente qué endpoints necesita el frontend para conectarse.
+
+---
+
+## 🗂️ Entidades principales
+
+### `ModuleEntity`
+Representa un módulo académico (colección de ejercicios de una materia y grado).
+
+```json
+{
+  "id": "mod-lec-1",
+  "title": "Comprensión de textos",
+  "description": "Descripción del módulo.",
+  "type": "reading",          // "reading" | "writing"
+  "grade": 2,                 // grado escolar: 1–6
+  "isActive": true,
+  "exerciseCount": 3,         // conteo calculado por el servidor
+  "createdAt": "2024-01-15T00:00:00Z"
+}
+```
+
+### `ExerciseEntity`
+Contiene el contenido y la lógica de corrección del ejercicio.
+El campo `content` varía según `type` (ver detalle abajo).
+
+```json
+{
+  "id": "ej-001",
+  "moduleId": "mod-lec-1",
+  "title": "¿De qué trata el cuento?",
+  "instructions": "Lee el siguiente fragmento y responde la pregunta.",
+  "type": "multipleChoice",   // ver tipos abajo
+  "difficulty": "basic",      // "basic" | "intermediate" | "advanced"
+  "subject": "spanish",       // ver materias abajo
+  "isActive": true,
+  "content": { ... }          // estructura variable según type
+}
+```
+
+#### Tipos de ejercicio (`type`)
+| Valor | Descripción | Puntos base |
+|---|---|---|
+| `multipleChoice` | Selección múltiple (4 opciones) | 10 / 20 / 30 según difficulty |
+| `trueOrFalse` | Verdadero o falso | 10 / 20 / 30 |
+| `fillInTheBlank` | Completar el espacio en blanco | 10 / 20 / 30 |
+| `ordering` | Ordenar elementos *(frontend pendiente)* | 10 / 20 / 30 |
+
+#### Niveles de dificultad (`difficulty`) y puntos
+| Valor | Label | Puntos |
+|---|---|---|
+| `basic` | Básico | 10 |
+| `intermediate` | Intermedio | 20 |
+| `advanced` | Avanzado | 30 |
+
+#### Materias (`subject`)
+| Valor | Label |
+|---|---|
+| `spanish` | Español |
+| `socialStudies` | Estudios Sociales |
+| `civics` | Cívica |
+| `math` | Matemática |
+| `science` | Ciencias |
+
+---
+
+## 📦 Estructura del campo `content` por tipo de ejercicio
+
+### `multipleChoice`
+```json
+{
+  "passage": "Texto de lectura opcional que el niño lee antes de responder.",
+  "question": "¿Qué hizo Lucía después de desayunar?",
+  "options": [
+    "Se fue a dormir",
+    "Tomó su mochila y fue a la escuela",
+    "Llamó a su mamá",
+    "Jugó en el jardín"
+  ],
+  "correctIndex": 1,
+  "explanation": "El texto dice que Lucía tomó su mochila colorida..."
+}
+```
+- `passage`: opcional. Si viene, se muestra como "Texto de lectura" antes de la pregunta.
+- `options`: array de strings, máximo 6 opciones (el frontend muestra hasta F).
+- `correctIndex`: índice 0-based de la opción correcta.
+- `explanation`: opcional. Se muestra después de responder.
+
+### `trueOrFalse`
+```json
+{
+  "passage": "Texto de contexto opcional.",
+  "statement": "Lucía estaba emocionada porque era el primer día de clases.",
+  "correctAnswer": true,
+  "explanation": "El texto dice claramente que Lucía estaba muy emocionada..."
+}
+```
+- `correctAnswer`: booleano.
+
+### `fillInTheBlank`
+```json
+{
+  "passage": "Texto de contexto opcional.",
+  "template": "Lucía caminó hacia la [BLANK] después de desayunar.",
+  "correctAnswer": "escuela",
+  "hint": "Es el lugar donde los niños van a aprender."
+}
+```
+- `template`: la oración con `[BLANK]` marcando el espacio vacío.
+- `correctAnswer`: string, la comparación es case-insensitive y sin espacios extra.
+- `hint`: opcional. Se muestra como pista antes de responder.
+
+### `ordering` *(frontend en desarrollo)*
+```json
+{
+  "words": ["niños", "Los", "juegan", "parque", "el", "en"],
+  "correctOrder": [1, 0, 2, 5, 4, 3]
+}
+```
+
+---
+
+## 🔌 Endpoints requeridos
+
+### Módulos
+
+#### `GET /api/modules`
+Lista todos los módulos activos.
+- Query params: `type` (`reading` | `writing`), `grade` (1–6)
+- Respuesta: `ModuleEntity[]`
+
+#### `GET /api/modules/:id`
+Obtiene un módulo por ID.
+- Respuesta: `ModuleEntity`
+
+---
+
+### Ejercicios
+
+#### `GET /api/modules/:moduleId/exercises`
+Lista todos los ejercicios de un módulo.
+- Respuesta: `ExerciseEntity[]` — incluir el campo `content` completo.
+- El frontend los agrupa por `difficulty` para mostrarlos en secciones.
+
+#### `GET /api/exercises/:id`
+Obtiene un ejercicio por ID.
+- Respuesta: `ExerciseEntity` completo.
+
+#### `POST /api/modules/:moduleId/exercises`
+Crea un nuevo ejercicio.
+- Body: `{ title, instructions, type, difficulty, subject, content, isActive? }`
+- El `id` lo genera el servidor (UUID).
+- Respuesta: `ExerciseEntity` completo con el `id` asignado — **el frontend lo necesita de vuelta inmediatamente**.
+
+#### `PUT /api/exercises/:id`
+Actualiza un ejercicio existente.
+- Body: mismo esquema que el POST.
+- Conservar `isActive` original si no viene en el body.
+- Respuesta: `ExerciseEntity` actualizado.
+
+#### `PATCH /api/exercises/:id/toggle`
+Activa o desactiva un ejercicio (invierte `isActive`).
+- Body: ninguno.
+- Respuesta: `{ id: string, isActive: boolean }`
+
+#### `PATCH /api/exercises/bulk-toggle`
+Activa o desactiva múltiples ejercicios de una vez.
+- Body: `{ ids: string[], isActive: boolean }`
+- Respuesta: `{ updated: number }` — cantidad de ejercicios afectados.
+
+#### `DELETE /api/exercises/:id`
+Elimina un ejercicio.
+- Respuesta: `204 No Content`
+- Se recomienda **soft delete** (`isActive: false`) en lugar de borrado físico para no perder historial de resultados.
+
+---
+
+### Resultados de ejercicios *(endpoint pendiente — no está en el mock)*
+
+El frontend ya produce un objeto `ExerciseResult` cuando el estudiante termina un ejercicio.
+Necesita un endpoint para guardarlo:
+
+#### `POST /api/results`
+Guarda el resultado de un ejercicio completado por un estudiante.
+- Body:
+```json
+{
+  "exerciseId": "ej-001",
+  "studentId": "string",
+  "isCorrect": true,
+  "pointsEarned": 10,
+  "completedAt": "2025-04-09T22:00:00Z"
+}
+```
+- Respuesta: `201 Created` con el resultado guardado.
+
+> El botón **Reintentar** en el frontend no llama a este endpoint — solo se guarda el primer intento (o el que el niño decide "Continuar"). El backend no necesita distinguir reintentos del frontend.
+
+---
+
+## 📌 Notas de integración
+
+- **IDs:** el frontend genera UUIDs con el paquete `uuid` en el mock. Con la API real, el servidor asigna los IDs.
+- **Paginación:** no está implementada en el frontend aún. Los endpoints pueden recibirla pero no es necesaria para el MVP.
+- **Auth:** el frontend tiene un sistema de login básico de maestro (`PIN: 1234` en el mock). Los endpoints de escritura (POST/PUT/DELETE) deberían requerir autenticación. Los de lectura para el estudiante pueden ser públicos o con un token de sesión de estudiante.
+- **exerciseCount en módulos:** el frontend lo muestra en la lista. Se recomienda que el servidor lo calcule y lo devuelva como campo calculado, no guardarlo como columna mutable.
+- **Errores:** el frontend no maneja aún errores de red detallados. Respuestas estándar HTTP son suficientes por ahora (`400`, `404`, `422`, `500`).
+
+---
+
+## 🗃️ Ejemplo de seed data (referencia)
+
+Los módulos y ejercicios con los que el frontend corre actualmente están en:
+`lib/features/modules/data/repositories/mock_module_repository.dart`
+
+Son 10 módulos (5 de lectura, 5 de escritura, grados 2–6) y 10 ejercicios de ejemplo distribuidos entre ellos. Úsalos como referencia para el seed de la BD.
