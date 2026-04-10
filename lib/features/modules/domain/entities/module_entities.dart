@@ -4,12 +4,12 @@ import 'subject.dart';
 
 export 'subject.dart';
 
-// ─── Enums ────────────────────────────────────────────────────────────────────
+// ─── Enums ───
 
 /// Tipo de módulo académico disponible en el sistema.
 enum ModuleType { reading, writing }
 
-/// Nivel de dificultad de un ejercicio (RF-11).
+/// Nivel de dificultad de un ejercicio.
 enum DifficultyLevel { basic, intermediate, advanced }
 
 /// Tipo de ejercicio (define qué widget de ejercicio se renderiza).
@@ -20,7 +20,7 @@ enum ExerciseType {
   ordering,         // Ordenar elementos
 }
 
-// ─── Extensiones de conveniencia ─────────────────────────────────────────────
+// ─── Extensiones de conveniencia ───
 
 extension ModuleTypeX on ModuleType {
   String get label => switch (this) {
@@ -47,7 +47,7 @@ extension DifficultyLevelX on DifficultyLevel {
         DifficultyLevel.advanced => const Color(0xFFEF4444),
       };
 
-  /// Puntos base que otorga un ejercicio de este nivel (RF-20).
+  /// Puntos base que otorga un ejercicio de este nivel.
   int get basePoints => switch (this) {
         DifficultyLevel.basic => 10,
         DifficultyLevel.intermediate => 20,
@@ -62,12 +62,17 @@ extension ExerciseTypeX on ExerciseType {
         ExerciseType.trueOrFalse => 'Verdadero o falso',
         ExerciseType.ordering => 'Ordenar elementos',
       };
+  IconData get icon => switch (this) {
+        ExerciseType.multipleChoice => Icons.check_circle_outline_rounded,
+        ExerciseType.fillInTheBlank => Icons.text_fields_rounded,
+        ExerciseType.trueOrFalse    => Icons.thumbs_up_down_rounded,
+        ExerciseType.ordering       => Icons.sort_rounded,
+      };
 }
 
-// ─── Entidades de dominio ─────────────────────────────────────────────────────
+// ─── Entidades de dominio ───
 
 /// Entidad de un módulo académico (Lectura o Escritura).
-/// Agrupa ejercicios de una materia específica por grado (RF-07, RF-08).
 @immutable
 class ModuleEntity {
   final String id;
@@ -91,7 +96,6 @@ class ModuleEntity {
   });
 }
 
-/// Entidad de un ejercicio interactivo (RF-09, RF-11, RF-12).
 /// Contiene el contenido y la lógica de corrección del ejercicio.
 @immutable
 class ExerciseEntity {
@@ -123,11 +127,9 @@ class ExerciseEntity {
     this.isActive = true,
   });
 
-  /// Puntos que otorga este ejercicio al completarlo correctamente.
   int get points => difficulty.basePoints;
 }
 
-/// Resultado de un intento de ejercicio (RF-13, RF-14, RF-35).
 @immutable
 class ExerciseResult {
   final String exerciseId;
@@ -141,4 +143,15 @@ class ExerciseResult {
     required this.pointsEarned,
     required this.completedAt,
   });
+
+  factory ExerciseResult.fromExercise({
+    required ExerciseEntity exercise,
+    required bool isCorrect,
+  }) => ExerciseResult(
+    exerciseId: exercise.id,
+    isCorrect: isCorrect,
+    pointsEarned: isCorrect ? exercise.difficulty.basePoints : 0,
+    completedAt: DateTime.now(),
+  );
+
 }
