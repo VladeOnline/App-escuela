@@ -11,12 +11,16 @@ class AuthState {
   final AuthStatus status;
   final String? token;
   final String? role;
+  final String? userId;
+  final String? userName;
   final AppFailure? failure;
 
   const AuthState({
     this.status = AuthStatus.unauthenticated,
     this.token,
     this.role,
+    this.userId,
+    this.userName,
     this.failure,
   });
 
@@ -28,12 +32,16 @@ class AuthState {
     AuthStatus? status,
     String? token,
     String? role,
+    String? userId,
+    String? userName,
     AppFailure? failure,
   }) {
     return AuthState(
       status: status ?? this.status,
       token: token ?? this.token,
       role: role ?? this.role,
+      userId: userId ?? this.userId,
+      userName: userName ?? this.userName,
       failure: failure,
     );
   }
@@ -57,7 +65,13 @@ class AuthNotifier extends ChangeNotifier {
 
     try {
       final response = await AuthService.login(username.trim(), password, role);
-      setAuth(response['token'], response['usuario']['rol']);
+      final usuario = response['usuario'] as Map<String, dynamic>;
+      setAuth(
+        token: response['token'],
+        role: usuario['rol'],
+        userId: usuario['id'],
+        userName: usuario['nombre'],
+      );
       return true;
     } on AuthFailure catch (failure) {
       _emit(_state.copyWith(
@@ -78,11 +92,18 @@ class AuthNotifier extends ChangeNotifier {
     _emit(const AuthState(status: AuthStatus.unauthenticated));
   }
 
-  void setAuth(String token, String role) {
+  void setAuth({
+    required String token,
+    required String role,
+    String? userId,
+    String? userName,
+  }) {
     _emit(_state.copyWith(
       status: AuthStatus.authenticated,
       token: token,
       role: role,
+      userId: userId,
+      userName: userName,
     ));
   }
 

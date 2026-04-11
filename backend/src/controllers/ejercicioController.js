@@ -47,57 +47,7 @@ const crearEjercicio = async (req, res) => {
         mensaje: 'La dificultad debe ser: facil, medio o dificil'
       });
     }
-// RF-11: Cambiar nivel de dificultad de un ejercicio
-const cambiarDificultadEjercicio = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { dificultad } = req.body;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        mensaje: 'ID de ejercicio inválido'
-      });
-    }
-
-    if (!dificultad || dificultad.trim() === '') {
-      return res.status(400).json({
-        mensaje: 'La dificultad es obligatoria'
-      });
-    }
-
-    const dificultadesValidas = ['facil', 'medio', 'dificil'];
-    const dificultadNormalizada = dificultad.trim().toLowerCase();
-
-    if (!dificultadesValidas.includes(dificultadNormalizada)) {
-      return res.status(400).json({
-        mensaje: 'La dificultad debe ser: facil, medio o dificil'
-      });
-    }
-
-    const ejercicioActualizado = await Ejercicio.findByIdAndUpdate(
-      id,
-      { dificultad: dificultadNormalizada },
-      { new: true }
-    );
-
-    if (!ejercicioActualizado) {
-      return res.status(404).json({
-        mensaje: 'Ejercicio no encontrado'
-      });
-    }
-
-    res.status(200).json({
-      mensaje: 'Dificultad actualizada correctamente',
-      ejercicio: ejercicioActualizado
-    });
-
-  } catch (error) {
-    res.status(500).json({
-      mensaje: 'Error al cambiar la dificultad del ejercicio',
-      error: error.message
-    });
-  }
-};
     // RF-29: validar opciones si vienen
     if (opciones && !Array.isArray(opciones)) {
       return res.status(400).json({
@@ -157,6 +107,59 @@ const cambiarDificultadEjercicio = async (req, res) => {
     });
   }
 };
+
+// RF-11: Cambiar nivel de dificultad de un ejercicio
+const cambiarDificultadEjercicio = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { dificultad } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        mensaje: 'ID de ejercicio inválido'
+      });
+    }
+
+    if (!dificultad || dificultad.trim() === '') {
+      return res.status(400).json({
+        mensaje: 'La dificultad es obligatoria'
+      });
+    }
+
+    const dificultadesValidas = ['facil', 'medio', 'dificil'];
+    const dificultadNormalizada = dificultad.trim().toLowerCase();
+
+    if (!dificultadesValidas.includes(dificultadNormalizada)) {
+      return res.status(400).json({
+        mensaje: 'La dificultad debe ser: facil, medio o dificil'
+      });
+    }
+
+    const ejercicioActualizado = await Ejercicio.findByIdAndUpdate(
+      id,
+      { dificultad: dificultadNormalizada },
+      { new: true }
+    );
+
+    if (!ejercicioActualizado) {
+      return res.status(404).json({
+        mensaje: 'Ejercicio no encontrado'
+      });
+    }
+
+    res.status(200).json({
+      mensaje: 'Dificultad actualizada correctamente',
+      ejercicio: ejercicioActualizado
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      mensaje: 'Error al cambiar la dificultad del ejercicio',
+      error: error.message
+    });
+  }
+};
+
 // RF-12: Activar o desactivar ejercicio
 const cambiarEstadoEjercicio = async (req, res) => {
   try {

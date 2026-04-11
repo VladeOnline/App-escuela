@@ -8,10 +8,12 @@ class TeacherTopbar extends StatelessWidget implements PreferredSizeWidget {
     super.key,
     required this.teacherName,
     required this.onLogout,
+    required this.onChangePhoto,
   });
 
   final String teacherName;
   final VoidCallback onLogout;
+  final VoidCallback onChangePhoto;
 
   @override
   Size get preferredSize => const Size.fromHeight(60);
@@ -53,9 +55,7 @@ class TeacherTopbar extends StatelessWidget implements PreferredSizeWidget {
             teacherName: teacherName,
             onLogout: onLogout,
             onChangePassword: () => ChangePasswordModal.show(context),
-            onChangePhoto: () => ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Función de cambio de foto próximamente'), behavior: SnackBarBehavior.floating),
-            ),
+            onChangePhoto: onChangePhoto,
           ),
         ],
       ),

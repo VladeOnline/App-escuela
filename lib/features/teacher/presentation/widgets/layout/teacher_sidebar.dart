@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../../core/theme/app_theme.dart';
+import '../../../../auth/presentation/pages/profile_page.dart';
 
 // ─── Modelos ───
 
@@ -37,11 +38,13 @@ class TeacherSidebar extends StatefulWidget {
     super.key,
     required this.selectedIndex,
     required this.teacherName,
+    required this.usuarioId,
     required this.onSelectIndex,
     required this.onLogout,
   });
   final int selectedIndex;
   final String teacherName;
+  final String usuarioId;
   final ValueChanged<int> onSelectIndex;
   final VoidCallback onLogout;
 
@@ -102,6 +105,7 @@ class _TeacherSidebarState extends State<TeacherSidebar> {
         children: [
           _TeacherAvatarHeader(
             teacherName: widget.teacherName,
+            usuarioId: widget.usuarioId,
             collapsed: _collapsed,
             onToggle: _toggleCollapse,
           ),
@@ -145,10 +149,12 @@ class _TeacherSidebarState extends State<TeacherSidebar> {
 class _TeacherAvatarHeader extends StatelessWidget {
   const _TeacherAvatarHeader({
     required this.teacherName,
+    required this.usuarioId,
     required this.collapsed,
     required this.onToggle,
   });
   final String teacherName;
+  final String usuarioId;
   final bool collapsed;
   final VoidCallback onToggle;
 
@@ -188,6 +194,17 @@ class _TeacherAvatarHeader extends StatelessWidget {
         ),
       );
 
+  void _navigateToProfile(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ProfilePage(
+          usuarioId: usuarioId,
+          nombreDocente: teacherName,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (collapsed) {
@@ -197,7 +214,15 @@ class _TeacherAvatarHeader extends StatelessWidget {
           const Divider(height: 1, color: AppColors.border),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-            child: Center(child: _avatar(50)),
+            child: Center(
+              child: MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: GestureDetector(
+                  onTap: () => _navigateToProfile(context),
+                  child: _avatar(50),
+                ),
+              ),
+            ),
           ),
         ],
       );
@@ -206,7 +231,13 @@ class _TeacherAvatarHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.xs, AppSpacing.md),
       child: Row(
         children: [
-          _avatar(64),
+          MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: GestureDetector(
+              onTap: () => _navigateToProfile(context),
+              child: _avatar(64),
+            ),
+          ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
@@ -216,7 +247,6 @@ class _TeacherAvatarHeader extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   'Prof. $teacherName!',
-                  // TODO(back): reemplazar con el nombre real desde AuthNotifier.state.
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppColors.primary, fontWeight: FontWeight.w700),
                   overflow: TextOverflow.ellipsis,
                 ),

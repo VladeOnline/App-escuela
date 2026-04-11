@@ -5,6 +5,7 @@ const estudianteSchema = new mongoose.Schema({
   nombre: { type: String, required: true },
   edad: { type: Number, required: true },
   grado: { type: Number, required: true, min: 1, max: 6 },
+  foto_url: { type: String, default: null }, // URL o path de la foto
   conditions: { type: [String], default: [] },
   activo: { type: Boolean, default: true },
   creado_en: { type: Date, default: Date.now }

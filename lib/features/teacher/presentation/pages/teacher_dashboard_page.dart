@@ -5,9 +5,11 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../features/auth/presentation/auth_notifier.dart';
+import '../../../../features/auth/presentation/pages/profile_page.dart';
 import '../../../../features/modules/data/repositories/mock_module_repository.dart';
 import '../../../../features/modules/domain/entities/module_entities.dart';
 import '../../../../features/modules/presentation/pages/modules_page.dart';
+import '../../../../features/reports/presentation/pages/reports_page.dart';
 import '../../../../features/students/domain/entities/student_entity.dart';
 import '../../../../features/students/presentation/notifiers/students_notifier.dart';
 import '../../../../features/students/presentation/pages/student_form_page.dart';
@@ -34,7 +36,39 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
     Navigator.of(context).pushReplacementNamed(AppRoutes.login);
   }
 
-  String get _teacherName => 'Juan';
+  String get _teacherName => context.read<AuthNotifier>().state.userName ?? 'Profesor';
+
+  String get _usuarioId => context.read<AuthNotifier>().state.userId ?? '';
+
+  void _onChangePhoto() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cambiar Foto de Perfil'),
+        content: const Text('Se abrirá la galería para seleccionar una nueva foto'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => ProfilePage(
+                    usuarioId: _usuarioId,
+                    nombreDocente: _teacherName,
+                  ),
+                ),
+              );
+            },
+            child: const Text('Abrir Perfil'),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildContent(int index) {
     final studentsNotifier = context.read<StudentsNotifier>();
@@ -49,7 +83,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
           moduleType: ModuleType.writing,
           repository: _moduleRepository,
         ),
-      3 => const _ComingSoonView(label: 'Reportes'),
+      3 => const ReportsPage(),
       4 => const _ComingSoonView(label: 'Ajustes'),
       _ => const SizedBox.shrink(),
     };
@@ -63,6 +97,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
           TeacherSidebar(
             selectedIndex: _selectedIndex,
             teacherName: _teacherName,
+            usuarioId: _usuarioId,
             onSelectIndex: (i) => setState(() => _selectedIndex = i),
             onLogout: _onLogout,
           ),
@@ -71,6 +106,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
               children: [
                 TeacherTopbar(
                   teacherName: _teacherName,
+                  onChangePhoto: _onChangePhoto,
                   onLogout: _onLogout,
                 ),
                 Expanded(child: _buildContent(_selectedIndex)),
