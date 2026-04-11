@@ -1,0 +1,32 @@
+const express = require('express');
+const router = express.Router();
+const { verificarToken, soloAdminODocente } = require('../middleware/authMiddleware');
+
+const {
+  obtenerReporteIndividual,
+  obtenerReportePorGrado,
+  obtenerProgresoGraficas,
+  obtenerInstruccionesEvaluacion,
+  obtenerHistorialEvaluaciones,
+  reiniciarPuntuacionesEstudiante
+} = require('../controllers/reportesController');
+
+// RF-17
+router.get('/individual/:estudianteId', obtenerReporteIndividual);
+
+// RF-18
+router.get('/grado/:grado', obtenerReportePorGrado);
+
+// RF-16
+router.get('/progreso/:estudianteId', obtenerProgresoGraficas);
+
+// RF-36 + RF-37: Obtener instrucciones y tiempo de la evaluación
+router.get('/evaluacion/:evaluacion_id/instrucciones', obtenerInstruccionesEvaluacion);
+
+// RF-41: Historial de evaluaciones realizadas
+router.get('/historial/:estudiante_id', obtenerHistorialEvaluaciones);
+
+// RF-44: Reiniciar puntuaciones (requiere ser docente o admin)
+router.post('/admin/reiniciar/:estudiante_id', verificarToken, soloAdminODocente, reiniciarPuntuacionesEstudiante);
+
+module.exports = router;
