@@ -23,13 +23,32 @@ const login = async (req, res) => {
       { expiresIn: '8h' }
     );
 
+    let estudianteData = null;
+    if (usuario.rol === 'estudiante') {
+      const estudiante = await Estudiante.findOne({
+        usuario_id: usuario._id,
+        activo: true,
+      }).select('_id nombre grado');
+
+      if (estudiante) {
+        estudianteData = {
+          id: estudiante._id,
+          nombre: estudiante.nombre,
+          grado: estudiante.grado,
+          puntos_total: 0,
+          foto_url: null,
+        };
+      }
+    }
+
     res.json({
       token,
       usuario: {
         id: usuario._id,
         nombre: usuario.nombre,
-        rol: usuario.rol
-      }
+        rol: usuario.rol,
+      },
+      estudiante: estudianteData,
     });
   } catch (error) {
     res.status(500).json({ message: 'Error en el servidor', error: error.message });
