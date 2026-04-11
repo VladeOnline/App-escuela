@@ -3,6 +3,7 @@ const Ejercicio = require('../models/ejercicioModel');
 const Resultado = require('../models/resultadoModel');
 const Evaluacion = require('../models/evaluacionModel');
 const Respuesta = require('../models/respuestamodel'); // modelo nuevo
+const { registrarLog } = require('../utils/helpers');
 
 // ─────────────────────────────────────────────
 // RF-10: El docente crea un ejercicio
@@ -46,7 +47,57 @@ const crearEjercicio = async (req, res) => {
         mensaje: 'La dificultad debe ser: facil, medio o dificil'
       });
     }
+// RF-11: Cambiar nivel de dificultad de un ejercicio
+const cambiarDificultadEjercicio = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { dificultad } = req.body;
 
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        mensaje: 'ID de ejercicio inválido'
+      });
+    }
+
+    if (!dificultad || dificultad.trim() === '') {
+      return res.status(400).json({
+        mensaje: 'La dificultad es obligatoria'
+      });
+    }
+
+    const dificultadesValidas = ['facil', 'medio', 'dificil'];
+    const dificultadNormalizada = dificultad.trim().toLowerCase();
+
+    if (!dificultadesValidas.includes(dificultadNormalizada)) {
+      return res.status(400).json({
+        mensaje: 'La dificultad debe ser: facil, medio o dificil'
+      });
+    }
+
+    const ejercicioActualizado = await Ejercicio.findByIdAndUpdate(
+      id,
+      { dificultad: dificultadNormalizada },
+      { new: true }
+    );
+
+    if (!ejercicioActualizado) {
+      return res.status(404).json({
+        mensaje: 'Ejercicio no encontrado'
+      });
+    }
+
+    res.status(200).json({
+      mensaje: 'Dificultad actualizada correctamente',
+      ejercicio: ejercicioActualizado
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      mensaje: 'Error al cambiar la dificultad del ejercicio',
+      error: error.message
+    });
+  }
+};
     // RF-29: validar opciones si vienen
     if (opciones && !Array.isArray(opciones)) {
       return res.status(400).json({
@@ -88,6 +139,11 @@ const crearEjercicio = async (req, res) => {
     });
 
     const ejercicioGuardado = await nuevoEjercicio.save();
+
+    // RF-26: Registrar acción administrativa
+    if (req.usuario && req.usuario.id) {
+      await registrarLog(req.usuario.id, `Creó ejercicio: "${pregunta.trim()}" en evaluación ${evaluacion_id}`);
+    }
 
     res.status(201).json({
       mensaje: 'Ejercicio creado exitosamente',
@@ -169,6 +225,10 @@ const obtenerEjercicios = async (req, res) => {
 // Flutter sigue recibiendo si fue correcta o no para mostrar el ✅ o ❌,
 // pero ya no necesitamos confiar en lo que Flutter nos diga al finalizar.
 // ─────────────────────────────────────────────
+// �────────────────────────────────────────────
+// RF-24: Retroalimentación inmediata al responder
+// RF-13: Guardar respuestas en la BD
+// RF-14: Calificar respuestas
 const responderPregunta = async (req, res) => {
   try {
     // Ahora necesitamos también estudiante_id y evaluacion_id para guardar la respuesta
@@ -203,7 +263,7 @@ const responderPregunta = async (req, res) => {
       return res.status(400).json({ mensaje: 'Ya respondiste este ejercicio en esta evaluación' });
     }
 
-    // ── RF-14: Comparamos la respuesta con la correcta ──
+    // ── RF-24: Comparamos la respuesta con la correcta ──
     const esCorrecta = respuesta_dada.trim().toLowerCase() === ejercicio.respuesta_correcta.trim().toLowerCase();
 
     // Calculamos los puntos según dificultad
@@ -227,11 +287,17 @@ const responderPregunta = async (req, res) => {
 
     await nuevaRespuesta.save();
 
-    // Respondemos a Flutter para que muestre el ✅ o ❌
+    // ── RF-24: Devolver retroalimentación inmediata ──
     res.status(201).json({
-      esCorrecta,
-      puntosObtenidos,
-      respuestaCorrecta: esCorrecta ? null : ejercicio.respuesta_correcta
+      mensaje: 'Respuesta registrada',
+      retroalimentacion: {
+        esCorrecta,
+        puntosObtenidos,
+        respuestaCorrecta: ejercicio.respuesta_correcta,
+        explicacion: esCorrecta 
+          ? '✅ ¡Respuesta correcta!' 
+          : `❌ Respuesta incorrecta. La respuesta correcta es: ${ejercicio.respuesta_correcta}`
+      }
     });
 
   } catch (error) {
@@ -340,10 +406,10 @@ const obtenerResultadosPorEvaluacion = async (req, res) => {
 
 module.exports = {
   crearEjercicio,
+  cambiarDificultadEjercicio,
   cambiarEstadoEjercicio,
   obtenerEjercicios,
   responderPregunta,
   finalizarEvaluacion,
   obtenerResultadosPorEvaluacion
-
 };
