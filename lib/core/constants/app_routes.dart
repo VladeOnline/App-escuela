@@ -1,4 +1,4 @@
-/// Rutas nombradas de la aplicación.
+﻿/// Rutas nombradas de la aplicación.
 abstract class AppRoutes {
   static const splash = '/';
   static const login = '/login';
@@ -8,3 +8,4 @@ abstract class AppRoutes {
   static const studentForm = '/teacher/students/form';
   static const studentDetail = '/teacher/students/detail';
 }
+

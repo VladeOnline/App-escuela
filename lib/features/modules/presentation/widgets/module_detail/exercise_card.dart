@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../../../core/theme/app_theme.dart';
 import '../../../domain/entities/module_entities.dart';
@@ -37,8 +37,8 @@ class ExerciseCard extends StatelessWidget {
         ),
         color: Colors.white,
         boxShadow: isSelectionMode && isSelected
-            ? [BoxShadow(color: AppColors.primary.withOpacity(0.25), blurRadius: 16, offset: const Offset(0, 6))]
-            : [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+            ? [BoxShadow(color: AppColors.primary.withValues(alpha: 0.25), blurRadius: 16, offset: const Offset(0, 6))]
+            : [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2))],
       ),
       child: Opacity(
         opacity: exercise.isActive ? 1 : 0.5,
@@ -79,11 +79,11 @@ class ExerciseCard extends StatelessWidget {
 
   Widget _divider() => Padding(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-        child: Divider(height: 1, thickness: 1, color: AppColors.border.withOpacity(0.6)),
+        child: Divider(height: 1, thickness: 1, color: AppColors.border.withValues(alpha: 0.6)),
       );
 }
 
-// ─── Header ───
+// --- Header ---
 
 class _CardHeader extends StatelessWidget {
   const _CardHeader({
@@ -116,7 +116,7 @@ class _CardHeader extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
-            color: exercise.difficulty.color.withOpacity(0.1),
+            color: exercise.difficulty.color.withValues(alpha: 0.1),
             borderRadius: const BorderRadius.all(AppRadius.small),
           ),
           child: Icon(_typeIcon(exercise.type), size: 16, color: exercise.difficulty.color),
@@ -145,7 +145,7 @@ class _CardHeader extends StatelessWidget {
   }
 }
 
-// ─── Footer ───
+// --- Footer ---
 
 class _CardFooter extends StatelessWidget {
   const _CardFooter({required this.title, required this.points});
@@ -178,7 +178,7 @@ class _CardFooter extends StatelessWidget {
   }
 }
 
-// ─── Badge de puntos ───
+// --- Badge de puntos ---
 
 class _PointsBadge extends StatelessWidget {
   const _PointsBadge({required this.points});
@@ -193,9 +193,9 @@ class _PointsBadge extends StatelessWidget {
           width: 22,
           height: 22,
           decoration: BoxDecoration(
-            color: AppColors.secondary.withOpacity(0.15),
+            color: AppColors.secondary.withValues(alpha: 0.15),
             shape: BoxShape.circle,
-            border: Border.all(color: AppColors.secondary.withOpacity(0.3)),
+            border: Border.all(color: AppColors.secondary.withValues(alpha: 0.3)),
           ),
           child: const Icon(Icons.star_rounded, size: 13, color: AppColors.secondary),
         ),
@@ -214,7 +214,7 @@ class _PointsBadge extends StatelessWidget {
   }
 }
 
-// ─── Etiqueta de materia ───
+// --- Etiqueta de materia ---
 
 class _SubjectTag extends StatelessWidget {
   const _SubjectTag({required this.subject});
@@ -225,9 +225,9 @@ class _SubjectTag extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: subject.color.withOpacity(0.10),
+        color: subject.color.withValues(alpha: 0.10),
         borderRadius: const BorderRadius.all(AppRadius.small),
-        border: Border.all(color: subject.color.withOpacity(0.3)),
+        border: Border.all(color: subject.color.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -250,7 +250,7 @@ class _SubjectTag extends StatelessWidget {
   }
 }
 
-// ─── Checkbox animado ───
+// --- Checkbox animado ---
 
 class _AnimatedCheckbox extends StatelessWidget {
   const _AnimatedCheckbox({required this.isSelected});
@@ -270,7 +270,7 @@ class _AnimatedCheckbox extends StatelessWidget {
           width: 2,
         ),
         boxShadow: isSelected
-            ? [BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 6, offset: const Offset(0, 2))]
+            ? [BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 6, offset: const Offset(0, 2))]
             : [],
       ),
       child: AnimatedSwitcher(
@@ -283,7 +283,7 @@ class _AnimatedCheckbox extends StatelessWidget {
   }
 }
 
-// ─── Menú de acciones ───
+// --- Menú de acciones ---
 
 class _ActionsMenu extends StatelessWidget {
   const _ActionsMenu({this.onEdit, required this.onDelete});
@@ -338,7 +338,7 @@ class _ActionsMenu extends StatelessWidget {
   }
 }
 
-// ─── Card para agregar ejercicio ───
+// --- Card para agregar ejercicio ---
 
 class AddExerciseCard extends StatefulWidget {
   const AddExerciseCard({
@@ -371,14 +371,14 @@ class _AddExerciseCardState extends State<AddExerciseCard> {
           duration: const Duration(milliseconds: 180),
           curve: Curves.easeOut,
           decoration: BoxDecoration(
-            color: color.withOpacity(_hovered ? 0.12 : 0.05),
+            color: color.withValues(alpha: _hovered ? 0.12 : 0.05),
             borderRadius: const BorderRadius.all(AppRadius.large),
             border: Border.all(
-              color: color.withOpacity(_hovered ? 0.5 : 0.25),
+              color: color.withValues(alpha: _hovered ? 0.5 : 0.25),
               width: 1.5,
             ),
             boxShadow: _hovered
-                ? [BoxShadow(color: color.withOpacity(0.15), blurRadius: 16, offset: const Offset(0, 4))]
+                ? [BoxShadow(color: color.withValues(alpha: 0.15), blurRadius: 16, offset: const Offset(0, 4))]
                 : [],
           ),
           child: Column(
@@ -389,7 +389,7 @@ class _AddExerciseCardState extends State<AddExerciseCard> {
                 width: 52,
                 height: 52,
                 decoration: BoxDecoration(
-                  color: color.withOpacity(_hovered ? 0.25 : 0.15),
+                  color: color.withValues(alpha: _hovered ? 0.25 : 0.15),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(Icons.add_rounded, size: 28, color: color),
@@ -412,7 +412,7 @@ class _AddExerciseCardState extends State<AddExerciseCard> {
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
-                  color: color.withOpacity(0.6),
+                  color: color.withValues(alpha: 0.6),
                   fontFamily: 'Nunito',
                 ),
               ),
@@ -423,3 +423,4 @@ class _AddExerciseCardState extends State<AddExerciseCard> {
     );
   }
 }
+

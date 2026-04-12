@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../../../core/theme/app_theme.dart';
 import '../../domain/entities/module_entities.dart';
@@ -8,12 +8,12 @@ import '../widgets/exercise_detail/exercise_timer_bar.dart';
 import '../widgets/exercise_detail/exercise_type_content.dart';
 
 /// Flujo del estudiante:
-///   1. [waiting]     → dialog de instrucciones visible, timer pausado
-///   2. [answering]   → lee el texto, responde, toca "Confirmar respuesta"
-///   3. [reviewing]   → ve respuestas coloreadas + explicación inline
-///                      · Reintentar → dialog de aviso "sin puntos" → resetea
-///                      · Continuar  → popup de resultado con búho + puntos
-///   4. [celebrating] → popup de resultado, luego pop de la página
+///   1. [waiting]     â†’ dialog de instrucciones visible, timer pausado
+///   2. [answering]   â†’ lee el texto, responde, toca "Confirmar respuesta"
+///   3. [reviewing]   â†’ ve respuestas coloreadas + explicación inline
+///                      · Reintentar â†’ dialog de aviso "sin puntos" â†’ resetea
+///                      · Continuar  â†’ popup de resultado con búho + puntos
+///   4. [celebrating] â†’ popup de resultado, luego pop de la página
 class ExerciseDetailPage extends StatefulWidget {
   const ExerciseDetailPage({super.key, required this.exercise});
   final ExerciseEntity exercise;
@@ -108,7 +108,7 @@ class _ExerciseDetailPageState extends State<ExerciseDetailPage> {
 
 enum ExercisePhase { waiting, answering, reviewing, celebrating }
 
-// ─── Dialog de confirmación de reintento ──────────────────────────────────────
+// --- Dialog de confirmación de reintento --------------------------------------
 
 class _RetryConfirmDialog extends StatelessWidget {
   const _RetryConfirmDialog();
@@ -118,7 +118,7 @@ class _RetryConfirmDialog extends StatelessWidget {
     return showGeneralDialog<bool>(
       context: context,
       barrierDismissible: false,
-      barrierColor: Colors.black.withOpacity(0.45),
+      barrierColor: Colors.black.withValues(alpha: 0.45),
       transitionDuration: const Duration(milliseconds: 280),
       transitionBuilder: (_, anim, __, child) => ScaleTransition(
         scale: CurvedAnimation(parent: anim, curve: Curves.easeOutBack),
@@ -139,7 +139,7 @@ class _RetryConfirmDialog extends StatelessWidget {
           borderRadius: const BorderRadius.all(AppRadius.xl),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withOpacity(0.18),
+              color: AppColors.primary.withValues(alpha: 0.18),
               blurRadius: 40,
               offset: const Offset(0, 16),
             ),
@@ -148,18 +148,18 @@ class _RetryConfirmDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // ── Cabecera ──────────────────────────────────────────────────
+            // -- Cabecera --------------------------------------------------
             Container(
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(
                 AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, AppSpacing.md,
               ),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.06),
+                color: AppColors.primary.withValues(alpha: 0.06),
                 borderRadius: const BorderRadius.vertical(top: AppRadius.xl),
               ),
               child: Column(children: [
-                const Text('🔄', style: TextStyle(fontSize: 52)),
+                const Text('Cargando...', style: TextStyle(fontSize: 20)),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
                   '¿Quieres intentarlo de nuevo?',
@@ -172,7 +172,7 @@ class _RetryConfirmDialog extends StatelessWidget {
               ]),
             ),
 
-            // ── Cuerpo ────────────────────────────────────────────────────
+            // -- Cuerpo ----------------------------------------------------
             Padding(
               padding: const EdgeInsets.all(AppSpacing.lg),
               child: Column(children: [
@@ -192,10 +192,10 @@ class _RetryConfirmDialog extends StatelessWidget {
                     vertical: AppSpacing.sm,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.secondary.withOpacity(0.1),
+                    color: AppColors.secondary.withValues(alpha: 0.1),
                     borderRadius: const BorderRadius.all(AppRadius.full),
                     border: Border.all(
-                      color: AppColors.secondary.withOpacity(0.3),
+                      color: AppColors.secondary.withValues(alpha: 0.3),
                     ),
                   ),
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
@@ -218,7 +218,7 @@ class _RetryConfirmDialog extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.lg),
 
-                // ── Botones ───────────────────────────────────────────────
+                // -- Botones -----------------------------------------------
                 Row(children: [
                   Expanded(
                     child: OutlinedButton(
@@ -279,7 +279,7 @@ class _RetryConfirmDialog extends StatelessWidget {
   }
 }
 
-// ─── Header de la página ──────────────────────────────────────────────────────
+// --- Header de la página ------------------------------------------------------
 
 class _ExerciseHeader extends StatelessWidget {
   const _ExerciseHeader({
@@ -302,7 +302,7 @@ class _ExerciseHeader extends StatelessWidget {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 12,
             offset: const Offset(0, 3),
           ),
@@ -334,7 +334,7 @@ class _ExerciseHeader extends StatelessWidget {
           width: 38,
           height: 38,
           decoration: BoxDecoration(
-            color: color.withOpacity(0.12),
+            color: color.withValues(alpha: 0.12),
             borderRadius: const BorderRadius.all(AppRadius.medium),
           ),
           child: Icon(exercise.type.icon, color: color, size: 18),
@@ -356,9 +356,9 @@ class _ExerciseHeader extends StatelessWidget {
             vertical: 4,
           ),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.12),
+            color: color.withValues(alpha: 0.12),
             borderRadius: const BorderRadius.all(AppRadius.full),
-            border: Border.all(color: color.withOpacity(0.4)),
+            border: Border.all(color: color.withValues(alpha: 0.4)),
           ),
           child: Row(mainAxisSize: MainAxisSize.min, children: [
             Icon(Icons.signal_cellular_alt_rounded, color: color, size: 14),
@@ -385,9 +385,9 @@ class _ExerciseHeader extends StatelessWidget {
                 width: 38,
                 height: 38,
                 decoration: BoxDecoration(
-                  color: AppColors.accent.withOpacity(0.1),
+                  color: AppColors.accent.withValues(alpha: 0.1),
                   borderRadius: const BorderRadius.all(AppRadius.medium),
-                  border: Border.all(color: AppColors.accent.withOpacity(0.3)),
+                  border: Border.all(color: AppColors.accent.withValues(alpha: 0.3)),
                 ),
                 child: const Icon(
                   Icons.info_outline_rounded,
@@ -402,3 +402,4 @@ class _ExerciseHeader extends StatelessWidget {
     );
   }
 }
+

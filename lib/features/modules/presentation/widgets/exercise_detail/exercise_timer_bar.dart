@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../../../../../core/theme/app_theme.dart';
@@ -16,7 +16,7 @@ class _ExerciseTimerBarState extends State<ExerciseTimerBar>
   int    _seconds = 0;
   Timer? _timer;
 
-  // Shimmer lento — 4 segundos por ciclo
+  // Shimmer lento â€” 4 segundos por ciclo
   late final AnimationController _shimmerCtrl = AnimationController(
     vsync: this,
     duration: const Duration(seconds: 4),
@@ -71,13 +71,13 @@ class _ExerciseTimerBarState extends State<ExerciseTimerBar>
         border: Border(bottom: BorderSide(color: AppColors.border, width: 0.5)),
       ),
       child: Row(children: [
-        Icon(Icons.timer_outlined, size: 15, color: _barColor.withOpacity(0.7)),
+        Icon(Icons.timer_outlined, size: 15, color: _barColor.withValues(alpha: 0.7)),
         const SizedBox(width: AppSpacing.xs),
         Text(
           _formatted,
           style: TextStyle(
             fontSize: 12, fontFamily: 'Nunito', fontWeight: FontWeight.w600,
-            color: _barColor.withOpacity(0.8),
+            color: _barColor.withValues(alpha: 0.8),
           ),
         ),
         const SizedBox(width: AppSpacing.md),
@@ -116,10 +116,10 @@ class _ShimmerBarPainter extends CustomPainter {
         Rect.fromLTWH(0, 0, size.width, size.height),
         const Radius.circular(99),
       ),
-      Paint()..color = color.withOpacity(0.35),
+      Paint()..color = color.withValues(alpha: 0.35),
     );
 
-    // Shimmer — franja blanca suave que viaja lentamente izq → der
+    // Shimmer â€” franja blanca suave que viaja lentamente izq â†’ der
     final shimmerW = size.width * 0.25;
     final x = progress * (size.width + shimmerW) - shimmerW;
     final shimmerRect = Rect.fromLTWH(x, 0, shimmerW, size.height);
@@ -127,9 +127,9 @@ class _ShimmerBarPainter extends CustomPainter {
       shimmerRect,
       Paint()..shader = LinearGradient(
         colors: [
-          Colors.white.withOpacity(0.0),
-          Colors.white.withOpacity(0.35),
-          Colors.white.withOpacity(0.0),
+          Colors.white.withValues(alpha: 0.0),
+          Colors.white.withValues(alpha: 0.35),
+          Colors.white.withValues(alpha: 0.0),
         ],
         stops: const [0.0, 0.5, 1.0],
       ).createShader(shimmerRect),
@@ -140,3 +140,4 @@ class _ShimmerBarPainter extends CustomPainter {
   bool shouldRepaint(_ShimmerBarPainter old) =>
       old.progress != progress || old.color != color;
 }
+

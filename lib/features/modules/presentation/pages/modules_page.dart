@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -76,7 +76,7 @@ class _ModulesHeader extends StatelessWidget {
               width: 100, height: 100,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.07),
+                color: Colors.white.withValues(alpha: 0.07),
               ),
             ),
           ),
@@ -86,7 +86,7 @@ class _ModulesHeader extends StatelessWidget {
               width: 40, height: 40,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white.withOpacity(0.10), width: 1.5),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.10), width: 1.5),
               ),
             ),
           ),
@@ -98,7 +98,7 @@ class _ModulesHeader extends StatelessWidget {
               Container(
                 width: 44, height: 44,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.18),
+                  color: Colors.white.withValues(alpha: 0.18),
                   borderRadius: const BorderRadius.all(AppRadius.medium),
                 ),
                 child: Icon(moduleType.icon, color: Colors.white, size: 22),
@@ -119,7 +119,7 @@ class _ModulesHeader extends StatelessWidget {
                     'Selecciona un módulo para comenzar',
                     style: TextStyle(
                       fontSize: 12, fontFamily: 'Nunito',
-                      color: Colors.white.withOpacity(0.80),
+                      color: Colors.white.withValues(alpha: 0.80),
                     ),
                   ),
                 ],
@@ -131,3 +131,4 @@ class _ModulesHeader extends StatelessWidget {
     );
   }
 }
+

@@ -1,12 +1,12 @@
-const mongoose = require('mongoose');
+﻿const mongoose = require('mongoose');
 const Ejercicio = require('../models/ejercicioModel');
 const Resultado = require('../models/resultadoModel');
 const Evaluacion = require('../models/evaluacionModel');
 const Respuesta = require('../models/respuestamodel'); // modelo nuevo
 
-// ─────────────────────────────────────────────
+// ---------------------------------------------
 // RF-10: El docente crea un ejercicio
-// ─────────────────────────────────────────────
+// ---------------------------------------------
 const crearEjercicio = async (req, res) => {
   try {
     const { contenido_id, evaluacion_id, pregunta, opciones, respuesta_correcta, dificultad } = req.body;
@@ -162,13 +162,13 @@ const obtenerEjercicios = async (req, res) => {
     });
   }
 };
-// ─────────────────────────────────────────────
+// ---------------------------------------------
 // RF-13 + RF-14 (PASO 1): El estudiante responde UNA pregunta
 //
 // AHORA sí guarda la respuesta en la BD.
-// Flutter sigue recibiendo si fue correcta o no para mostrar el ✅ o ❌,
+// Flutter sigue recibiendo si fue correcta o no para mostrar el âœ… o âŒ,
 // pero ya no necesitamos confiar en lo que Flutter nos diga al finalizar.
-// ─────────────────────────────────────────────
+// ---------------------------------------------
 const responderPregunta = async (req, res) => {
   try {
     // Ahora necesitamos también estudiante_id y evaluacion_id para guardar la respuesta
@@ -197,13 +197,13 @@ const responderPregunta = async (req, res) => {
     }
 
     // Verificamos que este estudiante no haya respondido ya este ejercicio
-    // en este intento — evitamos respuestas duplicadas
+    // en este intento â€” evitamos respuestas duplicadas
     const yaRespondio = await Respuesta.findOne({ estudiante_id, evaluacion_id, ejercicio_id });
     if (yaRespondio) {
       return res.status(400).json({ mensaje: 'Ya respondiste este ejercicio en esta evaluación' });
     }
 
-    // ── RF-14: Comparamos la respuesta con la correcta ──
+    // -- RF-14: Comparamos la respuesta con la correcta --
     const esCorrecta = respuesta_dada.trim().toLowerCase() === ejercicio.respuesta_correcta.trim().toLowerCase();
 
     // Calculamos los puntos según dificultad
@@ -214,7 +214,7 @@ const responderPregunta = async (req, res) => {
       if (ejercicio.dificultad === 'dificil') puntosObtenidos = 30;
     }
 
-    // ── RF-13: Guardamos la respuesta en la BD ──
+    // -- RF-13: Guardamos la respuesta en la BD --
     // Ahora sí tenemos un registro real de lo que respondió el estudiante
     const nuevaRespuesta = new Respuesta({
       estudiante_id,
@@ -227,7 +227,7 @@ const responderPregunta = async (req, res) => {
 
     await nuevaRespuesta.save();
 
-    // Respondemos a Flutter para que muestre el ✅ o ❌
+    // Respondemos a Flutter para que muestre el âœ… o âŒ
     res.status(201).json({
       esCorrecta,
       puntosObtenidos,
@@ -239,13 +239,13 @@ const responderPregunta = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
+// ---------------------------------------------
 // RF-13 + RF-14 (PASO 2): Finalizar la evaluación
 //
 // Ya NO recibe respuestasCorrectas desde Flutter.
 // El backend busca en la BD todas las respuestas guardadas
 // y calcula la nota él solo. Flutter no puede mentir.
-// ─────────────────────────────────────────────
+// ---------------------------------------------
 const finalizarEvaluacion = async (req, res) => {
   try {
     const { estudiante_id, evaluacion_id } = req.body;
@@ -268,7 +268,7 @@ const finalizarEvaluacion = async (req, res) => {
       });
     }
 
-    // ── Aquí está la clave: el backend busca las respuestas guardadas ──
+    // -- Aquí está la clave: el backend busca las respuestas guardadas --
     // Buscamos todas las respuestas que guardó /responder para este estudiante en esta evaluación
     const respuestasGuardadas = await Respuesta.find({ estudiante_id, evaluacion_id });
 
@@ -282,10 +282,10 @@ const finalizarEvaluacion = async (req, res) => {
     const correctas = respuestasGuardadas.filter(r => r.es_correcta).length;
     const totalPreguntas = respuestasGuardadas.length;
 
-    // ── RF-14: Calculamos la nota final con datos reales ──
+    // -- RF-14: Calculamos la nota final con datos reales --
     const notaFinal = Math.round((correctas / totalPreguntas) * 100);
 
-    // ── RF-13: Guardamos el resultado final en la BD ──
+    // -- RF-13: Guardamos el resultado final en la BD --
     const nuevoResultado = new Resultado({
       estudiante_id,
       evaluacion_id,
@@ -318,9 +318,9 @@ const finalizarEvaluacion = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────
+// ---------------------------------------------
 // Extra: El docente consulta los resultados de una evaluación
-// ─────────────────────────────────────────────
+// ---------------------------------------------
 const obtenerResultadosPorEvaluacion = async (req, res) => {
   try {
     const { id } = req.params;

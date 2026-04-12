@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../../../../core/theme/app_theme.dart';
 import '../../../domain/entities/module_entities.dart';
@@ -59,13 +59,13 @@ class _TrueOrFalseExerciseState extends State<TrueOrFalseExercise> {
   @override
   Widget build(BuildContext context) {
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      // ── Enunciado / texto de lectura ──────────────────────────────────────
+      // -- Enunciado / texto de lectura --------------------------------------
       if (_passage != null && _passage!.isNotEmpty) ...[
         _PassageCard(text: _passage!),
         const SizedBox(height: AppSpacing.lg),
       ],
 
-      // ── Afirmación ────────────────────────────────────────────────────────
+      // -- Afirmación --------------------------------------------------------
       Container(
         padding: const EdgeInsets.all(AppSpacing.xl),
         decoration: BoxDecoration(
@@ -73,7 +73,7 @@ class _TrueOrFalseExerciseState extends State<TrueOrFalseExercise> {
           borderRadius: const BorderRadius.all(AppRadius.xl),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.06),
+              color: Colors.black.withValues(alpha: 0.06),
               blurRadius: 16,
               offset: const Offset(0, 4),
             ),
@@ -100,11 +100,11 @@ class _TrueOrFalseExerciseState extends State<TrueOrFalseExercise> {
       ),
       const SizedBox(height: AppSpacing.xl),
 
-      // ── Botones V/F ───────────────────────────────────────────────────────
+      // -- Botones V/F -------------------------------------------------------
       Row(children: [
         Expanded(
           child: _TFButton(
-            label: '✓  Verdadero',
+            label: '✓ Verdadero',
             color: AppColors.success,
             state: _stateFor(true),
             onTap: _submitted ? null : () => _answer(true),
@@ -113,7 +113,7 @@ class _TrueOrFalseExerciseState extends State<TrueOrFalseExercise> {
         const SizedBox(width: AppSpacing.md),
         Expanded(
           child: _TFButton(
-            label: '✗  Falso',
+            label: '✗ Falso',
             color: AppColors.error,
             state: _stateFor(false),
             onTap: _submitted ? null : () => _answer(false),
@@ -121,13 +121,13 @@ class _TrueOrFalseExerciseState extends State<TrueOrFalseExercise> {
         ),
       ]),
 
-      // ── Explicación ───────────────────────────────────────────────────────
+      // -- Explicación -------------------------------------------------------
       if (_submitted && _explanation != null) ...[
         const SizedBox(height: AppSpacing.md),
         _ExplanationBanner(text: _explanation!),
       ],
 
-      // ── Botones Reintentar / Continuar ────────────────────────────────────
+      // -- Botones Reintentar / Continuar ------------------------------------
       if (_submitted) ...[
         const SizedBox(height: AppSpacing.lg),
         _ActionButtons(
@@ -141,7 +141,7 @@ class _TrueOrFalseExerciseState extends State<TrueOrFalseExercise> {
   }
 }
 
-// ─── Widgets internos ────────────────────────────────────────────────────────
+// --- Widgets internos --------------------------------------------------------
 
 class _PassageCard extends StatelessWidget {
   const _PassageCard({required this.text});
@@ -153,12 +153,12 @@ class _PassageCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.05),
+        color: AppColors.primary.withValues(alpha: 0.05),
         borderRadius: const BorderRadius.all(AppRadius.xl),
-        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 12,
             offset: const Offset(0, 3),
           ),
@@ -200,9 +200,9 @@ class _ExplanationBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.accent.withOpacity(0.07),
+        color: AppColors.accent.withValues(alpha: 0.07),
         borderRadius: const BorderRadius.all(AppRadius.large),
-        border: Border.all(color: AppColors.accent.withOpacity(0.25)),
+        border: Border.all(color: AppColors.accent.withValues(alpha: 0.25)),
       ),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
         const Icon(Icons.lightbulb_rounded, color: AppColors.accent, size: 18),
@@ -277,7 +277,7 @@ class _ActionButtons extends StatelessWidget {
   }
 }
 
-// ─── Botón V/F con hover y animación ─────────────────────────────────────────
+// --- Botón V/F con hover y animación -----------------------------------------
 
 class _TFButton extends StatefulWidget {
   const _TFButton({
@@ -301,10 +301,10 @@ class _TFButtonState extends State<_TFButton> {
 
   Color get _bg => switch (widget.state) {
         ExerciseOptionState.idle =>
-          _hovered ? widget.color.withOpacity(0.1) : Colors.white,
-        ExerciseOptionState.selected => widget.color.withOpacity(0.15),
-        ExerciseOptionState.correct => AppColors.success.withOpacity(0.15),
-        ExerciseOptionState.wrong => AppColors.error.withOpacity(0.12),
+          _hovered ? widget.color.withValues(alpha: 0.1) : Colors.white,
+        ExerciseOptionState.selected => widget.color.withValues(alpha: 0.15),
+        ExerciseOptionState.correct => AppColors.success.withValues(alpha: 0.15),
+        ExerciseOptionState.wrong => AppColors.error.withValues(alpha: 0.12),
       };
 
   @override
@@ -324,7 +324,7 @@ class _TFButtonState extends State<_TFButton> {
             color: _bg,
             borderRadius: const BorderRadius.all(AppRadius.xl),
             border: Border.all(
-              color: widget.color.withOpacity(
+              color: widget.color.withValues(alpha: 
                 widget.state != ExerciseOptionState.idle ? 0.8 : 0.35,
               ),
               width: 2,
@@ -332,7 +332,7 @@ class _TFButtonState extends State<_TFButton> {
             boxShadow: widget.state == ExerciseOptionState.correct
                 ? [
                     BoxShadow(
-                      color: AppColors.success.withOpacity(0.2),
+                      color: AppColors.success.withValues(alpha: 0.2),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -355,3 +355,4 @@ class _TFButtonState extends State<_TFButton> {
     );
   }
 }
+

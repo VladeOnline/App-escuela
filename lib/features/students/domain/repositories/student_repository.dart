@@ -1,4 +1,4 @@
-import '../entities/student_entity.dart';
+﻿import '../entities/student_entity.dart';
 import '../../../../core/errors/app_failure.dart';
 
 abstract interface class StudentRepository {
@@ -20,17 +20,27 @@ abstract interface class StudentRepository {
     required int grade,
     required int age,
     List<String> conditions = const [],
+    String? photoDataUrl,
   });
 
-  Future<({StudentEntity? student, AppFailure? failure})> update({
+  Future<
+      ({
+        StudentEntity? student,
+        String? generatedUsername,
+        String? generatedPassword,
+        AppFailure? failure
+      })> update({
     required String id,
     required String fullName,
     required int grade,
     required int age,
     List<String> conditions = const [],
+    String? photoDataUrl,
   });
 
   Future<({bool success, AppFailure? failure})> delete(String id);
 
   Future<({bool success, AppFailure? failure})> deactivate(String id);
 }
+
+

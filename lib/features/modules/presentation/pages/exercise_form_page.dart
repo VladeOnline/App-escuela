@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../../../core/theme/app_theme.dart';
@@ -40,24 +40,24 @@ class ExerciseFormPage extends StatefulWidget {
 class _ExerciseFormPageState extends State<ExerciseFormPage> {
   final _uuid = const Uuid();
 
-  // ─── Controllers comunes ───
+  // --- Controllers comunes ---
   final _titleCtrl        = TextEditingController();
   final _instructionsCtrl = TextEditingController();
   ExerciseType    _type       = ExerciseType.multipleChoice;
   DifficultyLevel _difficulty = DifficultyLevel.basic;
   Subject         _subject    = Subject.spanish;
 
-  // ─── Selección múltiple ───
+  // --- Selección múltiple ---
   final _questionCtrl    = TextEditingController();
   List<TextEditingController> _optionCtrls = List.generate(3, (_) => TextEditingController());
   int  _correctIndex     = 0;
   final _explanationCtrl = TextEditingController();
 
-  // ─── Verdadero / Falso ───
+  // --- Verdadero / Falso ---
   final _statementCtrl   = TextEditingController();
   bool _correctBool      = true;
 
-  // ─── Completar espacio ───
+  // --- Completar espacio ---
   final _templateCtrl    = TextEditingController();
   final _blankAnswerCtrl = TextEditingController();
   final _hintCtrl        = TextEditingController();
@@ -122,7 +122,7 @@ class _ExerciseFormPageState extends State<ExerciseFormPage> {
     super.dispose();
   }
 
-  // ─── Opciones dinámicas ───
+  // --- Opciones dinámicas ---
 
   void _addOption() => setState(() => _optionCtrls.add(TextEditingController()));
 
@@ -135,7 +135,7 @@ class _ExerciseFormPageState extends State<ExerciseFormPage> {
     });
   }
 
-  // ─── Limpiar ───
+  // --- Limpiar ---
 
   void _onClear() {
     for (final c in [
@@ -148,7 +148,7 @@ class _ExerciseFormPageState extends State<ExerciseFormPage> {
     setState(() { _correctIndex = 0; _correctBool = true; });
   }
 
-  // ─── Validación y guardado ───
+  // --- Validación y guardado ---
 
   Map<String, dynamic> _buildContent() => switch (_type) {
         ExerciseType.multipleChoice => {
@@ -224,7 +224,7 @@ class _ExerciseFormPageState extends State<ExerciseFormPage> {
     Navigator.of(context).pop(true);
   }
 
-  // ─── Build ───
+  // --- Build ---
 
   @override
   Widget build(BuildContext context) {

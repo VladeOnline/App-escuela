@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../../../../core/theme/app_theme.dart';
 import '../../../domain/entities/module_entities.dart';
@@ -58,13 +58,13 @@ class _FillInTheBlankExerciseState extends State<FillInTheBlankExercise> {
     final parts = _template.split('[BLANK]');
 
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      // ── Enunciado / texto de lectura ──────────────────────────────────────
+      // -- Enunciado / texto de lectura --------------------------------------
       if (_passage != null && _passage!.isNotEmpty) ...[
         _PassageCard(text: _passage!),
         const SizedBox(height: AppSpacing.lg),
       ],
 
-      // ── Oración con el blank ──────────────────────────────────────────────
+      // -- Oración con el blank ----------------------------------------------
       Container(
         padding: const EdgeInsets.all(AppSpacing.xl),
         decoration: BoxDecoration(
@@ -72,7 +72,7 @@ class _FillInTheBlankExerciseState extends State<FillInTheBlankExercise> {
           borderRadius: const BorderRadius.all(AppRadius.xl),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.06),
+              color: Colors.black.withValues(alpha: 0.06),
               blurRadius: 16,
               offset: const Offset(0, 4),
             ),
@@ -113,7 +113,7 @@ class _FillInTheBlankExerciseState extends State<FillInTheBlankExercise> {
       ),
       const SizedBox(height: AppSpacing.lg),
 
-      // ── Pista ─────────────────────────────────────────────────────────────
+      // -- Pista -------------------------------------------------------------
       if (_hint != null && !_submitted) ...[
         Container(
           padding: const EdgeInsets.symmetric(
@@ -121,7 +121,7 @@ class _FillInTheBlankExerciseState extends State<FillInTheBlankExercise> {
             vertical: AppSpacing.sm,
           ),
           decoration: BoxDecoration(
-            color: AppColors.secondary.withOpacity(0.08),
+            color: AppColors.secondary.withValues(alpha: 0.08),
             borderRadius: const BorderRadius.all(AppRadius.large),
           ),
           child: Row(children: [
@@ -143,7 +143,7 @@ class _FillInTheBlankExerciseState extends State<FillInTheBlankExercise> {
         const SizedBox(height: AppSpacing.md),
       ],
 
-      // ── Campo de texto (solo antes de responder) ──────────────────────────
+      // -- Campo de texto (solo antes de responder) --------------------------
       if (!_submitted) ...[
         TextField(
           controller: _ctrl,
@@ -191,15 +191,15 @@ class _FillInTheBlankExerciseState extends State<FillInTheBlankExercise> {
         ),
       ],
 
-      // ── Feedback: respuesta correcta cuando falló ──────────────────────────
+      // -- Feedback: respuesta correcta cuando falló --------------------------
       if (_submitted && !_correct!) ...[
         const SizedBox(height: AppSpacing.md),
         Container(
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: AppColors.success.withOpacity(0.08),
+            color: AppColors.success.withValues(alpha: 0.08),
             borderRadius: const BorderRadius.all(AppRadius.large),
-            border: Border.all(color: AppColors.success.withOpacity(0.3)),
+            border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
           ),
           child: Row(children: [
             const Icon(Icons.check_circle_rounded,
@@ -218,13 +218,13 @@ class _FillInTheBlankExerciseState extends State<FillInTheBlankExercise> {
         ),
       ],
 
-      // ── Explicación ───────────────────────────────────────────────────────
+      // -- Explicación -------------------------------------------------------
       if (_submitted && _explanation != null) ...[
         const SizedBox(height: AppSpacing.md),
         _ExplanationBanner(text: _explanation!),
       ],
 
-      // ── Botones Reintentar / Continuar ────────────────────────────────────
+      // -- Botones Reintentar / Continuar ------------------------------------
       if (_submitted) ...[
         const SizedBox(height: AppSpacing.lg),
         _ActionButtons(
@@ -238,7 +238,7 @@ class _FillInTheBlankExerciseState extends State<FillInTheBlankExercise> {
   }
 }
 
-// ─── Widgets internos ────────────────────────────────────────────────────────
+// --- Widgets internos --------------------------------------------------------
 
 class _PassageCard extends StatelessWidget {
   const _PassageCard({required this.text});
@@ -250,12 +250,12 @@ class _PassageCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.05),
+        color: AppColors.primary.withValues(alpha: 0.05),
         borderRadius: const BorderRadius.all(AppRadius.xl),
-        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 12,
             offset: const Offset(0, 3),
           ),
@@ -298,9 +298,9 @@ class _ExplanationBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.accent.withOpacity(0.07),
+        color: AppColors.accent.withValues(alpha: 0.07),
         borderRadius: const BorderRadius.all(AppRadius.large),
-        border: Border.all(color: AppColors.accent.withOpacity(0.25)),
+        border: Border.all(color: AppColors.accent.withValues(alpha: 0.25)),
       ),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
         const Icon(Icons.lightbulb_rounded, color: AppColors.accent, size: 18),
@@ -337,9 +337,9 @@ class _BlankChip extends StatelessWidget {
 
   Color get _bg => submitted
       ? (correct!
-          ? AppColors.success.withOpacity(0.12)
-          : AppColors.error.withOpacity(0.1))
-      : levelColor.withOpacity(0.08);
+          ? AppColors.success.withValues(alpha: 0.12)
+          : AppColors.error.withValues(alpha: 0.1))
+      : levelColor.withValues(alpha: 0.08);
 
   Color get _border => submitted
       ? (correct! ? AppColors.success : AppColors.error)
@@ -431,3 +431,4 @@ class _ActionButtons extends StatelessWidget {
     ]);
   }
 }
+

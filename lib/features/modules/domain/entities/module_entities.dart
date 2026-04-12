@@ -1,10 +1,10 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import 'subject.dart';
 
 export 'subject.dart';
 
-// ─── Enums ───
+// --- Enums ---
 
 /// Tipo de módulo académico disponible en el sistema.
 enum ModuleType { reading, writing }
@@ -20,7 +20,7 @@ enum ExerciseType {
   ordering,         // Ordenar elementos
 }
 
-// ─── Extensiones de conveniencia ───
+// --- Extensiones de conveniencia ---
 
 extension ModuleTypeX on ModuleType {
   String get label => switch (this) {
@@ -70,7 +70,7 @@ extension ExerciseTypeX on ExerciseType {
       };
 }
 
-// ─── Entidades de dominio ───
+// --- Entidades de dominio ---
 
 /// Entidad de un módulo académico (Lectura o Escritura).
 @immutable
@@ -155,3 +155,4 @@ class ExerciseResult {
   );
 
 }
+

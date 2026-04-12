@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../../../core/theme/app_theme.dart';
 
@@ -23,7 +23,7 @@ class _DeleteModuleButtonState extends State<DeleteModuleButton> {
     final ctrl = TextEditingController();
     await showDialog<void>(
       context: context,
-      barrierColor: Colors.black.withOpacity(0.4),
+      barrierColor: Colors.black.withValues(alpha: 0.4),
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) {
           final confirmed = ctrl.text.trim() == widget.moduleName;
@@ -33,7 +33,7 @@ class _DeleteModuleButtonState extends State<DeleteModuleButton> {
             title: Row(children: [
               Container(
                 width: 36, height: 36,
-                decoration: BoxDecoration(color: AppColors.error.withOpacity(0.1), shape: BoxShape.circle),
+                decoration: BoxDecoration(color: AppColors.error.withValues(alpha: 0.1), shape: BoxShape.circle),
                 child: const Icon(Icons.delete_forever_rounded, color: AppColors.error, size: 18),
               ),
               const SizedBox(width: AppSpacing.sm),
@@ -49,9 +49,9 @@ class _DeleteModuleButtonState extends State<DeleteModuleButton> {
                   Container(
                     padding: const EdgeInsets.all(AppSpacing.md),
                     decoration: BoxDecoration(
-                      color: AppColors.error.withOpacity(0.06),
+                      color: AppColors.error.withValues(alpha: 0.06),
                       borderRadius: const BorderRadius.all(AppRadius.medium),
-                      border: Border.all(color: AppColors.error.withOpacity(0.2)),
+                      border: Border.all(color: AppColors.error.withValues(alpha: 0.2)),
                     ),
                     child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       const Icon(Icons.warning_amber_rounded, color: AppColors.error, size: 16),
@@ -60,7 +60,7 @@ class _DeleteModuleButtonState extends State<DeleteModuleButton> {
                         child: Text(
                           'Esta acción es irreversible. Se eliminarán el módulo y todos sus ejercicios permanentemente.',
                           style: TextStyle(fontFamily: 'Nunito', fontSize: 12, height: 1.45,
-                              color: AppColors.error.withOpacity(0.85)),
+                              color: AppColors.error.withValues(alpha: 0.85)),
                         ),
                       ),
                     ]),
@@ -109,13 +109,13 @@ class _DeleteModuleButtonState extends State<DeleteModuleButton> {
                     ? () {
                         Navigator.pop(ctx);
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Eliminar módulo (próximamente) 🚧'), behavior: SnackBarBehavior.floating),
+                          const SnackBar(content: Text('Eliminar módulo (próximamente)'), behavior: SnackBarBehavior.floating),
                         );
                       }
                     : null,
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.error,
-                  disabledBackgroundColor: AppColors.error.withOpacity(0.3),
+                  disabledBackgroundColor: AppColors.error.withValues(alpha: 0.3),
                   shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(AppRadius.medium)),
                 ),
                 child: const Text('Eliminar',
@@ -145,10 +145,10 @@ class _DeleteModuleButtonState extends State<DeleteModuleButton> {
             duration: const Duration(milliseconds: 150),
             width: 34, height: 34,
             decoration: BoxDecoration(
-              color: _deleteHovered ? AppColors.error : AppColors.error.withOpacity(0.1),
+              color: _deleteHovered ? AppColors.error : AppColors.error.withValues(alpha: 0.1),
               borderRadius: const BorderRadius.all(AppRadius.medium),
               boxShadow: _deleteHovered
-                  ? [BoxShadow(color: AppColors.error.withOpacity(0.3), blurRadius: 8)]
+                  ? [BoxShadow(color: AppColors.error.withValues(alpha: 0.3), blurRadius: 8)]
                   : [],
             ),
             child: Icon(Icons.delete_outline_rounded, size: 18,
@@ -159,3 +159,5 @@ class _DeleteModuleButtonState extends State<DeleteModuleButton> {
     );
   }
 }
+
+

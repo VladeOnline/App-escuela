@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -46,9 +46,9 @@ class LoginCredentialsCard extends StatelessWidget {
               color: Colors.white,
               borderRadius: const BorderRadius.all(AppRadius.xl),
               boxShadow: [
-                BoxShadow(color: AppColors.primary.withOpacity(0.12),
+                BoxShadow(color: AppColors.primary.withValues(alpha: 0.12),
                   blurRadius: 60, spreadRadius: -4, offset: const Offset(0, 20)),
-                BoxShadow(color: Colors.black.withOpacity(0.06),
+                BoxShadow(color: Colors.black.withValues(alpha: 0.06),
                   blurRadius: 24, offset: const Offset(0, 4)),
               ],
             ),
@@ -99,8 +99,8 @@ class LoginCredentialsCard extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: Colors.white,
-              border: Border.all(color: AppColors.primary.withOpacity(0.18), width: 3),
-              boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.15),
+              border: Border.all(color: AppColors.primary.withValues(alpha: 0.18), width: 3),
+              boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.15),
                 blurRadius: 20, offset: const Offset(0, 6))],
             ),
             child: ClipOval(
@@ -118,7 +118,7 @@ class LoginCredentialsCard extends StatelessWidget {
   }
 }
 
-// ─── Header ───
+// --- Header ---
 
 class _CredentialsHeader extends StatelessWidget {
   const _CredentialsHeader({required this.onBack});
@@ -155,9 +155,9 @@ class _CredentialsHeader extends StatelessWidget {
                 child: Container(
                   width: 38, height: 38,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
+                    color: Colors.white.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 1),
                   ),
                   child: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 18),
                 ),
@@ -175,7 +175,7 @@ class _CredentialsHeader extends StatelessWidget {
       top: top, bottom: bottom, left: left, right: right,
       child: Container(width: size, height: size,
         decoration: BoxDecoration(shape: BoxShape.circle,
-          color: Colors.white.withOpacity(opacity))),
+          color: Colors.white.withValues(alpha: opacity))),
     );
   }
 
@@ -185,13 +185,13 @@ class _CredentialsHeader extends StatelessWidget {
       top: top, bottom: bottom, left: left, right: right,
       child: Container(width: size, height: size,
         decoration: BoxDecoration(shape: BoxShape.circle,
-          border: Border.all(color: Colors.white.withOpacity(opacity), width: 1.5),
+          border: Border.all(color: Colors.white.withValues(alpha: opacity), width: 1.5),
           color: Colors.transparent)),
     );
   }
 }
 
-// ─── Divisor ───
+// --- Divisor ---
 
 class _Divider extends StatelessWidget {
   const _Divider();
@@ -199,7 +199,7 @@ class _Divider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(children: [
-      _line([Colors.transparent, AppColors.primary.withOpacity(0.25)]),
+      _line([Colors.transparent, AppColors.primary.withValues(alpha: 0.25)]),
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
@@ -208,7 +208,7 @@ class _Divider extends StatelessWidget {
           _dot(4, 0.2),
         ]),
       ),
-      _line([AppColors.primary.withOpacity(0.25), Colors.transparent]),
+      _line([AppColors.primary.withValues(alpha: 0.25), Colors.transparent]),
     ]);
   }
 
@@ -220,11 +220,11 @@ class _Divider extends StatelessWidget {
   Widget _dot(double size, double opacity) => Container(
     width: size, height: size,
     decoration: BoxDecoration(shape: BoxShape.circle,
-      color: AppColors.primary.withOpacity(opacity)),
+      color: AppColors.primary.withValues(alpha: opacity)),
   );
 }
 
-// ─── Campos ───
+// --- Campos ---
 
 class _UsernameField extends StatelessWidget {
   const _UsernameField({required this.controller});
@@ -271,7 +271,7 @@ class _PasswordField extends StatelessWidget {
   );
 }
 
-// ─── Botón ───
+// --- Botón ---
 
 class _LoginButton extends StatefulWidget {
   const _LoginButton({required this.isLoading, required this.onLogin});
@@ -296,10 +296,10 @@ class _LoginButtonState extends State<_LoginButton> {
         duration: const Duration(milliseconds: 180),
         height: 54,
         decoration: BoxDecoration(
-          color: _hovered ? AppColors.primary.withOpacity(0.85) : AppColors.primary,
+          color: _hovered ? AppColors.primary.withValues(alpha: 0.85) : AppColors.primary,
           borderRadius: const BorderRadius.all(AppRadius.medium),
           boxShadow: _hovered
-              ? [BoxShadow(color: AppColors.primary.withOpacity(0.35),
+              ? [BoxShadow(color: AppColors.primary.withValues(alpha: 0.35),
                   blurRadius: 12, offset: const Offset(0, 4))]
               : [],
         ),
@@ -320,3 +320,4 @@ class _LoginButtonState extends State<_LoginButton> {
     ),
   );
 }
+

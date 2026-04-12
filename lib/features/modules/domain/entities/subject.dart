@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 /// Materias académicas que puede tener un ejercicio.
 ///
@@ -47,3 +47,4 @@ extension SubjectX on Subject {
         Subject.science => Icons.science_rounded,
       };
 }
+

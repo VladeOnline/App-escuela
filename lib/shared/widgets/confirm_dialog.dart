@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 
 class ConfirmDialog extends StatelessWidget {
@@ -55,7 +55,7 @@ class ConfirmDialog extends StatelessWidget {
               if (icon != null) ...[
                 Container(
                   width: 52, height: 82,
-                  decoration: BoxDecoration(color: color.withOpacity(0.10), shape: BoxShape.circle),
+                  decoration: BoxDecoration(color: color.withValues(alpha: 0.10), shape: BoxShape.circle),
                   child: Icon(icon, color: color, size: 26),
                 ),
                 const SizedBox(height: AppSpacing.md),

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../../../core/theme/app_theme.dart';
 import '../../../data/repositories/mock_module_repository.dart';
@@ -6,7 +6,7 @@ import '../../../domain/entities/module_entities.dart';
 import 'create_module_card.dart';
 import 'module_card.dart';
 
-// ─── Sección por grado ───
+// --- Sección por grado ---
 
 class GradeSection extends StatelessWidget {
   const GradeSection({
@@ -37,12 +37,12 @@ class GradeSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Encabezado del grado ───
+          // -- Encabezado del grado ---
           Row(children: [
             Container(
               width: 28, height: 28,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.12),
+                color: color.withValues(alpha: 0.12),
                 borderRadius: const BorderRadius.all(AppRadius.medium),
               ),
               child: Icon(Icons.school_rounded, color: color, size: 16),
@@ -57,7 +57,7 @@ class GradeSection extends StatelessWidget {
                 height: 1,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [color.withOpacity(0.35), Colors.transparent],
+                    colors: [color.withValues(alpha: 0.35), Colors.transparent],
                   ),
                 ),
               ),
@@ -65,7 +65,7 @@ class GradeSection extends StatelessWidget {
           ]),
           const SizedBox(height: AppSpacing.md),
 
-          // ── Cards o estado vacío ───
+          // -- Cards o estado vacío ---
           if (modules.isEmpty)
             GradeEmptyState(color: color, gradeName: name)
           else
@@ -100,7 +100,7 @@ class GradeSection extends StatelessWidget {
   }
 }
 
-// ─── Estado vacío de grado ───
+// --- Estado vacío de grado ---
 
 class GradeEmptyState extends StatelessWidget {
   const GradeEmptyState({
@@ -128,11 +128,11 @@ class GradeEmptyState extends StatelessWidget {
           Container(
             width: 52, height: 52,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.08),
+              color: color.withValues(alpha: 0.08),
               shape: BoxShape.circle,
             ),
             child: Icon(Icons.sentiment_dissatisfied_rounded, size: 26,
-                color: color.withOpacity(0.5)),
+                color: color.withValues(alpha: 0.5)),
           ),
           const SizedBox(height: AppSpacing.md),
           Text(
@@ -148,19 +148,19 @@ class GradeEmptyState extends StatelessWidget {
             child: GestureDetector(
               onTap: () => ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Esta función aún no está disponible 🚧'),
+                  content: Text('Esta función aún no está disponible (próximamente)'),
                   behavior: SnackBarBehavior.floating,
                 ),
               ),
               child: Text(
-                '¡Empieza a crearlos →!',
+                '¡Empieza a crearlos ->!',
                 style: TextStyle(
-                  color: color.withOpacity(0.8),
+                  color: color.withValues(alpha: 0.8),
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                   fontFamily: 'Nunito',
                   decoration: TextDecoration.underline,
-                  decorationColor: color.withOpacity(0.3),
+                  decorationColor: color.withValues(alpha: 0.3),
                 ),
               ),
             ),
@@ -170,3 +170,6 @@ class GradeEmptyState extends StatelessWidget {
     );
   }
 }
+
+
+

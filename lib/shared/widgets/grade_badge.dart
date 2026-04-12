@@ -1,4 +1,7 @@
+﻿import 'dart:convert';
+
 import 'package:flutter/material.dart';
+
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_theme.dart';
 
@@ -25,9 +28,9 @@ class GradeBadge extends StatelessWidget {
         vertical: size == GradeBadgeSize.small ? 3 : 5,
       ),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: const BorderRadius.all(AppRadius.full),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Text(
         size == GradeBadgeSize.small ? '$grade°' : label,
@@ -44,34 +47,60 @@ class GradeBadge extends StatelessWidget {
 
 enum GradeBadgeSize { small, medium }
 
-/// Avatar circular con iniciales del estudiante.
+/// Avatar circular del estudiante. Si hay foto, la muestra; si no, usa iniciales.
 class StudentAvatar extends StatelessWidget {
   const StudentAvatar({
     super.key,
     required this.initials,
     required this.grade,
     this.radius = 24,
+    this.photoUrl,
   });
 
   final String initials;
   final int grade;
   final double radius;
+  final String? photoUrl;
+
+  ImageProvider? _resolvePhotoProvider(String? value) {
+    if (value == null || value.trim().isEmpty) return null;
+
+    final trimmed = value.trim();
+    if (trimmed.startsWith('data:image/')) {
+      final comma = trimmed.indexOf(',');
+      if (comma > 0 && comma < trimmed.length - 1) {
+        try {
+          return MemoryImage(base64Decode(trimmed.substring(comma + 1)));
+        } catch (_) {
+          return null;
+        }
+      }
+      return null;
+    }
+
+    return NetworkImage(trimmed);
+  }
 
   @override
   Widget build(BuildContext context) {
     final color = AppColors.forGrade(grade);
+    final provider = _resolvePhotoProvider(photoUrl);
+
     return CircleAvatar(
       radius: radius,
-      backgroundColor: color.withOpacity(0.15),
-      child: Text(
-        initials,
-        style: TextStyle(
-          color: color,
-          fontSize: radius * 0.65,
-          fontWeight: FontWeight.w800,
-          fontFamily: 'Nunito',
-        ),
-      ),
+      backgroundColor: color.withValues(alpha: 0.15),
+      backgroundImage: provider,
+      child: provider == null
+          ? Text(
+              initials,
+              style: TextStyle(
+                color: color,
+                fontSize: radius * 0.65,
+                fontWeight: FontWeight.w800,
+                fontFamily: 'Nunito',
+              ),
+            )
+          : null,
     );
   }
 }

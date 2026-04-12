@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../../../core/theme/app_theme.dart';
 import '../../../domain/entities/module_entities.dart';
 
-// ─── Verdadero o Falso ────────────────────────────────────────────────────────
+// --- Verdadero o Falso --------------------------------------------------------
 
 /// Ejercicio de verdadero o falso (RF-09, RF-24).
 class TrueOrFalseExercise extends StatefulWidget {
@@ -160,7 +160,7 @@ class _TruthButton extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
         decoration: BoxDecoration(
-          color: _color().withOpacity(0.08),
+          color: _color().withValues(alpha: 0.08),
           borderRadius: const BorderRadius.all(AppRadius.large),
           border: Border.all(color: _color(), width: 2),
         ),
@@ -184,7 +184,7 @@ class _TruthButton extends StatelessWidget {
   }
 }
 
-// ─── Completar el espacio ─────────────────────────────────────────────────────
+// --- Completar el espacio -----------------------------------------------------
 
 /// Ejercicio de completar el espacio (RF-09).
 /// El estudiante escribe la palabra que falta.
@@ -281,9 +281,9 @@ class _FillInTheBlankExerciseState extends State<FillInTheBlankExercise> {
                 decoration: BoxDecoration(
                   color: _answered
                       ? (_isCorrect
-                          ? AppColors.success.withOpacity(0.1)
-                          : AppColors.error.withOpacity(0.1))
-                      : AppColors.primary.withOpacity(0.07),
+                          ? AppColors.success.withValues(alpha: 0.1)
+                          : AppColors.error.withValues(alpha: 0.1))
+                      : AppColors.primary.withValues(alpha: 0.07),
                   borderRadius: const BorderRadius.all(AppRadius.small),
                   border: Border(
                     bottom: BorderSide(
@@ -385,11 +385,11 @@ class _FeedbackBanner extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: (isCorrect ? AppColors.success : AppColors.error)
-            .withOpacity(0.08),
+            .withValues(alpha: 0.08),
         borderRadius: const BorderRadius.all(AppRadius.medium),
         border: Border.all(
           color:
-              (isCorrect ? AppColors.success : AppColors.error).withOpacity(0.4),
+              (isCorrect ? AppColors.success : AppColors.error).withValues(alpha: 0.4),
         ),
       ),
       child: Row(
@@ -426,7 +426,7 @@ class _FeedbackBanner extends StatelessWidget {
   }
 }
 
-// ─── Widgets compartidos ──────────────────────────────────────────────────────
+// --- Widgets compartidos ------------------------------------------------------
 
 class _PassageCard extends StatelessWidget {
   const _PassageCard({required this.text});
@@ -438,9 +438,9 @@ class _PassageCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.05),
+        color: AppColors.primary.withValues(alpha: 0.05),
         borderRadius: const BorderRadius.all(AppRadius.large),
-        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -481,9 +481,9 @@ class _ExplanationBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.info.withOpacity(0.08),
+        color: AppColors.info.withValues(alpha: 0.08),
         borderRadius: const BorderRadius.all(AppRadius.medium),
-        border: Border.all(color: AppColors.info.withOpacity(0.3)),
+        border: Border.all(color: AppColors.info.withValues(alpha: 0.3)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -504,3 +504,5 @@ class _ExplanationBanner extends StatelessWidget {
     );
   }
 }
+
+

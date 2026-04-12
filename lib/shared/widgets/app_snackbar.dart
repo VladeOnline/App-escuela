@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 
 class AppSnackbar {
@@ -55,7 +55,7 @@ class AppSnackbar {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: const BorderRadius.all(AppRadius.small),
                 ),
                 child: Icon(icon, color: Colors.white, size: 20),

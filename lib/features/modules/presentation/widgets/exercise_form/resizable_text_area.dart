@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../../../../core/theme/app_theme.dart';
 
 /// TextField multiline con handle visual de resize en la esquina inferior
-/// derecha. Flutter no tiene resize nativo por drag en desktop — el campo
+/// derecha. Flutter no tiene resize nativo por drag en desktop â€” el campo
 /// crece automáticamente al escribir gracias a [maxLines] nulo.
 class ExFormResizableTextArea extends StatelessWidget {
   const ExFormResizableTextArea({
@@ -33,13 +33,13 @@ class ExFormResizableTextArea extends StatelessWidget {
             contentPadding: const EdgeInsets.fromLTRB(12, 12, 12, 20),
           ),
         ),
-        // Handle decorativo — 6 puntos en patrón diagonal (igual a HTML textarea)
+        // Handle decorativo â€” 6 puntos en patrón diagonal (igual a HTML textarea)
         Positioned(
           right: 5,
           bottom: 5,
           child: CustomPaint(
             size: const Size(10, 10),
-            painter: _ResizeHandlePainter(color: AppColors.textHint.withOpacity(0.4)),
+            painter: _ResizeHandlePainter(color: AppColors.textHint.withValues(alpha: 0.4)),
           ),
         ),
       ],
@@ -66,3 +66,5 @@ class _ResizeHandlePainter extends CustomPainter {
   @override
   bool shouldRepaint(_ResizeHandlePainter old) => old.color != color;
 }
+
+

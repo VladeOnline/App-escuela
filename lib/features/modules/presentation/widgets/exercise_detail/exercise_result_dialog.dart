@@ -1,4 +1,4 @@
-import 'dart:math';
+﻿import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../../../../../../core/theme/app_theme.dart';
@@ -19,7 +19,7 @@ class ExerciseResultDialog extends StatefulWidget {
     return showGeneralDialog(
       context: context,
       barrierDismissible: false,
-      barrierColor: Colors.black.withOpacity(0.55),
+      barrierColor: Colors.black.withValues(alpha: 0.55),
       transitionDuration: const Duration(milliseconds: 400),
       transitionBuilder: (_, anim, __, child) => ScaleTransition(
         scale: CurvedAnimation(parent: anim, curve: Curves.elasticOut),
@@ -68,12 +68,12 @@ class _ExerciseResultDialogState extends State<ExerciseResultDialog>
   String get _title {
     if (_correct) {
       return switch (widget.exercise.difficulty) {
-        DifficultyLevel.basic    => '¡Wooow, lo lograste! 🌟',
-        DifficultyLevel.intermediate => '¡Excelente trabajo! 🎉',
-        DifficultyLevel.advanced => '¡Fantástico, eres genial! 💪',
+        DifficultyLevel.basic    => '¡Wooow, lo lograste!',
+        DifficultyLevel.intermediate => '¡Excelente trabajo!',
+        DifficultyLevel.advanced => '¡Fantástico, eres genial!',
       };
     }
-    return '¡Casi lo tienes! 💙';
+    return '¡Casi lo tienes!';
   }
 
   String get _subtitle {
@@ -87,7 +87,7 @@ class _ExerciseResultDialogState extends State<ExerciseResultDialog>
     return '¡No te preocupes! Los errores nos enseñan. ¡Inténtalo de nuevo, tú puedes lograrlo!';
   }
 
-  String get _emoji => _correct ? '🦉' : '🦉';
+  String get _emoji => '🦉';
   Color get _color => _correct ? AppColors.success : AppColors.primary;
 
   @override
@@ -105,18 +105,18 @@ class _ExerciseResultDialogState extends State<ExerciseResultDialog>
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: const BorderRadius.all(AppRadius.xl),
-              boxShadow: [BoxShadow(color: _color.withOpacity(0.25), blurRadius: 40, offset: const Offset(0, 16))],
+              boxShadow: [BoxShadow(color: _color.withValues(alpha: 0.25), blurRadius: 40, offset: const Offset(0, 16))],
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // ── Cabecera ──
+                // -- Cabecera --
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, AppSpacing.lg),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [_color.withOpacity(0.15), _color.withOpacity(0.04)],
+                      colors: [_color.withValues(alpha: 0.15), _color.withValues(alpha: 0.04)],
                       begin: Alignment.topCenter, end: Alignment.bottomCenter,
                     ),
                     borderRadius: const BorderRadius.vertical(top: AppRadius.xl),
@@ -137,7 +137,7 @@ class _ExerciseResultDialogState extends State<ExerciseResultDialog>
                   ]),
                 ),
 
-                // ── Cuerpo ──
+                // -- Cuerpo --
                 Padding(
                   padding: const EdgeInsets.all(AppSpacing.lg),
                   child: Column(children: [
@@ -153,9 +153,9 @@ class _ExerciseResultDialogState extends State<ExerciseResultDialog>
                         builder: (_, __) => Container(
                           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.md),
                           decoration: BoxDecoration(
-                            color: AppColors.secondary.withOpacity(0.1),
+                            color: AppColors.secondary.withValues(alpha: 0.1),
                             borderRadius: const BorderRadius.all(AppRadius.large),
-                            border: Border.all(color: AppColors.secondary.withOpacity(0.3)),
+                            border: Border.all(color: AppColors.secondary.withValues(alpha: 0.3)),
                           ),
                           child: Row(mainAxisSize: MainAxisSize.min, children: [
                             const Icon(Icons.stars_rounded, color: AppColors.secondary, size: 28),
@@ -211,7 +211,7 @@ class _ExerciseResultDialogState extends State<ExerciseResultDialog>
   }
 }
 
-// ─── Capa de confetti ───
+// --- Capa de confetti ---
 
 class _ConfettiLayer extends StatefulWidget {
   const _ConfettiLayer();
@@ -267,7 +267,7 @@ class _ConfettiPainter extends CustomPainter {
       final x = p.x * size.width + sin(t * 2 * pi) * 20;
       final y = -20 + t * (size.height + 40);
       final opacity = t > 0.7 ? 1 - ((t - 0.7) / 0.3) : 1.0;
-      final paint = Paint()..color = p.color.withOpacity(opacity.clamp(0, 1));
+      final paint = Paint()..color = p.color.withValues(alpha: opacity.clamp(0, 1));
       canvas.save();
       canvas.translate(x, y);
       canvas.rotate(p.rotation + t * p.rotationSpeed);
@@ -286,3 +286,5 @@ class _ConfettiPiece {
   final double x, delay, speed, size, rotation, rotationSpeed;
   final Color color;
 }
+
+

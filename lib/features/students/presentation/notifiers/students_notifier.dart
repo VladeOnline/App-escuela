@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+﻿import 'package:flutter/foundation.dart';
 
 import '../../../../core/errors/app_failure.dart';
 import '../../domain/entities/student_entity.dart';
@@ -119,6 +119,7 @@ class StudentsNotifier extends ChangeNotifier {
     required String ageText,
     required int? grade,
     List<String> conditions = const [],
+    String? photoDataUrl,
   }) async {
     final errors = _validator.validate(
       fullName: fullName,
@@ -133,6 +134,7 @@ class StudentsNotifier extends ChangeNotifier {
       grade: grade!,
       age: int.parse(ageText.trim()),
       conditions: conditions,
+      photoDataUrl: photoDataUrl,
     );
 
     if (result.failure != null) {
@@ -160,6 +162,7 @@ class StudentsNotifier extends ChangeNotifier {
     required String ageText,
     required int? grade,
     List<String> conditions = const [],
+    String? photoDataUrl,
   }) async {
     final errors = _validator.validate(
       fullName: fullName,
@@ -175,6 +178,7 @@ class StudentsNotifier extends ChangeNotifier {
       grade: grade!,
       age: int.parse(ageText.trim()),
       conditions: conditions,
+      photoDataUrl: photoDataUrl,
     );
 
     if (result.failure != null) {
@@ -186,9 +190,18 @@ class StudentsNotifier extends ChangeNotifier {
     }
 
     await loadStudents();
-    _emit(_state.copyWith(
-      successMessage: 'Información actualizada correctamente',
-    ));
+    final generatedUsername = result.generatedUsername;
+    final generatedPassword = result.generatedPassword;
+
+    final message =
+        generatedUsername != null &&
+            generatedPassword != null &&
+            generatedUsername.isNotEmpty &&
+            generatedPassword.isNotEmpty
+        ? 'Información actualizada. Usuario: $generatedUsername | Contraseña: $generatedPassword'
+        : 'Información actualizada correctamente';
+
+    _emit(_state.copyWith(successMessage: message));
     return true;
   }
 
@@ -234,3 +247,10 @@ class StudentsNotifier extends ChangeNotifier {
     _emit(_state.copyWith());
   }
 }
+
+
+
+
+
+
+

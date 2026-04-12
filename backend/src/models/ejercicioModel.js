@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+﻿const mongoose = require('mongoose');
  
 const ejercicioSchema = new mongoose.Schema({
   contenido_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Contenido', required: true },
@@ -15,3 +15,4 @@ const ejercicioSchema = new mongoose.Schema({
 });
  
 module.exports = mongoose.model('Ejercicio', ejercicioSchema, 'ejercicios');
+

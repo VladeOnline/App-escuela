@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../../../../core/theme/app_theme.dart';
 import '../../../domain/entities/module_entities.dart';
@@ -32,10 +32,10 @@ class ExerciseActionButtons extends StatelessWidget {
       Container(
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
-          color: isCorrect ? AppColors.success.withOpacity(0.08) : AppColors.error.withOpacity(0.07),
+          color: isCorrect ? AppColors.success.withValues(alpha: 0.08) : AppColors.error.withValues(alpha: 0.07),
           borderRadius: const BorderRadius.all(AppRadius.large),
           border: Border.all(
-            color: isCorrect ? AppColors.success.withOpacity(0.3) : AppColors.error.withOpacity(0.25),
+            color: isCorrect ? AppColors.success.withValues(alpha: 0.3) : AppColors.error.withValues(alpha: 0.25),
           ),
         ),
         child: Row(children: [
@@ -66,8 +66,8 @@ class ExerciseActionButtons extends StatelessWidget {
                     : 'No te preocupes, ¡puedes intentarlo de nuevo!',
                 style: TextStyle(fontSize: 12, fontFamily: 'Nunito',
                     color: isCorrect
-                        ? AppColors.success.withOpacity(0.8)
-                        : AppColors.error.withOpacity(0.8)),
+                        ? AppColors.success.withValues(alpha: 0.8)
+                        : AppColors.error.withValues(alpha: 0.8)),
               ),
             ]),
           ),
@@ -109,3 +109,4 @@ class ExerciseActionButtons extends StatelessWidget {
     ]);
   }
 }
+

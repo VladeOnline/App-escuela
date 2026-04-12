@@ -1,9 +1,9 @@
-import '../../domain/entities/module_entities.dart';
+﻿import '../../domain/entities/module_entities.dart';
 
 /// Repositorio mock de módulos y ejercicios.
 class MockModuleRepository {
 
-  // ─── Módulos ───
+  // --- Módulos ---
   // TODO(back): GET /api/modules?type={reading|writing}
   List<ModuleEntity> getModulesByType(ModuleType type) =>
       _modules.where((m) => m.type == type && m.isActive).toList();
@@ -13,7 +13,7 @@ class MockModuleRepository {
     try { return _modules.firstWhere((m) => m.id == id); } catch (_) { return null; }
   }
 
-  // ─── Ejercicios ───
+  // --- Ejercicios ---
 
   // TODO(back): GET /api/modules/:moduleId/exercises
   // Respuesta esperada: List<ExerciseEntity> con todos los campos incluyendo content
@@ -29,10 +29,10 @@ class MockModuleRepository {
   /// Body: { title, instructions, type, difficulty, subject, content, isActive }
   /// Respuesta: ExerciseEntity completo con id generado por el servidor
   /// El campo content varía según type:
-  ///   multipleChoice  → { passage?, question, options: [], correctIndex, explanation? }
-  ///   trueOrFalse     → { passage?, statement, correctAnswer: bool, explanation? }
-  ///   fillInTheBlank  → { template (con [BLANK]), correctAnswer, hint? }
-  ///   ordering        → { words: [], correctOrder: [] }
+  ///   multipleChoice  â†’ { passage?, question, options: [], correctIndex, explanation? }
+  ///   trueOrFalse     â†’ { passage?, statement, correctAnswer: bool, explanation? }
+  ///   fillInTheBlank  â†’ { template (con [BLANK]), correctAnswer, hint? }
+  ///   ordering        â†’ { words: [], correctOrder: [] }
   Future<ExerciseEntity> createExercise(ExerciseEntity exercise) async {
     await Future.delayed(const Duration(milliseconds: 400));
     _exercises.add(exercise);
@@ -51,7 +51,7 @@ class MockModuleRepository {
   }
 
   /// TODO(back): PATCH /api/exercises/:id/toggle
-  /// Body: ninguno — el servidor invierte el isActive actual
+  /// Body: ninguno â€” el servidor invierte el isActive actual
   /// Respuesta: { id, isActive: bool }
   Future<void> toggleExercise(String id) async {
     await Future.delayed(const Duration(milliseconds: 200));
@@ -63,7 +63,7 @@ class MockModuleRepository {
 
   /// TODO(back): PATCH /api/exercises/bulk-toggle
   /// Body: { ids: [], isActive: bool }
-  /// Respuesta: { updated: int } — cantidad de ejercicios afectados
+  /// Respuesta: { updated: int } â€” cantidad de ejercicios afectados
   Future<void> setExercisesActive(Iterable<String> ids, {required bool isActive}) async {
     await Future.delayed(const Duration(milliseconds: 250));
     final idSet = ids.toSet();
@@ -94,7 +94,7 @@ class MockModuleRepository {
         isActive: isActive ?? e.isActive,
       );
 
-  // ─── Datos seed ───────────────────────────────────────────────────
+  // --- Datos seed ---------------------------------------------------
   // TODO(back): eliminar todo lo de abajo cuando la API esté conectada
 
   final List<ModuleEntity> _modules = [
@@ -111,7 +111,7 @@ class MockModuleRepository {
   ];
 
   final List<ExerciseEntity> _exercises = [
-    // ── Módulo: Comprensión de textos (grado 2) ───────────────────
+    // -- Módulo: Comprensión de textos (grado 2) -------------------
     // passage: fragmento compartido por ej-001 y ej-002 (comprensión del mismo texto)
     ExerciseEntity(
       id: 'ej-001', moduleId: 'mod-lec-1',
@@ -150,7 +150,7 @@ class MockModuleRepository {
       },
     ),
 
-    // ── Módulo: Vocabulario y sinónimos (grado 3) ─────────────────
+    // -- Módulo: Vocabulario y sinónimos (grado 3) -----------------
     ExerciseEntity(
       id: 'ej-004', moduleId: 'mod-lec-2',
       title: 'Sinónimo de "alegre"',
@@ -160,7 +160,7 @@ class MockModuleRepository {
         'question': '¿Cuál es el sinónimo de "alegre"?',
         'options': ['Triste', 'Contento', 'Enojado', 'Cansado'],
         'correctIndex': 1,
-        'explanation': 'Contento significa lo mismo que alegre — ambas palabras expresan felicidad.',
+        'explanation': 'Contento significa lo mismo que alegre - ambas palabras expresan felicidad.',
       },
     ),
     ExerciseEntity(
@@ -175,7 +175,7 @@ class MockModuleRepository {
       },
     ),
 
-    // ── Módulo: Ortografía básica (grado 2) ───────────────────────
+    // -- Módulo: Ortografía básica (grado 2) -----------------------
     ExerciseEntity(
       id: 'ej-006', moduleId: 'mod-esc-1',
       title: 'Mayúscula al inicio',
@@ -216,7 +216,7 @@ class MockModuleRepository {
       },
     ),
 
-    // ── Módulo: Construcción de oraciones (grado 3) ───────────────
+    // -- Módulo: Construcción de oraciones (grado 3) ---------------
     ExerciseEntity(
       id: 'ej-009', moduleId: 'mod-esc-2',
       title: 'Construye la oración',

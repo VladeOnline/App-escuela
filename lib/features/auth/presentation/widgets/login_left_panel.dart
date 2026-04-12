@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 
 class LoginLeftPanel extends StatelessWidget {
@@ -83,7 +83,7 @@ class LoginLeftPanel extends StatelessWidget {
   double _panelWidth(double w) => w < 900 ? w * 0.38 : w < 1200 ? 420 : 480;
 }
 
-// ─── Decoración ───
+// --- Decoración ---
 
 class _DecorShape extends StatelessWidget {
   const _DecorShape({required this.size, required this.opacity, this.isRect = false});
@@ -97,13 +97,13 @@ class _DecorShape extends StatelessWidget {
     decoration: BoxDecoration(
       shape: isRect ? BoxShape.rectangle : BoxShape.circle,
       borderRadius: isRect ? BorderRadius.circular(4) : null,
-      border: Border.all(color: Colors.white.withOpacity(opacity * 1.5), width: 1.5),
-      color: Colors.white.withOpacity(opacity),
+      border: Border.all(color: Colors.white.withValues(alpha: opacity * 1.5), width: 1.5),
+      color: Colors.white.withValues(alpha: opacity),
     ),
   );
 }
 
-// ─── Imagen ───
+// --- Imagen ---
 
 class _ClassroomImage extends StatelessWidget {
   const _ClassroomImage({required this.height, required this.width});
@@ -131,7 +131,7 @@ class _ClassroomImage extends StatelessWidget {
   );
 }
 
-// ─── Ola ───
+// --- Ola ---
 
 class _WaveTransition extends StatelessWidget {
   const _WaveTransition({required this.width});
@@ -173,7 +173,7 @@ class _WavePainter extends CustomPainter {
   bool shouldRepaint(_WavePainter old) => false;
 }
 
-// ─── Logo ───
+// --- Logo ---
 
 class _AppLogo extends StatelessWidget {
   const _AppLogo();
@@ -184,13 +184,13 @@ class _AppLogo extends StatelessWidget {
     decoration: BoxDecoration(
       color: AppColors.primary,
       borderRadius: const BorderRadius.all(AppRadius.large),
-      boxShadow: [BoxShadow(color: AppColors.primaryDark.withOpacity(0.35), blurRadius: 16, offset: const Offset(0, 6))],
+      boxShadow: [BoxShadow(color: AppColors.primaryDark.withValues(alpha: 0.35), blurRadius: 16, offset: const Offset(0, 6))],
     ),
     child: const Icon(Icons.school_rounded, color: Colors.white, size: 36),
   );
 }
 
-// ─── Info ───
+// --- Info ---
 
 class _InfoSection extends StatelessWidget {
   const _InfoSection();
@@ -212,7 +212,7 @@ class _InfoSection extends StatelessWidget {
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, fontFamily: 'Nunito', color: Colors.white, height: 1.2)),
         const SizedBox(height: AppSpacing.sm),
         Text('Aprendiendo juntos cada día',
-          style: TextStyle(fontSize: 13, fontFamily: 'Nunito', color: Colors.white.withOpacity(0.75), fontStyle: FontStyle.italic)),
+          style: TextStyle(fontSize: 13, fontFamily: 'Nunito', color: Colors.white.withValues(alpha: 0.75), fontStyle: FontStyle.italic)),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
           child: Row(children: [
@@ -222,10 +222,10 @@ class _InfoSection extends StatelessWidget {
           ]),
         ),
         Text('Una herramienta pensada para apoyar a docentes y estudiantes de escuelas unidocentes en Costa Rica.',
-          style: TextStyle(fontSize: 13, fontFamily: 'Nunito', color: Colors.white.withOpacity(0.85), height: 1.6)),
+          style: TextStyle(fontSize: 13, fontFamily: 'Nunito', color: Colors.white.withValues(alpha: 0.85), height: 1.6)),
         const SizedBox(height: AppSpacing.xl),
         Text('TODO LO QUE NECESITAS',
-          style: TextStyle(fontSize: 11, fontFamily: 'Nunito', color: Colors.white.withOpacity(0.65), fontWeight: FontWeight.w700, letterSpacing: 1.8)),
+          style: TextStyle(fontSize: 11, fontFamily: 'Nunito', color: Colors.white.withValues(alpha: 0.65), fontWeight: FontWeight.w700, letterSpacing: 1.8)),
         const SizedBox(height: AppSpacing.md),
         ..._features.map(_buildFeature),
       ],
@@ -240,9 +240,9 @@ class _InfoSection extends StatelessWidget {
         Container(
           width: 42, height: 42,
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.15),
+            color: Colors.white.withValues(alpha: 0.15),
             borderRadius: const BorderRadius.all(AppRadius.medium),
-            border: Border.all(color: Colors.white.withOpacity(0.1)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
           ),
           child: Icon(item.$1, color: Colors.white, size: 20),
         ),
@@ -251,7 +251,7 @@ class _InfoSection extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(item.$2, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, fontFamily: 'Nunito', color: Colors.white)),
-            Text(item.$3, style: TextStyle(fontSize: 11, fontFamily: 'Nunito', color: Colors.white.withOpacity(0.65), height: 1.4)),
+            Text(item.$3, style: TextStyle(fontSize: 11, fontFamily: 'Nunito', color: Colors.white.withValues(alpha: 0.65), height: 1.4)),
           ],
         )),
       ],
@@ -260,11 +260,12 @@ class _InfoSection extends StatelessWidget {
 
   Widget _dividerLine(double w) => Container(
     width: w, height: 2,
-    decoration: BoxDecoration(color: Colors.white.withOpacity(0.3), borderRadius: BorderRadius.circular(2)),
+    decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(2)),
   );
 
   Widget _dot() => Container(
     width: 8, height: 8,
-    decoration: BoxDecoration(color: Colors.white.withOpacity(0.4), shape: BoxShape.circle),
+    decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.4), shape: BoxShape.circle),
   );
 }
+

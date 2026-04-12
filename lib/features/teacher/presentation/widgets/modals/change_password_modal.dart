@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../shared/widgets/app_snackbar.dart';
 
@@ -167,7 +167,7 @@ class _ChangePasswordModalState extends State<ChangePasswordModal> {
 
 enum _Field { current, newPass, confirm }
 
-// ─── Subwidgets ───
+// --- Subwidgets ---
 
 class _Header extends StatelessWidget {
   const _Header({required this.onClose, this.errorMessage});
@@ -184,7 +184,7 @@ class _Header extends StatelessWidget {
             Container(
               width: 42, height: 42,
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.10),
+                color: AppColors.primary.withValues(alpha: 0.10),
                 borderRadius: const BorderRadius.all(AppRadius.medium),
               ),
               child: const Icon(Icons.lock_outline_rounded, color: AppColors.primary, size: 22),
@@ -203,9 +203,9 @@ class _Header extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 6),
                 decoration: BoxDecoration(
-                  color: AppColors.error.withOpacity(0.08),
+                  color: AppColors.error.withValues(alpha: 0.08),
                   borderRadius: const BorderRadius.all(AppRadius.full),
-                  border: Border.all(color: AppColors.error.withOpacity(0.3)),
+                  border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -346,3 +346,4 @@ class _SecurityTips extends StatelessWidget {
         ),
       );
 }
+

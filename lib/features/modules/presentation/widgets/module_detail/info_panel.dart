@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../../../core/theme/app_theme.dart';
 import '../../../domain/entities/module_entities.dart';
@@ -30,7 +30,7 @@ class InfoPanel extends StatelessWidget {
   }
 }
 
-// ─── Estilos ───
+// --- Estilos ---
 
 class _TableStyles {
   static const _base = TextStyle(fontFamily: 'Nunito');
@@ -64,7 +64,7 @@ class _TableStyles {
       const TextStyle();
 }
 
-// ─── Info Table ───
+// --- Info Table ---
 
 class _InfoTable extends StatelessWidget {
   const _InfoTable({required this.exercises});
@@ -86,10 +86,10 @@ class _InfoTable extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: const BorderRadius.all(AppRadius.large),
-        border: Border.all(color: Colors.grey.withOpacity(0.2)),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -137,7 +137,7 @@ class _InfoTable extends StatelessWidget {
   }
 }
 
-// ─── Card Header ───
+// --- Card Header ---
 
 class _CardHeader extends StatelessWidget {
   @override
@@ -147,7 +147,7 @@ class _CardHeader extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.12),
+            color: AppColors.primary.withValues(alpha: 0.12),
             borderRadius: const BorderRadius.all(AppRadius.small),
           ),
           child: const Icon(Icons.bar_chart_rounded, size: 16, color: AppColors.primary),
@@ -167,7 +167,7 @@ class _CardHeader extends StatelessWidget {
   }
 }
 
-// ─── Tabla (dificultad y materia) ───
+// --- Tabla (dificultad y materia) ---
 
 class _RowData {
   const _RowData({
@@ -228,7 +228,7 @@ class _SectionTable extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 4),
-        Divider(color: Colors.grey.withOpacity(0.15), height: 1, thickness: 1),
+        Divider(color: Colors.grey.withValues(alpha: 0.15), height: 1, thickness: 1),
         if (rows.isNotEmpty)
           ...rows.map((r) => _TableRow(data: r))
         else if (emptyText != null)
@@ -250,7 +250,7 @@ class _SectionTable extends StatelessWidget {
   }
 }
 
-// ─── Fila de tabla ───
+// --- Fila de tabla ---
 
 class _TableRow extends StatelessWidget {
   const _TableRow({required this.data});
@@ -292,7 +292,7 @@ class _TableRow extends StatelessWidget {
   }
 }
 
-// ─── Botón crear ejercicio ───
+// --- Botón crear ejercicio ---
 
 class _CreateButton extends StatefulWidget {
   const _CreateButton({required this.onPressed});
@@ -332,7 +332,7 @@ class _CreateButtonState extends State<_CreateButton> with SingleTickerProviderS
         borderRadius: const BorderRadius.all(AppRadius.medium),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.3),
+            color: AppColors.primary.withValues(alpha: 0.3),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -345,7 +345,7 @@ class _CreateButtonState extends State<_CreateButton> with SingleTickerProviderS
         child: ElevatedButton(
           onPressed: _onPress,
           style: ButtonStyle(
-            mouseCursor: WidgetStateProperty.all(SystemMouseCursors.click), // 👈
+            mouseCursor: WidgetStateProperty.all(SystemMouseCursors.click), // ðŸ‘ˆ
             backgroundColor: WidgetStateProperty.all(AppColors.primary),
             foregroundColor: WidgetStateProperty.all(Colors.white),
             padding: WidgetStateProperty.all(
@@ -379,3 +379,4 @@ class _CreateButtonState extends State<_CreateButton> with SingleTickerProviderS
     );
   }
 }
+

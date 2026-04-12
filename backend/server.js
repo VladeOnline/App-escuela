@@ -1,4 +1,4 @@
-const express = require('express');
+﻿const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
@@ -9,14 +9,14 @@ dotenv.config({ path: path.join(__dirname, '.env') });
 const app = express();
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '6mb' }));
 
 app.use('/api/auth', require('./src/routes/authRoutes'));
 app.use('/api/estudiantes', require('./src/routes/estudianteRoutes'));
 app.use('/api/ejercicios', require('./src/routes/EjercicioRoutes'));
 
 app.get('/', (req, res) => {
-  res.json({ message: 'API Refuerzo Académico funcionando ✅' });
+  res.json({ message: 'API Refuerzo Academico funcionando' });
 });
 
 const PORT = process.env.PORT || 3000;
