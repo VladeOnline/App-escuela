@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../core/theme/app_theme.dart';
-import '../../../data/repositories/mock_module_repository.dart';
+import '../../../data/repositories/api_module_repository.dart';
 import '../../../domain/entities/module_entities.dart';
 import '../../pages/module_detail_page.dart';
 import 'create_module_card.dart';
@@ -14,11 +14,13 @@ class ModuleCard extends StatefulWidget {
     required this.module,
     required this.repository,
     required this.isTeacher,
+    required this.onDeleted,
   });
 
   final ModuleEntity module;
-  final MockModuleRepository repository;
+  final ApiModuleRepository repository;
   final bool isTeacher;
+  final VoidCallback onDeleted;
 
   @override
   State<ModuleCard> createState() => _ModuleCardState();
@@ -160,7 +162,13 @@ class _ModuleCardState extends State<ModuleCard> with TickerProviderStateMixin {
                           ]),
                         ),
                         const Spacer(),
-                        DeleteModuleButton(hovered: _hovered, moduleName: widget.module.title),
+                        DeleteModuleButton(
+                          hovered: _hovered,
+                          moduleName: widget.module.title,
+                          moduleId: widget.module.id,
+                          repository: widget.repository,
+                          onDeleted: widget.onDeleted,
+                        ),
                       ]),
                     ],
                   ),

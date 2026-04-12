@@ -1,4 +1,4 @@
-import '../../domain/entities/module_entities.dart';
+/*import '../../domain/entities/module_entities.dart';
 
 /// Repositorio mock de módulos y ejercicios.
 class MockModuleRepository {
@@ -240,4 +240,4 @@ class MockModuleRepository {
       },
     ),
   ];
-}
+}*/

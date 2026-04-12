@@ -221,7 +221,7 @@ class _SubjectFilter extends StatelessWidget {
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<Subject?>(
-              mouseCursor: SystemMouseCursors.click,
+              //mouseCursor: SystemMouseCursors.click,
               value: selected,
               isDense: true,
               icon: const Icon(
