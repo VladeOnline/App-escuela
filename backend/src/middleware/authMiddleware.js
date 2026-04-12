@@ -23,18 +23,4 @@ const soloDocente = (req, res, next) => {
   next();
 };
 
-const soloAdmin = (req, res, next) => {
-  if (req.usuario.rol !== 'admin') {
-    return res.status(403).json({ message: 'Acceso solo para administradores' });
-  }
-  next();
-};
-
-const soloAdminODocente = (req, res, next) => {
-  if (req.usuario.rol !== 'admin' && req.usuario.rol !== 'docente') {
-    return res.status(403).json({ message: 'Acceso solo para docentes o administradores' });
-  }
-  next();
-};
-
-module.exports = { verificarToken, soloDocente, soloAdmin, soloAdminODocente };
+module.exports = { verificarToken, soloDocente };
