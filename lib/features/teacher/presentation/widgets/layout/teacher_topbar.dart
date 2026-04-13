@@ -8,12 +8,10 @@ class TeacherTopbar extends StatelessWidget implements PreferredSizeWidget {
     super.key,
     required this.teacherName,
     required this.onLogout,
-    required this.onChangePhoto,
   });
 
   final String teacherName;
   final VoidCallback onLogout;
-  final VoidCallback onChangePhoto;
 
   @override
   Size get preferredSize => const Size.fromHeight(60);
@@ -55,7 +53,6 @@ class TeacherTopbar extends StatelessWidget implements PreferredSizeWidget {
             teacherName: teacherName,
             onLogout: onLogout,
             onChangePassword: () => ChangePasswordModal.show(context),
-            onChangePhoto: onChangePhoto,
           ),
         ],
       ),
@@ -85,12 +82,10 @@ class _UserMenuButton extends StatelessWidget {
     required this.teacherName,
     required this.onLogout,
     required this.onChangePassword,
-    required this.onChangePhoto,
   });
   final String teacherName;
   final VoidCallback onLogout;
   final VoidCallback onChangePassword;
-  final VoidCallback onChangePhoto;
 
   @override
   Widget build(BuildContext context) {
@@ -104,7 +99,6 @@ class _UserMenuButton extends StatelessWidget {
       ),
       onSelected: (action) => switch (action) {
         _UserMenuAction.changePassword => onChangePassword(),
-        _UserMenuAction.changePhoto    => onChangePhoto(),
         _UserMenuAction.logout         => onLogout(),
       },
       itemBuilder: (_) => [
@@ -131,7 +125,6 @@ class _UserMenuButton extends StatelessWidget {
           ),
         ),
         const PopupMenuDivider(),
-        _menuItem(_UserMenuAction.changePhoto, Icons.photo_camera_outlined, 'Cambiar foto'),
         _menuItem(_UserMenuAction.changePassword, Icons.lock_outline_rounded, 'Cambiar contraseña'),
         const PopupMenuDivider(),
         _menuItem(_UserMenuAction.logout, Icons.logout_rounded, 'Cerrar sesión', color: AppColors.error),
@@ -175,4 +168,4 @@ class _UserMenuButton extends StatelessWidget {
   }
 }
 
-enum _UserMenuAction { changePassword, changePhoto, logout }
+enum _UserMenuAction { changePassword, logout }

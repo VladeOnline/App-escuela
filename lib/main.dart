@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -14,20 +15,24 @@ import 'features/teacher/presentation/pages/teacher_dashboard_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await windowManager.ensureInitialized();
+  
+  // Solo inicializar window_manager en plataformas de escritorio
+  if (!kIsWeb) {
+    await windowManager.ensureInitialized();
 
-  await windowManager.waitUntilReadyToShow(
-    const WindowOptions(
-      title: 'Refuerzo Escolar',
-      minimumSize: Size(1024, 680),
-    ),
-    () async {
-      await windowManager.show();
-      await windowManager.focus();
-      await Future.delayed(const Duration(milliseconds: 200));
-      await windowManager.maximize();
-    },
-  );
+    await windowManager.waitUntilReadyToShow(
+      const WindowOptions(
+        title: 'Refuerzo Escolar',
+        minimumSize: Size(1024, 680),
+      ),
+      () async {
+        await windowManager.show();
+        await windowManager.focus();
+        await Future.delayed(const Duration(milliseconds: 200));
+        await windowManager.maximize();
+      },
+    );
+  }
 
   runApp(const AppEscuela());
 }

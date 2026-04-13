@@ -6,10 +6,14 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../features/students/domain/entities/student_entity.dart';
 import '../../../../features/students/presentation/notifiers/students_notifier.dart';
 import '../../data/repositories/report_repository_impl.dart';
+import '../../domain/entities/individual_report_entity.dart';
 import '../notifiers/report_notifier.dart';
 import '../widgets/report_summary.dart';
 import '../widgets/results_table.dart';
 import '../widgets/student_selector.dart';
+import '../widgets/evaluations_table.dart';
+import '../widgets/performance_chart.dart';
+import '../widgets/gamification_section.dart';
 
 /// Página de reportes individuales de estudiantes
 class IndividualReportPage extends StatefulWidget {
@@ -45,6 +49,16 @@ class _IndividualReportPageState extends State<IndividualReportPage> {
     if (student != null) {
       await _reportNotifier.getIndividualReport(student.id);
     }
+  }
+
+  /// Calcula el nivel según el promedio
+  int _calcularNivel(int promedio) {
+    return (promedio / 20).toInt() + 1;
+  }
+
+  /// Cuenta cuántas evaluaciones fueron aprobadas
+  int _countApproved(IndividualReportEntity report) {
+    return report.resultados.where((r) => r.aprobado).length;
   }
 
   @override
@@ -132,30 +146,48 @@ class _IndividualReportPageState extends State<IndividualReportPage> {
 
               final report = _reportNotifier.report!;
 
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Resumen
-                  ReportSummary(report: report),
-                  const SizedBox(height: AppSpacing.xl),
+              return SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Resumen mejorado
+                    ReportSummary(report: report),
+                    const SizedBox(height: AppSpacing.xl),
 
-                  // Título de resultados
-                  Text(
-                    'Historial de Evaluaciones',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: AppSpacing.md),
+                    // Tabla de últimas evaluaciones por materia
+                    EvaluationsTable(report: report),
+                    const SizedBox(height: AppSpacing.xl),
 
-                  // Tabla de resultados
-                  Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey[300]!),
-                      borderRadius: BorderRadius.circular(8),
+                    // Gráfico de rendimiento
+                    PerformanceChart(report: report),
+                    const SizedBox(height: AppSpacing.xl),
+
+                    // Gamificación
+                    GamificationSection(
+                      puntos: (report.promedio * 10).toInt(),
+                      nivel: _calcularNivel(report.promedio),
+                      medallas: _countApproved(report),
                     ),
-                    child: ResultsTable(report: report),
-                  ),
-                  const SizedBox(height: AppSpacing.xl),
-                ],
+                    const SizedBox(height: AppSpacing.xl),
+
+                    // Tabla de resultados completa (opcional)
+                    Text(
+                      'Todas las Evaluaciones',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey[300]!),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: ResultsTable(report: report),
+                    ),
+                    const SizedBox(height: AppSpacing.xl),
+                  ],
+                ),
               );
             },
           ),

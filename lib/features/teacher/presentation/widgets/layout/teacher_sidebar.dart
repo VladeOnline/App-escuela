@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../../../../core/theme/app_theme.dart';
-import '../../../../auth/presentation/pages/profile_page.dart';
 
 // ─── Modelos ───
 
@@ -194,17 +193,6 @@ class _TeacherAvatarHeader extends StatelessWidget {
         ),
       );
 
-  void _navigateToProfile(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => ProfilePage(
-          usuarioId: usuarioId,
-          nombreDocente: teacherName,
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     if (collapsed) {
@@ -214,15 +202,7 @@ class _TeacherAvatarHeader extends StatelessWidget {
           const Divider(height: 1, color: AppColors.border),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-            child: Center(
-              child: MouseRegion(
-                cursor: SystemMouseCursors.click,
-                child: GestureDetector(
-                  onTap: () => _navigateToProfile(context),
-                  child: _avatar(50),
-                ),
-              ),
-            ),
+            child: Center(child: _avatar(50)),
           ),
         ],
       );
@@ -231,13 +211,7 @@ class _TeacherAvatarHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.xs, AppSpacing.md),
       child: Row(
         children: [
-          MouseRegion(
-            cursor: SystemMouseCursors.click,
-            child: GestureDetector(
-              onTap: () => _navigateToProfile(context),
-              child: _avatar(64),
-            ),
-          ),
+          _avatar(64),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
