@@ -35,6 +35,15 @@ class _ModulesPageState extends State<ModulesPage> {
     _loadModules();
   }
 
+  @override
+  void didUpdateWidget(covariant ModulesPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.moduleType != widget.moduleType ||
+        oldWidget.repository != widget.repository) {
+      _loadModules();
+    }
+  }
+
   Future<void> _loadModules() async {
     setState(() { _isLoading = true; _errorMessage = null; });
     final result = await widget.repository.getModulesByType(widget.moduleType);

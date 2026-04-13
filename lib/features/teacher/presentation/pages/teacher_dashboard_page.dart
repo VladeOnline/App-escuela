@@ -5,7 +5,7 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../features/auth/presentation/auth_notifier.dart';
-import '../../../../features/modules/data/repositories/mock_module_repository.dart';
+import '../../../../features/modules/data/repositories/api_module_repository.dart';
 import '../../../../features/modules/domain/entities/module_entities.dart';
 import '../../../../features/modules/presentation/pages/modules_page.dart';
 import '../../../../features/students/domain/entities/student_entity.dart';
@@ -28,7 +28,6 @@ class TeacherDashboardPage extends StatefulWidget {
 
 class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
   int _selectedIndex = 0;
-  final _moduleRepository = MockModuleRepository();
 
   Future<void> _onLogout() async {
     context.read<AuthNotifier>().logout();
@@ -37,19 +36,25 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
 
   Widget _buildContent(int index) {
     final studentsNotifier = context.read<StudentsNotifier>();
+    final token = context.read<AuthNotifier>().state.token ?? '';
+    final moduleRepository = ApiModuleRepository(token: token);
 
     return switch (index) {
       0 => _DashboardView(notifier: studentsNotifier),
       1 => ModulesPage(
           moduleType: ModuleType.reading,
-          repository: _moduleRepository,
+          repository: moduleRepository,
         ),
       2 => ModulesPage(
           moduleType: ModuleType.writing,
-          repository: _moduleRepository,
+          repository: moduleRepository,
         ),
-      3 => const _ComingSoonView(label: 'Reportes'),
-      4 => const _ComingSoonView(label: 'Ajustes'),
+      3 => ModulesPage(
+          moduleType: ModuleType.math,
+          repository: moduleRepository,
+        ),
+      4 => const _ComingSoonView(label: 'Reportes'),
+      5 => const _ComingSoonView(label: 'Ajustes'),
       _ => const SizedBox.shrink(),
     };
   }

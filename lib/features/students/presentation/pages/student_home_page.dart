@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../auth/presentation/auth_notifier.dart';
-import '../../../modules/data/repositories/mock_module_repository.dart';
+import '../../../modules/data/repositories/api_module_repository.dart';
 import '../../../modules/domain/entities/module_entities.dart';
 import '../../../modules/presentation/pages/module_detail_page.dart';
 
@@ -20,7 +20,32 @@ class StudentHomePage extends StatefulWidget {
 }
 
 class _StudentHomePageState extends State<StudentHomePage> {
-  final _repository = MockModuleRepository();
+  late ApiModuleRepository _repository;
+  List<ModuleEntity> _modules = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    final token = context.read<AuthNotifier>().state.token ?? '';
+    _repository = ApiModuleRepository(token: token);
+    _loadModules();
+  }
+
+  Future<void> _loadModules() async {
+    final authState = context.read<AuthNotifier>().state;
+    final grade = authState.studentGrade ?? 1;
+    final reading = await _repository.getModulesByType(ModuleType.reading);
+    final writing = await _repository.getModulesByType(ModuleType.writing);
+    if (!mounted) return;
+    setState(() {
+      _isLoading = false;
+      _modules = [
+        ...reading.modules.where((m) => m.grade == grade),
+        ...writing.modules.where((m) => m.grade == grade),
+      ];
+    });
+  }
 
   String get _greeting {
     final h = DateTime.now().hour;
@@ -28,11 +53,6 @@ class _StudentHomePageState extends State<StudentHomePage> {
     if (h >= 12 && h < 19) return 'Buenas tardes';
     return 'Buenas noches';
   }
-
-  List<ModuleEntity> _modulesForGrade(int grade) => [
-        ..._repository.getModulesByType(ModuleType.reading),
-        ..._repository.getModulesByType(ModuleType.writing),
-      ].where((m) => m.grade == grade).toList();
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +63,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
     final studentGrade = authState.studentGrade ?? 1;
     final studentPoints = authState.studentPoints;
     final studentPhotoUrl = authState.studentPhotoUrl;
-    final modules = _modulesForGrade(studentGrade);
+    final modules = _modules;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF0FDF8),
@@ -57,12 +77,16 @@ class _StudentHomePageState extends State<StudentHomePage> {
             photoUrl: studentPhotoUrl,
           ),
           Expanded(
-            child: modules.isEmpty
-                ? const _EmptyState()
-                : _ModuleGrid(
-                    modules: modules,
-                    repository: _repository,
-                  ),
+            child: _isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(color: AppColors.primary),
+                  )
+                : modules.isEmpty
+                    ? const _EmptyState()
+                    : _ModuleGrid(
+                        modules: modules,
+                        repository: _repository,
+                      ),
           ),
         ],
       ),
@@ -281,7 +305,7 @@ class _ModuleGrid extends StatelessWidget {
   const _ModuleGrid({required this.modules, required this.repository});
 
   final List<ModuleEntity> modules;
-  final MockModuleRepository repository;
+  final ApiModuleRepository repository;
 
   @override
   Widget build(BuildContext context) {
@@ -364,7 +388,7 @@ const _moduleGradients = {
 class _ModuleCard extends StatefulWidget {
   const _ModuleCard({required this.module, required this.repository});
   final ModuleEntity module;
-  final MockModuleRepository repository;
+  final ApiModuleRepository repository;
 
   @override
   State<_ModuleCard> createState() => _ModuleCardState();
@@ -402,10 +426,7 @@ class _ModuleCardState extends State<_ModuleCard>
   List<Color> get _gradient => _moduleGradients[_type]!;
 
   int get _activeExerciseCount =>
-      widget.repository
-          .getExercisesByModule(widget.module.id)
-          .where((e) => e.isActive)
-          .length;
+      widget.module.exerciseCount;
 
   @override
   Widget build(BuildContext context) {

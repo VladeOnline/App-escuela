@@ -116,7 +116,7 @@ class GradeSection extends StatelessWidget {
                     height: 190,
                     child: CreateModuleCard(
                       repository: repository,
-                      moduleType: modules.isNotEmpty ? modules.first.type : ModuleType.reading,
+                      moduleType: moduleType,
                       grade: grade,
                       onCreated: onCreated,
                     ),
