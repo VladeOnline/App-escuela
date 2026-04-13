@@ -1,20 +1,20 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../features/auth/presentation/auth_notifier.dart';
-import '../../../../features/modules/data/repositories/api_module_repository.dart';
+import '../../../../features/modules/data/repositories/mock_module_repository.dart';
 import '../../../../features/modules/domain/entities/module_entities.dart';
 import '../../../../features/modules/presentation/pages/modules_page.dart';
+import '../../../../features/reports/presentation/pages/reports_page.dart';
 import '../../../../features/students/domain/entities/student_entity.dart';
 import '../../../../features/students/presentation/notifiers/students_notifier.dart';
 import '../../../../features/students/presentation/pages/student_form_page.dart';
 import '../../../../shared/widgets/app_snackbar.dart';
 import '../../../../shared/widgets/confirm_dialog.dart';
 import '../../../../shared/widgets/grade_badge.dart';
-import '../../../../features/teacher/domain/models/dashboard_stat.dart';
 import '../widgets/dashboard/stats_overview_row.dart';
 import '../widgets/layout/teacher_sidebar.dart';
 import '../widgets/layout/teacher_topbar.dart';
@@ -28,52 +28,45 @@ class TeacherDashboardPage extends StatefulWidget {
 
 class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
   int _selectedIndex = 0;
+  final _moduleRepository = MockModuleRepository();
 
   Future<void> _onLogout() async {
     context.read<AuthNotifier>().logout();
     Navigator.of(context).pushReplacementNamed(AppRoutes.login);
   }
 
+  String get _teacherName => context.read<AuthNotifier>().state.userName ?? 'Profesor';
+
+  String get _usuarioId => context.read<AuthNotifier>().state.userId ?? '';
+
   Widget _buildContent(int index) {
     final studentsNotifier = context.read<StudentsNotifier>();
-    final token = context.read<AuthNotifier>().state.token ?? '';
-    final moduleRepository = ApiModuleRepository(token: token);
 
     return switch (index) {
       0 => _DashboardView(notifier: studentsNotifier),
       1 => ModulesPage(
           moduleType: ModuleType.reading,
-          repository: moduleRepository,
+          repository: _moduleRepository,
         ),
       2 => ModulesPage(
           moduleType: ModuleType.writing,
-          repository: moduleRepository,
+          repository: _moduleRepository,
         ),
-      3 => ModulesPage(
-          moduleType: ModuleType.math,
-          repository: moduleRepository,
-        ),
-      4 => const _ComingSoonView(label: 'Reportes'),
-      5 => const _ComingSoonView(label: 'Ajustes'),
+      3 => const ReportsPage(),
+      4 => const _ComingSoonView(label: 'Ajustes'),
       _ => const SizedBox.shrink(),
     };
   }
 
   @override
   Widget build(BuildContext context) {
-    final authState = context.watch<AuthNotifier>().state;
-    final teacherName = (authState.userName == null || authState.userName!.trim().isEmpty)
-        ? 'Docente'
-        : authState.userName!.trim();
-    final teacherPhotoUrl = authState.userPhotoUrl;
-
     return Scaffold(
       body: Row(
         children: [
           TeacherSidebar(
             selectedIndex: _selectedIndex,
-            teacherName: teacherName,
-            teacherPhotoUrl: teacherPhotoUrl,
+            teacherName: _teacherName,
+            usuarioId: _usuarioId,
             onSelectIndex: (i) => setState(() => _selectedIndex = i),
             onLogout: _onLogout,
           ),
@@ -81,8 +74,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
             child: Column(
               children: [
                 TeacherTopbar(
-                  teacherName: teacherName,
-                  teacherPhotoUrl: teacherPhotoUrl,
+                  teacherName: _teacherName,
                   onLogout: _onLogout,
                 ),
                 Expanded(child: _buildContent(_selectedIndex)),
@@ -95,61 +87,20 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
   }
 }
 
-class _DashboardView extends StatefulWidget {
+class _DashboardView extends StatelessWidget {
   const _DashboardView({required this.notifier});
 
   final StudentsNotifier notifier;
 
-  @override
-  State<_DashboardView> createState() => _DashboardViewState();
-}
-
-class _DashboardViewState extends State<_DashboardView> {
   @override
   Widget build(BuildContext context) => SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            AnimatedBuilder(
-              animation: widget.notifier,
-              builder: (_, _) => _StatsCard(
-                child: StatsOverviewRow(
-                  stats: [
-                    DashboardStat(
-                      label: 'Estudiantes',
-                      value: '${widget.notifier.state.students.length}',
-                      icon: Icons.people_alt_rounded,
-                      color: AppColors.primary,
-                      sublabel: 'registrados',
-                    ),
-                    const DashboardStat(
-                      label: 'Casos graves',
-                      value: '2',
-                      icon: Icons.warning_amber_rounded,
-                      color: AppColors.error,
-                      sublabel: 'requieren atención',
-                    ),
-                    const DashboardStat(
-                      label: 'Sesiones recientes',
-                      value: '10',
-                      icon: Icons.play_circle_outline_rounded,
-                      color: AppColors.accent,
-                      sublabel: 'últimos 7 días',
-                    ),
-                    const DashboardStat(
-                      label: 'Progreso promedio',
-                      value: '70%',
-                      icon: Icons.trending_up_rounded,
-                      color: AppColors.secondary,
-                      sublabel: 'avance general',
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            _StatsCard(child: StatsOverviewRow.mock()),
             const SizedBox(height: AppSpacing.lg),
-            _StudentsCard(notifier: widget.notifier),
+            _StudentsCard(notifier: notifier),
           ],
         ),
       );
@@ -212,7 +163,7 @@ class _StatsCard extends StatelessWidget {
                 height: 120,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.07),
+                  color: Colors.white.withOpacity(0.07),
                 ),
               ),
             ),
@@ -225,7 +176,7 @@ class _StatsCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.10),
+                    color: Colors.white.withOpacity(0.10),
                     width: 1.5,
                   ),
                 ),
@@ -239,9 +190,9 @@ class _StatsCard extends StatelessWidget {
                 height: 80,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.05),
+                  color: Colors.white.withOpacity(0.05),
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.08),
+                    color: Colors.white.withOpacity(0.08),
                     width: 1,
                   ),
                 ),
@@ -255,7 +206,7 @@ class _StatsCard extends StatelessWidget {
                 height: 35,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.06),
+                  color: Colors.white.withOpacity(0.06),
                 ),
               ),
             ),
@@ -280,8 +231,8 @@ class _StatsCard extends StatelessWidget {
                       gradient: LinearGradient(
                         stops: const [0.0, 0.35, 1.0],
                         colors: [
-                          Colors.white.withValues(alpha: 0.6),
-                          Colors.white.withValues(alpha: 0.4),
+                          Colors.white.withOpacity(0.6),
+                          Colors.white.withOpacity(0.4),
                           Colors.transparent,
                         ],
                       ),
@@ -327,29 +278,8 @@ class _StudentsCardState extends State<_StudentsCard> {
     super.dispose();
   }
 
-
-  @override
-  void didUpdateWidget(covariant _StudentsCard oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.notifier != widget.notifier) {
-      oldWidget.notifier.removeListener(_onStateChange);
-      widget.notifier.addListener(_onStateChange);
-
-      final auth = context.read<AuthNotifier>().state;
-      if (!auth.isAuthenticated || !auth.isTeacher) return;
-
-      if (widget.notifier.state.status == StudentsStatus.initial &&
-          widget.notifier.state.students.isEmpty) {
-        WidgetsBinding.instance
-            .addPostFrameCallback((_) => widget.notifier.loadStudents());
-      }
-    }
-  }
   void _onStateChange() {
     if (!mounted) return;
-    final auth = context.read<AuthNotifier>().state;
-    if (!auth.isAuthenticated || !auth.isTeacher) return;
-
     final s = widget.notifier.state;
     if (s.successMessage != null) {
       AppSnackbar.showSuccess(context, s.successMessage!);
@@ -589,13 +519,13 @@ class _ComingSoonView extends StatelessWidget {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: AppColors.secondary.withValues(alpha: 0.10),
+                color: AppColors.secondary.withOpacity(0.10),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.construction_rounded,
                 size: 40,
-                color: AppColors.secondary.withValues(alpha: 0.6),
+                color: AppColors.secondary.withOpacity(0.6),
               ),
             ),
             const SizedBox(height: AppSpacing.md),
@@ -683,13 +613,12 @@ class _StudentCard extends StatelessWidget {
                 children: [
                   Container(
                     width: double.infinity,
-                    color: gradeColor.withValues(alpha: 0.07),
+                    color: gradeColor.withOpacity(0.07),
                     child: Center(
                       child: StudentAvatar(
                         initials: student.initials,
                         grade: student.grade,
                         radius: 36,
-                        photoUrl: student.photoUrl,
                       ),
                     ),
                   ),
@@ -793,7 +722,7 @@ class _StudentCard extends StatelessWidget {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: AppColors.primary.withValues(alpha: 0.10),
+                              color: AppColors.primary.withOpacity(0.10),
                               borderRadius:
                                   const BorderRadius.all(AppRadius.full),
                             ),
@@ -860,7 +789,7 @@ class _EmptyState extends StatelessWidget {
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.08),
+                  color: AppColors.primary.withOpacity(0.08),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -868,7 +797,7 @@ class _EmptyState extends StatelessWidget {
                       ? Icons.search_off_rounded
                       : Icons.people_outline_rounded,
                   size: 40,
-                  color: AppColors.primary.withValues(alpha: 0.5),
+                  color: AppColors.primary.withOpacity(0.5),
                 ),
               ),
               const SizedBox(height: AppSpacing.md),
@@ -901,13 +830,3 @@ class _EmptyState extends StatelessWidget {
         ),
       );
 }
-
-
-
-
-
-
-
-
-
-
