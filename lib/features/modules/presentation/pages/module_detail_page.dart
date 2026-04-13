@@ -3,7 +3,7 @@
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../shared/widgets/app_snackbar.dart';
 import '../../../../../shared/widgets/confirm_dialog.dart';
-import '../../data/repositories/mock_module_repository.dart';
+import '../../data/repositories/api_module_repository.dart';
 import '../../domain/entities/module_entities.dart';
 import '../widgets/module_detail/difficulty_section.dart';
 import '../widgets/module_detail/exercises_empty_state.dart';
@@ -23,7 +23,7 @@ class ModuleDetailPage extends StatefulWidget {
   });
 
   final ModuleEntity module;
-  final MockModuleRepository repository;
+  final ApiModuleRepository repository; // CAMBIO: Api en vez de Mock
   final bool isTeacher;
 
   @override
@@ -31,7 +31,8 @@ class ModuleDetailPage extends StatefulWidget {
 }
 
 class _ModuleDetailPageState extends State<ModuleDetailPage> {
-  late List<ExerciseEntity> _exercises;
+  List<ExerciseEntity> _exercises = [];
+  bool _isLoadingExercises = false;
   Subject? _subjectFilter;
   DifficultyLevel? _selectionLevel;
   final Set<String> _selectedIds = {};
@@ -42,9 +43,15 @@ class _ModuleDetailPageState extends State<ModuleDetailPage> {
     _reload();
   }
 
-  void _reload() => setState(() {
-        _exercises = widget.repository.getExercisesByModule(widget.module.id);
-      });
+  Future<void> _reload() async {
+    setState(() => _isLoadingExercises = true);
+    final result = await widget.repository.getExercisesByModule(widget.module.id);
+    if (!mounted) return;
+    setState(() {
+      _isLoadingExercises = false;
+      if (result.failure == null) _exercises = result.exercises;
+    });
+  }
 
   List<ExerciseEntity> get _filteredExercises => _subjectFilter == null
       ? _exercises
@@ -112,9 +119,14 @@ class _ModuleDetailPageState extends State<ModuleDetailPage> {
       icon: Icons.delete_outline_rounded,
     );
     if (!confirmed) return;
-    await widget.repository.deleteExercise(exercise.id);
-    _reload();
-    if (mounted) AppSnackbar.showSuccess(context, 'Ejercicio eliminado correctamente');
+    final failure = await widget.repository.deleteExercise(exercise.id);
+    if (!mounted) return;
+    if (failure != null) {
+      AppSnackbar.showError(context, failure.message);
+    } else {
+      _reload();
+      AppSnackbar.showSuccess(context, 'Ejercicio eliminado correctamente');
+    }
   }
 
   // --- Selección masiva ---
@@ -147,6 +159,7 @@ class _ModuleDetailPageState extends State<ModuleDetailPage> {
   Future<void> _applyMassiveVisibility({required bool isActive}) async {
     if (_selectedIds.isEmpty) return;
     await widget.repository.setExercisesActive(_selectedIds.toList(), isActive: isActive);
+    // ignore failure — reload will show updated state
     setState(() {
       _selectionLevel = null;
       _selectedIds.clear();

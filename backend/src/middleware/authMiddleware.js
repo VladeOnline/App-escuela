@@ -1,4 +1,4 @@
-﻿const jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 
 const verificarToken = (req, res, next) => {
   const token = req.headers['authorization']?.split(' ')[1];
@@ -23,4 +23,11 @@ const soloDocente = (req, res, next) => {
   next();
 };
 
-module.exports = { verificarToken, soloDocente };
+const soloAdminODocente = (req, res, next) => {
+  if (req.usuario.rol !== 'admin' && req.usuario.rol !== 'docente') {
+    return res.status(403).json({ message: 'Acceso solo para docentes o administradores' });
+  }
+  next();
+};
+
+module.exports = { verificarToken, soloDocente, soloAdminODocente };

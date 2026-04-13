@@ -7,7 +7,7 @@ export 'subject.dart';
 // --- Enums ---
 
 /// Tipo de módulo académico disponible en el sistema.
-enum ModuleType { reading, writing }
+enum ModuleType { reading, writing, math }
 
 /// Nivel de dificultad de un ejercicio.
 enum DifficultyLevel { basic, intermediate, advanced }
@@ -26,11 +26,13 @@ extension ModuleTypeX on ModuleType {
   String get label => switch (this) {
         ModuleType.reading => 'Lectura',
         ModuleType.writing => 'Escritura',
+        ModuleType.math    => 'Matemáticas',
       };
-
+ 
   IconData get icon => switch (this) {
         ModuleType.reading => Icons.chrome_reader_mode_outlined,
         ModuleType.writing => Icons.edit_note_rounded,
+        ModuleType.math    => Icons.calculate_outlined,
       };
 }
 

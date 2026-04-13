@@ -3,7 +3,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../shared/widgets/app_snackbar.dart';
-import '../../data/repositories/mock_module_repository.dart';
+import '../../data/repositories/api_module_repository.dart';
 import '../../domain/entities/module_entities.dart';
 import '../widgets/exercise_form/form_background.dart';
 import '../widgets/exercise_form/form_chrome.dart';
@@ -25,7 +25,7 @@ class ExerciseFormPage extends StatefulWidget {
 
   final String moduleId;
   final String moduleTitle;
-  final MockModuleRepository repository;
+  final ApiModuleRepository repository; // CAMBIO: Api en vez de Mock
   final DifficultyLevel? preselectedLevel;
 
   /// Si no es null, la página entra en modo edición con estos datos cargados.
@@ -209,10 +209,21 @@ class _ExerciseFormPageState extends State<ExerciseFormPage> {
     );
 
     if (widget.isEditing) {
-      // TODO(back): reemplazar con PATCH /api/exercises/:id
-      await widget.repository.updateExercise(exercise);
+      final result = await widget.repository.updateExercise(exercise);
+      if (!mounted) return;
+      if (result.failure != null) {
+        setState(() => _isLoading = false);
+        AppSnackbar.showError(context, result.failure!.message);
+        return;
+      }
     } else {
-      await widget.repository.createExercise(exercise);
+      final result = await widget.repository.createExercise(exercise);
+      if (!mounted) return;
+      if (result.failure != null) {
+        setState(() => _isLoading = false);
+        AppSnackbar.showError(context, result.failure!.message);
+        return;
+      }
     }
 
     if (!mounted) return;

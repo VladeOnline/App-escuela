@@ -68,10 +68,11 @@ class _TeacherSidebarState extends State<TeacherSidebar> {
       children: [
         NavSubItem(icon: Icons.chrome_reader_mode_outlined, label: 'Lectura', index: 1),
         NavSubItem(icon: Icons.edit_note_rounded, label: 'Escritura', index: 2),
+        NavSubItem(icon: Icons.calculate_outlined, label: 'Matemáticas',  index: 3), 
       ],
     ),
-    NavItem(icon: Icons.bar_chart_outlined, activeIcon: Icons.bar_chart_rounded, label: 'Reportes', index: 3),
-    NavItem(icon: Icons.settings_outlined, activeIcon: Icons.settings_rounded, label: 'Ajustes', index: 4),
+    NavItem(icon: Icons.bar_chart_outlined, activeIcon: Icons.bar_chart_rounded, label: 'Reportes', index: 4),
+    NavItem(icon: Icons.settings_outlined, activeIcon: Icons.settings_rounded, label: 'Ajustes', index: 5),
   ];
 
   void _toggleCollapse() => setState(() {
