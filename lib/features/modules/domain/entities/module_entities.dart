@@ -138,22 +138,27 @@ class ExerciseResult {
   final bool isCorrect;
   final int pointsEarned;
   final DateTime completedAt;
+  final dynamic submittedAnswer;
 
   const ExerciseResult({
     required this.exerciseId,
     required this.isCorrect,
     required this.pointsEarned,
     required this.completedAt,
+    this.submittedAnswer,
   });
 
   factory ExerciseResult.fromExercise({
     required ExerciseEntity exercise,
     required bool isCorrect,
+    dynamic submittedAnswer,
+    int? pointsEarned,
   }) => ExerciseResult(
     exerciseId: exercise.id,
     isCorrect: isCorrect,
-    pointsEarned: isCorrect ? exercise.difficulty.basePoints : 0,
+    pointsEarned: pointsEarned ?? (isCorrect ? exercise.difficulty.basePoints : 0),
     completedAt: DateTime.now(),
+    submittedAnswer: submittedAnswer,
   );
 
 }

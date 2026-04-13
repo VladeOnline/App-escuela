@@ -53,6 +53,7 @@ class _MultipleChoiceExerciseState extends State<MultipleChoiceExercise> {
     widget.onResult(ExerciseResult.fromExercise(
       exercise: widget.exercise,
       isCorrect: _selected == _correctIndex,
+      submittedAnswer: _selected,
     ));
   }
 

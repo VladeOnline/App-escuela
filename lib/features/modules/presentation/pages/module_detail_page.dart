@@ -20,11 +20,13 @@ class ModuleDetailPage extends StatefulWidget {
     required this.module,
     required this.repository,
     this.isTeacher = true,
+    this.studentId,
   });
 
   final ModuleEntity module;
   final ApiModuleRepository repository; // CAMBIO: Api en vez de Mock
   final bool isTeacher;
+  final String? studentId;
 
   @override
   State<ModuleDetailPage> createState() => _ModuleDetailPageState();
@@ -45,7 +47,11 @@ class _ModuleDetailPageState extends State<ModuleDetailPage> {
 
   Future<void> _reload() async {
     setState(() => _isLoadingExercises = true);
-    final result = await widget.repository.getExercisesByModule(widget.module.id);
+    final result = await widget.repository.getExercisesByModule(
+      widget.module.id,
+      studentId: widget.isTeacher ? null : widget.studentId,
+      pendingOnly: !widget.isTeacher,
+    );
     if (!mounted) return;
     setState(() {
       _isLoadingExercises = false;
@@ -104,8 +110,15 @@ class _ModuleDetailPageState extends State<ModuleDetailPage> {
       return;
     }
     await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => ExerciseDetailPage(exercise: exercise)),
+      MaterialPageRoute(
+        builder: (_) => ExerciseDetailPage(
+          exercise: exercise,
+          repository: widget.repository,
+          studentId: widget.studentId,
+        ),
+      ),
     );
+    if (mounted && !widget.isTeacher) _reload();
   }
 
   Future<void> _onDeleteExercise(ExerciseEntity exercise) async {
@@ -329,7 +342,7 @@ class _PageHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: 80,
+      height: 72,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [AppColors.primary, AppColors.primaryLight],
@@ -346,18 +359,6 @@ class _PageHeader extends StatelessWidget {
           Positioned(
             left: AppSpacing.md, top: 0, bottom: 0,
             child: Center(child: _BackButton(onTap: onBack)),
-          ),
-          Center(
-            child: Text(
-              'Creación y Edición de Ejercicios',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 26,
-                    letterSpacing: 0.5,
-                  ),
-            ),
           ),
         ],
       ),

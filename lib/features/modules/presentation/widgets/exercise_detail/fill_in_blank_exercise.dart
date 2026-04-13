@@ -50,6 +50,7 @@ class _FillInTheBlankExerciseState extends State<FillInTheBlankExercise> {
     widget.onResult(ExerciseResult.fromExercise(
       exercise: widget.exercise,
       isCorrect: correct,
+      submittedAnswer: _ctrl.text.trim(),
     ));
   }
 

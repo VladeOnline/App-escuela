@@ -31,6 +31,65 @@ class ApiModuleRepository {
     'Authorization': 'Bearer $token',
   };
 
+  Future<
+    ({
+      bool? isCorrect,
+      int? pointsEarned,
+      bool? alreadyRewarded,
+      int? attemptsLeft,
+      AppFailure? failure,
+    })
+  > submitExerciseAnswer({
+    required String exerciseId,
+    required String studentId,
+    required dynamic answer,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${AppConstants.apiBaseUrl}/ejercicios/$exerciseId/responder'),
+        headers: _headers,
+        body: jsonEncode({
+          'estudiante_id': studentId,
+          'respuesta_dada': answer,
+        }),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final feedback =
+            (data['retroalimentacion'] as Map?)?.cast<String, dynamic>() ??
+                <String, dynamic>{};
+        return (
+          isCorrect: feedback['esCorrecta'] == true,
+          pointsEarned: feedback['puntosObtenidos'] is int
+              ? feedback['puntosObtenidos'] as int
+              : int.tryParse('${feedback['puntosObtenidos'] ?? ''}') ?? 0,
+          alreadyRewarded: feedback['yaRespondioCorrecto'] == true,
+          attemptsLeft: feedback['intentosRestantes'] is int
+              ? feedback['intentosRestantes'] as int
+              : int.tryParse('${feedback['intentosRestantes'] ?? ''}'),
+          failure: null,
+        );
+      }
+
+      return (
+        isCorrect: null,
+        pointsEarned: null,
+        alreadyRewarded: null,
+        attemptsLeft: null,
+        failure: _failureFromResponse(response, 'Error al registrar respuesta'),
+      );
+    } catch (_) {
+      return (
+        isCorrect: null,
+        pointsEarned: null,
+        alreadyRewarded: null,
+        attemptsLeft: null,
+        failure: const ServerFailure('Sin conexión al servidor'),
+      );
+    }
+  }
+
   // ─────────────────────────────────────────────
   // Helpers de conversión: Backend → Frontend
   // ─────────────────────────────────────────────
@@ -271,11 +330,20 @@ class ApiModuleRepository {
   // GET /api/ejercicios?contenido_id=xxx
   // ─────────────────────────────────────────────
   Future<({List<ExerciseEntity> exercises, AppFailure? failure})>
-  getExercisesByModule(String moduleId) async {
+  getExercisesByModule(
+    String moduleId, {
+    String? studentId,
+    bool pendingOnly = false,
+  }) async {
     try {
+      final query = <String, String>{'contenido_id': moduleId};
+      if (studentId != null && studentId.isNotEmpty) {
+        query['estudiante_id'] = studentId;
+        if (pendingOnly) query['pendientes'] = 'true';
+      }
       final uri = Uri.parse(
         '${AppConstants.apiBaseUrl}/ejercicios',
-      ).replace(queryParameters: {'contenido_id': moduleId});
+      ).replace(queryParameters: query);
 
       final response = await http.get(uri, headers: _headers);
 

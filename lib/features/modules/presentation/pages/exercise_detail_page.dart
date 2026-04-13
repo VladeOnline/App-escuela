@@ -1,6 +1,10 @@
 ﻿import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../../core/theme/app_theme.dart';
+import '../../../../../shared/widgets/app_snackbar.dart';
+import '../../../auth/presentation/auth_notifier.dart';
+import '../../data/repositories/api_module_repository.dart';
 import '../../domain/entities/module_entities.dart';
 import '../widgets/exercise_detail/exercise_instructions_dialog.dart';
 import '../widgets/exercise_detail/exercise_result_dialog.dart';
@@ -15,8 +19,15 @@ import '../widgets/exercise_detail/exercise_type_content.dart';
 ///                      · Continuar  â†’ popup de resultado con búho + puntos
 ///   4. [celebrating] â†’ popup de resultado, luego pop de la página
 class ExerciseDetailPage extends StatefulWidget {
-  const ExerciseDetailPage({super.key, required this.exercise});
+  const ExerciseDetailPage({
+    super.key,
+    required this.exercise,
+    required this.repository,
+    this.studentId,
+  });
   final ExerciseEntity exercise;
+  final ApiModuleRepository repository;
+  final String? studentId;
 
   @override
   State<ExerciseDetailPage> createState() => _ExerciseDetailPageState();
@@ -40,10 +51,51 @@ class _ExerciseDetailPageState extends State<ExerciseDetailPage> {
   void _showInstructions() =>
       ExerciseInstructionsDialog.show(context, exercise: widget.exercise);
 
-  void _onVerify(ExerciseResult result) {
+  Future<void> _onVerify(ExerciseResult result) async {
     if (_phase != ExercisePhase.answering) return;
+
+    final studentId = widget.studentId;
+    if (studentId == null || studentId.isEmpty) {
+      setState(() {
+        _result = result;
+        _phase = ExercisePhase.reviewing;
+      });
+      return;
+    }
+
+    final response = await widget.repository.submitExerciseAnswer(
+      exerciseId: widget.exercise.id,
+      studentId: studentId,
+      answer: result.submittedAnswer,
+    );
+    if (!mounted) return;
+
+    if (response.failure != null) {
+      AppSnackbar.showError(context, response.failure!.message);
+      return;
+    }
+
+    final safeResult = ExerciseResult.fromExercise(
+      exercise: widget.exercise,
+      isCorrect: response.isCorrect ?? result.isCorrect,
+      submittedAnswer: result.submittedAnswer,
+      pointsEarned: response.pointsEarned ?? result.pointsEarned,
+    );
+
+    final earned = response.pointsEarned ?? 0;
+    if (earned > 0) {
+      context.read<AuthNotifier>().addStudentPoints(earned);
+    }
+
+    if (response.alreadyRewarded == true && (response.isCorrect ?? false)) {
+      AppSnackbar.showSuccess(
+        context,
+        '¡Correcto! Ya habías ganado estos puntos antes.',
+      );
+    }
+
     setState(() {
-      _result = result;
+      _result = safeResult;
       _phase = ExercisePhase.reviewing;
     });
   }
@@ -177,7 +229,7 @@ class _RetryConfirmDialog extends StatelessWidget {
               padding: const EdgeInsets.all(AppSpacing.lg),
               child: Column(children: [
                 Text(
-                  '¡Puedes reintentar cuantas veces quieras! Pero recuerda: los puntos ya no se cuentan en este intento.',
+                  '¡Puedes reintentar! Los puntos solo se cuentan la primera vez que lo resuelves correctamente.',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         height: 1.6,
@@ -206,7 +258,7 @@ class _RetryConfirmDialog extends StatelessWidget {
                     ),
                     const SizedBox(width: AppSpacing.xs),
                     Text(
-                      'Este intento no suma puntos',
+                      'Evita puntos duplicados',
                       style: TextStyle(
                         fontSize: 13,
                         fontFamily: 'Nunito',
@@ -402,4 +454,7 @@ class _ExerciseHeader extends StatelessWidget {
     );
   }
 }
+
+
+
 

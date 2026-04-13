@@ -102,8 +102,8 @@ class _InfoTable extends StatelessWidget {
           const SizedBox(height: 14),
           _SectionTable(
             icon: Icons.signal_cellular_alt_rounded,
-            label: 'Por Dificultad',
-            colLabel: 'Dificultad',
+            label: 'Actividades por nivel',
+            colLabel: 'Nivel',
             rows: DifficultyLevel.values
                 .map((d) => _RowData(
                       label: d.label,
@@ -117,9 +117,9 @@ class _InfoTable extends StatelessWidget {
           const SizedBox(height: 14),
           _SectionTable(
             icon: Icons.school_rounded,
-            label: 'Por Materia',
+            label: 'Actividad por materia',
             colLabel: 'Materia',
-            emptyText: 'Sin ejercicios aún',
+            emptyText: 'Aún no hay actividades',
             rows: Subject.values
                 .where((s) => _totalS(s) > 0)
                 .map((s) => _RowData(
@@ -157,8 +157,8 @@ class _CardHeader extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Información General', style: _TableStyles.cardTitle(context)),
-              Text('Resumen de ejercicios', style: _TableStyles.cardSubtitle(context)),
+              Text('Resumen de actividades', style: _TableStyles.cardTitle(context)),
+              Text('Panel para 1ro a 6to grado', style: _TableStyles.cardSubtitle(context)),
             ],
           ),
         ),
@@ -222,8 +222,8 @@ class _SectionTable extends StatelessWidget {
         Row(
           children: [
             Expanded(flex: 3, child: Text(colLabel, style: _TableStyles.headerLabel(context))),
-            Expanded(flex: 2, child: Center(child: Text('Activos', style: _TableStyles.headerLabel(context)))),
-            Expanded(flex: 2, child: Center(child: Text('Inact.',  style: _TableStyles.headerLabel(context)))),
+            Expanded(flex: 2, child: Center(child: Text('Listos', style: _TableStyles.headerLabel(context)))),
+            Expanded(flex: 2, child: Center(child: Text('Ocultos', style: _TableStyles.headerLabel(context)))),
             Expanded(flex: 2, child: Center(child: Text('Total',   style: _TableStyles.headerLabel(context)))),
           ],
         ),

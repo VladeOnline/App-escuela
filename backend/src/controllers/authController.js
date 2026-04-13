@@ -1,5 +1,6 @@
 ﻿const Usuario = require('../models/userModel');
 const Estudiante = require('../models/studentModel');
+const Gamificacion = require('../models/gamificacionModel');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
@@ -40,11 +41,15 @@ const login = async (req, res) => {
       }).select('_id nombre grado');
 
       if (estudiante) {
+        const gamificacion = await Gamificacion.findOne({
+          estudiante_id: estudiante._id,
+        }).select('puntos_total');
+
         estudianteData = {
           id: estudiante._id,
           nombre: estudiante.nombre,
           grado: estudiante.grado,
-          puntos_total: 0,
+          puntos_total: gamificacion?.puntos_total ?? 0,
           foto_url: usuario.foto_perfil_url ?? null,
         };
       }
@@ -163,3 +168,5 @@ const actualizarFotoPerfil = async (req, res) => {
 };
 
 module.exports = { login, registrarDocente, registrarEstudiante, actualizarFotoPerfil };
+
+

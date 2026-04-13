@@ -167,6 +167,15 @@ class AuthNotifier extends ChangeNotifier {
     _emit(const AuthState(status: AuthStatus.unauthenticated));
   }
 
+  void addStudentPoints(int delta) {
+    if (delta <= 0) return;
+    _emit(_state.copyWith(
+      status: AuthStatus.authenticated,
+      studentPoints: _state.studentPoints + delta,
+      failure: null,
+    ));
+  }
+
   void setAuth({
     required String token,
     required String role,

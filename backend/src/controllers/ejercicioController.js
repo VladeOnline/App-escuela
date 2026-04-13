@@ -170,11 +170,29 @@ const crearEjercicio = async (req, res) => {
 // ─────────────────────────────────────────────
 const obtenerEjercicios = async (req, res) => {
   try {
-    const { contenido_id } = req.query;
+    const { contenido_id, estudiante_id, pendientes } = req.query;
 
     // Si viene contenido_id filtramos por ese contenido
     // Si no viene, devolvemos todos (útil para admin)
     const filtro = contenido_id ? { contenido_id } : {};
+
+    // Cuando consulta un estudiante, devolvemos solo ejercicios activos.
+    if (estudiante_id) {
+      if (!mongoose.Types.ObjectId.isValid(estudiante_id)) {
+        return res.status(400).json({ mensaje: 'estudiante_id no tiene un formato válido' });
+      }
+      filtro.activo = true;
+    }
+
+    // Si se solicita "pendientes", ocultamos ejercicios ya resueltos correctamente
+    // por ese estudiante para evitar repeticiones y farming de puntos.
+    if (estudiante_id && pendientes === 'true') {
+      const ejerciciosCompletados = await Resultado.distinct('ejercicio_id', {
+        estudiante_id,
+        es_correcto: true
+      });
+      filtro._id = { $nin: ejerciciosCompletados };
+    }
 
     const ejercicios = await Ejercicio.find(filtro)
       .populate('contenido_id', 'titulo grado'); // traemos solo título y grado del contenido
@@ -399,19 +417,26 @@ const responderEjercicio = async (req, res) => {
     // Verificamos cuántos intentos previos tuvo este estudiante en este ejercicio
     const intentosPrevios = await Resultado.countDocuments({ estudiante_id, ejercicio_id: id });
 
-    // Si ya agotó los intentos, bloqueamos (RF-30)
-    if (intentosPrevios >= ejercicio.intentos_max) {
-      return res.status(403).json({
-        mensaje: `Ya usaste todos los intentos permitidos (${ejercicio.intentos_max})`
-      });
-    }
+    // Si ya agotó los intentos, permitimos seguir respondiendo,
+    // pero ya no puede ganar puntos.
+    const superoIntentos = intentosPrevios >= ejercicio.intentos_max;
+
+    // Si ya lo respondió bien una vez, permitimos reintento pero sin sumar puntos.
+    const yaRespondioCorrecto = await Resultado.exists({
+      estudiante_id,
+      ejercicio_id: id,
+      es_correcto: true
+    });
 
     // ── RF-14: Verificamos si la respuesta es correcta ──
     // La función verificarRespuesta sabe cómo comparar según el tipo
     const esCorrecta = verificarRespuesta(ejercicio.tipo, ejercicio.content, respuesta_dada);
 
-    // Los puntos se ganan solo si es correcto
-    const puntosObtenidos = esCorrecta ? ejercicio.puntos : 0;
+    // Los puntos se ganan solo si:
+    // 1) es correcto, 2) no había acierto previo, 3) aún está dentro de intentos con premio.
+    const puntosObtenidos = (esCorrecta && !yaRespondioCorrecto && !superoIntentos)
+      ? ejercicio.puntos
+      : 0;
 
     // ── RF-13: Guardamos el resultado en la BD ──
     const nuevoResultado = new Resultado({
@@ -439,12 +464,20 @@ const responderEjercicio = async (req, res) => {
 
     // ── RF-24: Retroalimentación inmediata para Flutter ──
     res.status(201).json({
-      mensaje: esCorrecta ? '¡Respuesta correcta!' : 'Respuesta incorrecta',
+      mensaje: esCorrecta
+          ? (superoIntentos
+              ? '¡Respuesta correcta! Ya no suma puntos porque superaste los intentos con premio.'
+              : (yaRespondioCorrecto
+                  ? '¡Respuesta correcta! Ya habías ganado puntos en un intento anterior.'
+                  : '¡Respuesta correcta!'))
+          : 'Respuesta incorrecta',
       retroalimentacion: {
         esCorrecta,
         puntosObtenidos,
+        yaRespondioCorrecto: Boolean(yaRespondioCorrecto),
+        sinPuntosPorIntentos: Boolean(superoIntentos),
         intento: intentosPrevios + 1,
-        intentosRestantes: ejercicio.intentos_max - (intentosPrevios + 1),
+        intentosRestantes: Math.max(0, ejercicio.intentos_max - (intentosPrevios + 1)),
         // Si falló le mostramos la respuesta correcta para que aprenda
         respuestaCorrecta: esCorrecta ? null : ejercicio.content.correctAnswer ?? ejercicio.content.correctIndex,
         explicacion: ejercicio.content.explanation ?? null

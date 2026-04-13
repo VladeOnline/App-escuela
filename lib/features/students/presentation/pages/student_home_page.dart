@@ -1,4 +1,5 @@
-﻿import 'dart:convert';
+﻿import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -23,28 +24,85 @@ class _StudentHomePageState extends State<StudentHomePage> {
   late ApiModuleRepository _repository;
   List<ModuleEntity> _modules = [];
   bool _isLoading = true;
+  Timer? _refreshTimer;
+  bool _isReloading = false;
 
   @override
   void initState() {
     super.initState();
     final token = context.read<AuthNotifier>().state.token ?? '';
     _repository = ApiModuleRepository(token: token);
-    _loadModules();
+    _loadModules(showLoader: true);
+    _startAutoRefresh();
   }
 
-  Future<void> _loadModules() async {
-    final authState = context.read<AuthNotifier>().state;
-    final grade = authState.studentGrade ?? 1;
-    final reading = await _repository.getModulesByType(ModuleType.reading);
-    final writing = await _repository.getModulesByType(ModuleType.writing);
-    if (!mounted) return;
-    setState(() {
-      _isLoading = false;
-      _modules = [
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startAutoRefresh() {
+    _refreshTimer?.cancel();
+    _refreshTimer = Timer.periodic(const Duration(seconds: 12), (_) {
+      _loadModules();
+    });
+  }
+
+  Future<void> _loadModules({bool showLoader = false}) async {
+    if (_isReloading) return;
+    _isReloading = true;
+    if (showLoader && mounted) {
+      setState(() => _isLoading = true);
+    }
+    try {
+      final authState = context.read<AuthNotifier>().state;
+      final grade = authState.studentGrade ?? 1;
+      final studentId = authState.studentId;
+      final reading = await _repository.getModulesByType(ModuleType.reading);
+      final writing = await _repository.getModulesByType(ModuleType.writing);
+      final math = await _repository.getModulesByType(ModuleType.math);
+      final byGrade = <ModuleEntity>[
         ...reading.modules.where((m) => m.grade == grade),
         ...writing.modules.where((m) => m.grade == grade),
+        ...math.modules.where((m) => m.grade == grade),
       ];
-    });
+
+      final visibleModules = <ModuleEntity>[];
+      if (studentId != null && studentId.isNotEmpty) {
+        for (final module in byGrade) {
+          final pending = await _repository.getExercisesByModule(
+            module.id,
+            studentId: studentId,
+            pendingOnly: true,
+          );
+          if (pending.failure == null && pending.exercises.isNotEmpty) {
+            visibleModules.add(
+              ModuleEntity(
+                id: module.id,
+                title: module.title,
+                description: module.description,
+                type: module.type,
+                grade: module.grade,
+                isActive: module.isActive,
+                exerciseCount: pending.exercises.length,
+                createdAt: module.createdAt,
+              ),
+            );
+          }
+        }
+      } else {
+        visibleModules.addAll(byGrade);
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _modules = visibleModules;
+      });
+    } finally {
+      _isReloading = false;
+    }
   }
 
   String get _greeting {
@@ -63,6 +121,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
     final studentGrade = authState.studentGrade ?? 1;
     final studentPoints = authState.studentPoints;
     final studentPhotoUrl = authState.studentPhotoUrl;
+    final studentId = authState.studentId;
     final modules = _modules;
 
     return Scaffold(
@@ -75,18 +134,20 @@ class _StudentHomePageState extends State<StudentHomePage> {
             grade: studentGrade,
             points: studentPoints,
             photoUrl: studentPhotoUrl,
+            isRefreshing: _isReloading,
+            onRefresh: () => _loadModules(showLoader: true),
           ),
           Expanded(
             child: _isLoading
                 ? const Center(
                     child: CircularProgressIndicator(color: AppColors.primary),
                   )
-                : modules.isEmpty
-                    ? const _EmptyState()
-                    : _ModuleGrid(
-                        modules: modules,
-                        repository: _repository,
-                      ),
+                : _ModuleGrid(
+                    modules: modules,
+                    repository: _repository,
+                    studentId: studentId,
+                    onModulesNeedRefresh: _loadModules,
+                  ),
           ),
         ],
       ),
@@ -101,6 +162,8 @@ class _StudentHeader extends StatelessWidget {
     required this.grade,
     required this.points,
     required this.photoUrl,
+    required this.isRefreshing,
+    required this.onRefresh,
   });
 
   final String greeting;
@@ -108,6 +171,8 @@ class _StudentHeader extends StatelessWidget {
   final int grade;
   final int points;
   final String? photoUrl;
+  final bool isRefreshing;
+  final VoidCallback onRefresh;
 
   ImageProvider _resolvePhotoProvider(String? value) {
     if (value == null || value.trim().isEmpty) {
@@ -229,6 +294,39 @@ class _StudentHeader extends StatelessWidget {
                     label: '$points pts',
                     iconColor: AppColors.secondary,
                   ),
+                  const SizedBox(width: AppSpacing.sm),
+
+                  Tooltip(
+                    message: isRefreshing ? 'Actualizando...' : 'Actualizar',
+                    child: MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                      child: GestureDetector(
+                        onTap: isRefreshing ? null : onRefresh,
+                        child: Container(
+                          width: 40, height: 40,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.15),
+                            borderRadius: const BorderRadius.all(AppRadius.medium),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.25)),
+                          ),
+                          child: isRefreshing
+                              ? const Padding(
+                                  padding: EdgeInsets.all(11),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  ),
+                                )
+                              : const Icon(
+                                  Icons.refresh_rounded,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
+                        ),
+                      ),
+                    ),
+                  ),
                   const SizedBox(width: AppSpacing.lg),
 
                   Tooltip(
@@ -302,10 +400,17 @@ class _HeaderPill extends StatelessWidget {
 
 
 class _ModuleGrid extends StatelessWidget {
-  const _ModuleGrid({required this.modules, required this.repository});
+  const _ModuleGrid({
+    required this.modules,
+    required this.repository,
+    required this.studentId,
+    required this.onModulesNeedRefresh,
+  });
 
   final List<ModuleEntity> modules;
   final ApiModuleRepository repository;
+  final String? studentId;
+  final Future<void> Function() onModulesNeedRefresh;
 
   @override
   Widget build(BuildContext context) {
@@ -355,11 +460,16 @@ class _ModuleGrid extends StatelessWidget {
                   crossAxisSpacing: AppSpacing.lg,
                   childAspectRatio: 0.82,
                 ),
-                itemCount: modules.length,
-                itemBuilder: (_, i) => _ModuleCard(
-                  module: modules[i],
-                  repository: repository,
-                ),
+                itemCount: modules.length + 1,
+                itemBuilder: (_, i) {
+                  if (i == modules.length) return const _GamificationCard();
+                  return _ModuleCard(
+                    module: modules[i],
+                    repository: repository,
+                    studentId: studentId,
+                    onModulesNeedRefresh: onModulesNeedRefresh,
+                  );
+                },
               );
             },
           ),
@@ -373,22 +483,32 @@ class _ModuleGrid extends StatelessWidget {
 const _moduleIcons = {
   ModuleType.reading: Icons.menu_book_rounded,
   ModuleType.writing: Icons.edit_rounded,
+  ModuleType.math: Icons.calculate_rounded,
 };
 
 const _moduleColors = {
   ModuleType.reading: Color(0xFF0D9488),
   ModuleType.writing: Color(0xFF8B5CF6),
+  ModuleType.math: Color(0xFFF59E0B),
 };
 
 const _moduleGradients = {
   ModuleType.reading: [Color(0xFF0D9488), Color(0xFF14B8A6)],
   ModuleType.writing: [Color(0xFF8B5CF6), Color(0xFFA78BFA)],
+  ModuleType.math: [Color(0xFFF59E0B), Color(0xFFFBBF24)],
 };
 
 class _ModuleCard extends StatefulWidget {
-  const _ModuleCard({required this.module, required this.repository});
+  const _ModuleCard({
+    required this.module,
+    required this.repository,
+    required this.studentId,
+    required this.onModulesNeedRefresh,
+  });
   final ModuleEntity module;
   final ApiModuleRepository repository;
+  final String? studentId;
+  final Future<void> Function() onModulesNeedRefresh;
 
   @override
   State<_ModuleCard> createState() => _ModuleCardState();
@@ -437,15 +557,20 @@ class _ModuleCardState extends State<_ModuleCard>
       onEnter: _onEnter,
       onExit: _onExit,
       child: GestureDetector(
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => ModuleDetailPage(
-              module: widget.module,
-              repository: widget.repository,
-              isTeacher: false,
+        onTap: () async {
+          await Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => ModuleDetailPage(
+                module: widget.module,
+                repository: widget.repository,
+                isTeacher: false,
+                studentId: widget.studentId,
+              ),
             ),
-          ),
-        ),
+          );
+          if (!mounted) return;
+          await widget.onModulesNeedRefresh();
+        },
         child: ScaleTransition(
           scale: _scale,
           child: Container(
@@ -578,20 +703,16 @@ class _ModuleCardState extends State<_ModuleCard>
                         const SizedBox(height: 4),
                         Row(children: [
                           Text(
-                            count == 0 ? 'Pronto...' : 'Jugar ahora!',
+                            'Entrar',
                             style: TextStyle(
-                              fontSize: 11, fontFamily: 'Nunito',
+                              fontSize: 11,
+                              fontFamily: 'Nunito',
                               fontWeight: FontWeight.w600,
-                              color: count == 0
-                                  ? AppColors.textHint
-                                  : _color,
+                              color: _color,
                             ),
                           ),
-                          if (count > 0) ...[
-                            const SizedBox(width: 2),
-                            Icon(Icons.arrow_forward_rounded,
-                                size: 12, color: _color),
-                          ],
+                          const SizedBox(width: 2),
+                          Icon(Icons.arrow_forward_rounded, size: 12, color: _color),
                         ]),
                       ],
                     ),
@@ -606,6 +727,105 @@ class _ModuleCardState extends State<_ModuleCard>
   }
 }
 
+class _GamificationCard extends StatelessWidget {
+  const _GamificationCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Aquí verás tus logros muy pronto.'),
+          ),
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: const BorderRadius.all(AppRadius.xl),
+          border: Border.all(color: AppColors.border),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.06),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              flex: 3,
+              child: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFFEC4899), Color(0xFFF472B6)],
+                  ),
+                  borderRadius: BorderRadius.vertical(top: AppRadius.xl),
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.emoji_events_rounded,
+                    size: 60,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEC4899).withValues(alpha: 0.1),
+                        borderRadius: const BorderRadius.all(AppRadius.full),
+                      ),
+                      child: const Text(
+                        'Gamificación',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontFamily: 'Nunito',
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFFEC4899),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    const Text(
+                      'Mis Logros',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontFamily: 'Nunito',
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textPrimary,
+                        height: 1.2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 class _EmptyState extends StatelessWidget {
   const _EmptyState();

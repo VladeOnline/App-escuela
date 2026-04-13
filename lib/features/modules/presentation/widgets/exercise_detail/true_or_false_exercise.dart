@@ -42,6 +42,7 @@ class _TrueOrFalseExerciseState extends State<TrueOrFalseExercise> {
     widget.onResult(ExerciseResult.fromExercise(
       exercise: widget.exercise,
       isCorrect: value == _correct,
+      submittedAnswer: value.toString(),
     ));
   }
 
