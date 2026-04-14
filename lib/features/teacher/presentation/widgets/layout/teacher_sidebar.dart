@@ -1,8 +1,7 @@
-﻿import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../../../../core/theme/app_theme.dart';
 
-// --- Modelos ---
+// ─── Modelos ───
 
 class NavItem {
   const NavItem({
@@ -31,20 +30,20 @@ class NavSubItem {
   final int index;
 }
 
-// --- Sidebar ---
+// ─── Sidebar ───
 
 class TeacherSidebar extends StatefulWidget {
   const TeacherSidebar({
     super.key,
     required this.selectedIndex,
     required this.teacherName,
-    required this.teacherPhotoUrl,
+    required this.usuarioId,
     required this.onSelectIndex,
     required this.onLogout,
   });
   final int selectedIndex;
   final String teacherName;
-  final String? teacherPhotoUrl;
+  final String usuarioId;
   final ValueChanged<int> onSelectIndex;
   final VoidCallback onLogout;
 
@@ -68,11 +67,10 @@ class _TeacherSidebarState extends State<TeacherSidebar> {
       children: [
         NavSubItem(icon: Icons.chrome_reader_mode_outlined, label: 'Lectura', index: 1),
         NavSubItem(icon: Icons.edit_note_rounded, label: 'Escritura', index: 2),
-        NavSubItem(icon: Icons.calculate_outlined, label: 'Matemáticas',  index: 3), 
       ],
     ),
-    NavItem(icon: Icons.bar_chart_outlined, activeIcon: Icons.bar_chart_rounded, label: 'Reportes', index: 4),
-    NavItem(icon: Icons.settings_outlined, activeIcon: Icons.settings_rounded, label: 'Ajustes', index: 5),
+    NavItem(icon: Icons.bar_chart_outlined, activeIcon: Icons.bar_chart_rounded, label: 'Reportes', index: 3),
+    NavItem(icon: Icons.settings_outlined, activeIcon: Icons.settings_rounded, label: 'Ajustes', index: 4),
   ];
 
   void _toggleCollapse() => setState(() {
@@ -106,7 +104,7 @@ class _TeacherSidebarState extends State<TeacherSidebar> {
         children: [
           _TeacherAvatarHeader(
             teacherName: widget.teacherName,
-            teacherPhotoUrl: widget.teacherPhotoUrl,
+            usuarioId: widget.usuarioId,
             collapsed: _collapsed,
             onToggle: _toggleCollapse,
           ),
@@ -144,18 +142,18 @@ class _TeacherSidebarState extends State<TeacherSidebar> {
   }
 }
 
-// --- Avatar header ---
+// ─── Avatar header ───
 
 // TODO(back): reemplazar [teacherName] con el nombre real desde AuthNotifier.state.
 class _TeacherAvatarHeader extends StatelessWidget {
   const _TeacherAvatarHeader({
     required this.teacherName,
-    required this.teacherPhotoUrl,
+    required this.usuarioId,
     required this.collapsed,
     required this.onToggle,
   });
   final String teacherName;
-  final String? teacherPhotoUrl;
+  final String usuarioId;
   final bool collapsed;
   final VoidCallback onToggle;
 
@@ -166,57 +164,18 @@ class _TeacherAvatarHeader extends StatelessWidget {
     return '¡Buenas noches,';
   }
 
-  ImageProvider _resolvePhotoProvider(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return const AssetImage('assets/images/buho_profesor.png');
-    }
-
-    final trimmed = value.trim();
-    if (trimmed.startsWith('data:image/')) {
-      final comma = trimmed.indexOf(',');
-      if (comma > 0 && comma < trimmed.length - 1) {
-        final dataPart = trimmed.substring(comma + 1);
-        try {
-          final bytes = base64Decode(dataPart);
-          return MemoryImage(bytes);
-        } catch (_) {
-          return const AssetImage('assets/images/buho_profesor.png');
-        }
-      }
-    }
-
-    return NetworkImage(trimmed);
-  }
-
-  Widget _avatar(double size) {
-    final photoProvider = _resolvePhotoProvider(teacherPhotoUrl);
-
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(color: AppColors.primary, width: 2.5),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.15),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: ClipOval(
-        child: Image(
-          image: photoProvider,
-          fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => Image.asset(
-            'assets/images/buho_profesor.png',
-            fit: BoxFit.cover,
-          ),
+  Widget _avatar(double size) => Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: AppColors.primary, width: 2.5),
+          boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.15), blurRadius: 8, offset: const Offset(0, 2))],
         ),
-      ),
-    );
-  }
+        // TODO(back): reemplazar Image.asset con la imagen real del docente.
+       // Conectar con el campo de foto de perfil que devuelva el endpoint de login.
+        child: ClipOval(child: Image.asset('assets/images/buho_profesor.png', fit: BoxFit.cover)),
+      );
 
   Widget _collapseBtn({required bool expanded}) => MouseRegion(
         cursor: SystemMouseCursors.click,
@@ -262,7 +221,6 @@ class _TeacherAvatarHeader extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   'Prof. $teacherName!',
-                  // TODO(back): reemplazar con el nombre real desde AuthNotifier.state.
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppColors.primary, fontWeight: FontWeight.w700),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -276,7 +234,7 @@ class _TeacherAvatarHeader extends StatelessWidget {
   }
 }
 
-// --- Nav items ---
+// ─── Nav items ───
 
 class _SingleNavItem extends StatelessWidget {
   const _SingleNavItem({required this.item, required this.collapsed, required this.isActive, required this.onTap});
@@ -301,7 +259,7 @@ class _SingleNavItem extends StatelessWidget {
             margin: const EdgeInsets.symmetric(vertical: 2),
             padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: collapsed ? AppSpacing.sm : 10),
             decoration: BoxDecoration(
-              color: isActive ? AppColors.primary.withValues(alpha: 0.10) : Colors.transparent,
+              color: isActive ? AppColors.primary.withOpacity(0.10) : Colors.transparent,
               borderRadius: const BorderRadius.all(AppRadius.medium),
             ),
             child: Row(
@@ -373,7 +331,7 @@ class _GroupNavItem extends StatelessWidget {
               margin: const EdgeInsets.symmetric(vertical: 2),
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 10),
               decoration: BoxDecoration(
-                color: isGroupActive ? AppColors.primary.withValues(alpha: 0.10) : Colors.transparent,
+                color: isGroupActive ? AppColors.primary.withOpacity(0.10) : Colors.transparent,
                 borderRadius: const BorderRadius.all(AppRadius.medium),
               ),
               child: Row(
@@ -416,7 +374,7 @@ class _SubItemList extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            SizedBox(width: 12, child: CustomPaint(painter: _BranchLinePainter(color: AppColors.primary.withValues(alpha: 0.55)))),
+            SizedBox(width: 12, child: CustomPaint(painter: _BranchLinePainter(color: AppColors.primary.withOpacity(0.55)))),
             const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: Column(
@@ -433,7 +391,7 @@ class _SubItemList extends StatelessWidget {
                         margin: const EdgeInsets.symmetric(vertical: 2),
                         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 9),
                         decoration: BoxDecoration(
-                          color: isActive ? AppColors.primary.withValues(alpha: 0.08) : Colors.transparent,
+                          color: isActive ? AppColors.primary.withOpacity(0.08) : Colors.transparent,
                           borderRadius: const BorderRadius.all(AppRadius.medium),
                         ),
                         child: Row(
@@ -456,7 +414,7 @@ class _SubItemList extends StatelessWidget {
   }
 }
 
-// --- Painter ---
+// ─── Painter ───
 
 class _BranchLinePainter extends CustomPainter {
   const _BranchLinePainter({required this.color});
@@ -476,7 +434,7 @@ class _BranchLinePainter extends CustomPainter {
   bool shouldRepaint(_BranchLinePainter old) => old.color != color;
 }
 
-// --- Logout ---
+// ─── Logout ───
 
 class _LogoutButton extends StatelessWidget {
   const _LogoutButton({required this.collapsed, required this.onLogout});
@@ -510,9 +468,3 @@ class _LogoutButton extends StatelessWidget {
     );
   }
 }
-
-
-
-
-
-

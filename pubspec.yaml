@@ -1,4 +1,4 @@
-﻿name: app_escuela
+name: app_escuela
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -35,8 +35,10 @@ dependencies:
   uuid: ^3.0.7
   cupertino_icons: ^1.0.8
   http: ^1.2.0
+  http_parser: ^4.0.2
   shared_preferences: ^2.2.2
-  file_picker: ^8.1.7
+  pdf: ^3.10.0
+  printing: ^5.11.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -87,4 +89,3 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
-

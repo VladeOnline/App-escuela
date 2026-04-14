@@ -1,11 +1,5 @@
-﻿import 'dart:convert';
-
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-
 import '../../../../../core/theme/app_theme.dart';
-import '../../../../auth/presentation/auth_notifier.dart';
 import '../modals/change_password_modal.dart';
 import '../modals/help_modal.dart';
 
@@ -13,12 +7,10 @@ class TeacherTopbar extends StatelessWidget implements PreferredSizeWidget {
   const TeacherTopbar({
     super.key,
     required this.teacherName,
-    required this.teacherPhotoUrl,
     required this.onLogout,
   });
 
   final String teacherName;
-  final String? teacherPhotoUrl;
   final VoidCallback onLogout;
 
   @override
@@ -53,115 +45,23 @@ class TeacherTopbar extends StatelessWidget implements PreferredSizeWidget {
                 ),
           ),
           const Spacer(),
-          _TopbarIconButton(
-            icon: Icons.notifications_outlined,
-            tooltip: 'Notificaciones (proximamente)',
-            enabled: false,
-            onTap: () {},
-          ),
+          _TopbarIconButton(icon: Icons.notifications_outlined, tooltip: 'Notificaciones (próximamente)', enabled: false, onTap: () {}),
           const SizedBox(width: AppSpacing.xs),
-          _TopbarIconButton(
-            icon: Icons.help_outline_rounded,
-            tooltip: 'Ayuda',
-            onTap: () => HelpModal.show(context),
-          ),
+          _TopbarIconButton(icon: Icons.help_outline_rounded, tooltip: 'Ayuda', onTap: () => HelpModal.show(context)),
           const SizedBox(width: AppSpacing.sm),
           _UserMenuButton(
             teacherName: teacherName,
-            teacherPhotoUrl: teacherPhotoUrl,
             onLogout: onLogout,
             onChangePassword: () => ChangePasswordModal.show(context),
-            onChangePhoto: () {
-              _pickAndUploadPhoto(context);
-            },
           ),
         ],
       ),
     );
   }
-
-  Future<void> _pickAndUploadPhoto(BuildContext context) async {
-    final messenger = ScaffoldMessenger.of(context);
-
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: const ['jpg', 'jpeg', 'png', 'webp'],
-      withData: true,
-    );
-
-    if (!context.mounted) return;
-
-    if (result == null || result.files.isEmpty) {
-      return;
-    }
-
-    final file = result.files.single;
-    final bytes = file.bytes;
-
-    if (bytes == null || bytes.isEmpty) {
-      messenger.showSnackBar(
-        const SnackBar(
-          content: Text('No se pudo leer el archivo seleccionado.'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      return;
-    }
-
-    if (bytes.length > 2 * 1024 * 1024) {
-      messenger.showSnackBar(
-        const SnackBar(
-          content: Text('La imagen debe pesar maximo 2 MB.'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      return;
-    }
-
-    final mime = _mimeFromFileName(file.name);
-    final encoded = base64Encode(bytes);
-    final dataUrl = 'data:$mime;base64,$encoded';
-
-    final authNotifier = context.read<AuthNotifier>();
-    final ok = await authNotifier.updateProfilePhoto(dataUrl);
-    if (!context.mounted) return;
-
-    if (ok) {
-      messenger.showSnackBar(
-        const SnackBar(
-          content: Text('Foto de perfil actualizada.'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      return;
-    }
-
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(
-          authNotifier.state.failure?.message ?? 'No se pudo actualizar la foto.',
-        ),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
-  String _mimeFromFileName(String fileName) {
-    final lower = fileName.toLowerCase();
-    if (lower.endsWith('.png')) return 'image/png';
-    if (lower.endsWith('.webp')) return 'image/webp';
-    return 'image/jpeg';
-  }
 }
 
 class _TopbarIconButton extends StatelessWidget {
-  const _TopbarIconButton({
-    required this.icon,
-    required this.tooltip,
-    required this.onTap,
-    this.enabled = true,
-  });
-
+  const _TopbarIconButton({required this.icon, required this.tooltip, required this.onTap, this.enabled = true});
   final IconData icon;
   final String tooltip;
   final VoidCallback onTap;
@@ -172,11 +72,7 @@ class _TopbarIconButton extends StatelessWidget {
         message: tooltip,
         child: IconButton(
           onPressed: enabled ? onTap : null,
-          icon: Icon(
-            icon,
-            size: 22,
-            color: enabled ? AppColors.textSecondary : AppColors.textHint,
-          ),
+          icon: Icon(icon, size: 22, color: enabled ? AppColors.textSecondary : AppColors.textHint),
         ),
       );
 }
@@ -184,22 +80,15 @@ class _TopbarIconButton extends StatelessWidget {
 class _UserMenuButton extends StatelessWidget {
   const _UserMenuButton({
     required this.teacherName,
-    required this.teacherPhotoUrl,
     required this.onLogout,
     required this.onChangePassword,
-    required this.onChangePhoto,
   });
-
   final String teacherName;
-  final String? teacherPhotoUrl;
   final VoidCallback onLogout;
   final VoidCallback onChangePassword;
-  final VoidCallback onChangePhoto;
 
   @override
   Widget build(BuildContext context) {
-    final photoProvider = _resolvePhotoProvider(teacherPhotoUrl);
-
     return PopupMenuButton<_UserMenuAction>(
       tooltip: 'Opciones de usuario',
       offset: const Offset(0, 48),
@@ -210,72 +99,35 @@ class _UserMenuButton extends StatelessWidget {
       ),
       onSelected: (action) => switch (action) {
         _UserMenuAction.changePassword => onChangePassword(),
-        _UserMenuAction.changePhoto => onChangePhoto(),
-        _UserMenuAction.logout => onLogout(),
+        _UserMenuAction.logout         => onLogout(),
       },
       itemBuilder: (_) => [
         PopupMenuItem(
           enabled: false,
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md,
-            vertical: AppSpacing.sm,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
           child: Row(
             children: [
               Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.primary, width: 2),
-                ),
-                child: ClipOval(
-                  child: Image(
-                    image: photoProvider,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Image.asset(
-                      'assets/images/buho_profesor.png',
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
+                width: 36, height: 36,
+                decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppColors.primary, width: 2)),
+                // TODO(back): reemplazar con la imagen de perfil real del docente desde la BD.
+                child: ClipOval(child: Image.asset('assets/images/buho_profesor.png', fit: BoxFit.cover)),
               ),
               const SizedBox(width: AppSpacing.sm),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Prof. $teacherName',
-                    style: const TextStyle(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13,
-                      fontFamily: 'Nunito',
-                    ),
-                  ),
-                  const Text(
-                    'Docente',
-                    style: TextStyle(
-                      color: AppColors.textHint,
-                      fontSize: 11,
-                      fontFamily: 'Nunito',
-                    ),
-                  ),
+                  Text('Prof. $teacherName', style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w700, fontSize: 13, fontFamily: 'Nunito')),
+                  const Text('Docente', style: TextStyle(color: AppColors.textHint, fontSize: 11, fontFamily: 'Nunito')),
                 ],
               ),
             ],
           ),
         ),
         const PopupMenuDivider(),
-        _menuItem(_UserMenuAction.changePhoto, Icons.photo_camera_outlined, 'Cambiar foto'),
-        _menuItem(_UserMenuAction.changePassword, Icons.lock_outline_rounded, 'Cambiar contrasena'),
+        _menuItem(_UserMenuAction.changePassword, Icons.lock_outline_rounded, 'Cambiar contraseña'),
         const PopupMenuDivider(),
-        _menuItem(
-          _UserMenuAction.logout,
-          Icons.logout_rounded,
-          'Cerrar sesion',
-          color: AppColors.error,
-        ),
+        _menuItem(_UserMenuAction.logout, Icons.logout_rounded, 'Cerrar sesión', color: AppColors.error),
       ],
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 6),
@@ -288,59 +140,19 @@ class _UserMenuButton extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             SizedBox(
-              width: 28,
-              height: 28,
-              child: ClipOval(
-                child: Image(
-                  image: photoProvider,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Image.asset(
-                    'assets/images/buho_profesor.png',
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
+              width: 28, height: 28,
+              // TODO(back): reemplazar con la imagen de perfil real del docente desde la BD.
+              child: ClipOval(child: Image.asset('assets/images/buho_profesor.png', fit: BoxFit.cover)),
             ),
             const SizedBox(width: AppSpacing.xs),
-            const Icon(
-              Icons.keyboard_arrow_down_rounded,
-              size: 16,
-              color: AppColors.textHint,
-            ),
+            const Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: AppColors.textHint),
           ],
         ),
       ),
     );
   }
 
-  ImageProvider _resolvePhotoProvider(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return const AssetImage('assets/images/buho_profesor.png');
-    }
-
-    final trimmed = value.trim();
-    if (trimmed.startsWith('data:image/')) {
-      final comma = trimmed.indexOf(',');
-      if (comma > 0 && comma < trimmed.length - 1) {
-        final dataPart = trimmed.substring(comma + 1);
-        try {
-          final bytes = base64Decode(dataPart);
-          return MemoryImage(bytes);
-        } catch (_) {
-          return const AssetImage('assets/images/buho_profesor.png');
-        }
-      }
-    }
-
-    return NetworkImage(trimmed);
-  }
-
-  PopupMenuItem<_UserMenuAction> _menuItem(
-    _UserMenuAction value,
-    IconData icon,
-    String label, {
-    Color? color,
-  }) {
+  PopupMenuItem<_UserMenuAction> _menuItem(_UserMenuAction value, IconData icon, String label, {Color? color}) {
     final c = color ?? AppColors.textSecondary;
     return PopupMenuItem(
       value: value,
@@ -349,23 +161,11 @@ class _UserMenuButton extends StatelessWidget {
         children: [
           Icon(icon, size: 18, color: c),
           const SizedBox(width: AppSpacing.sm),
-          Text(
-            label,
-            style: TextStyle(
-              color: c,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              fontFamily: 'Nunito',
-            ),
-          ),
+          Text(label, style: TextStyle(color: c, fontSize: 14, fontWeight: FontWeight.w500, fontFamily: 'Nunito')),
         ],
       ),
     );
   }
 }
 
-enum _UserMenuAction { changePassword, changePhoto, logout }
-
-
-
-
+enum _UserMenuAction { changePassword, logout }
