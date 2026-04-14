@@ -8,4 +8,7 @@ const gamificacionSchema = new mongoose.Schema({
   actualizado_en: { type: Date, default: Date.now }
 });
 
+gamificacionSchema.index({ estudiante_id: 1 });
+gamificacionSchema.index({ puntos_total: -1 });
+
 module.exports = mongoose.model('Gamificacion', gamificacionSchema);

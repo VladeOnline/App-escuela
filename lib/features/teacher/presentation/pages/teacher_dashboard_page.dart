@@ -95,11 +95,16 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
   }
 }
 
-class _DashboardView extends StatelessWidget {
+class _DashboardView extends StatefulWidget {
   const _DashboardView({required this.notifier});
 
   final StudentsNotifier notifier;
 
+  @override
+  State<_DashboardView> createState() => _DashboardViewState();
+}
+
+class _DashboardViewState extends State<_DashboardView> {
   @override
   Widget build(BuildContext context) => SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.lg),
@@ -107,13 +112,13 @@ class _DashboardView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             AnimatedBuilder(
-              animation: notifier,
+              animation: widget.notifier,
               builder: (_, _) => _StatsCard(
                 child: StatsOverviewRow(
                   stats: [
                     DashboardStat(
                       label: 'Estudiantes',
-                      value: '${notifier.state.students.length}',
+                      value: '${widget.notifier.state.students.length}',
                       icon: Icons.people_alt_rounded,
                       color: AppColors.primary,
                       sublabel: 'registrados',
@@ -144,7 +149,7 @@ class _DashboardView extends StatelessWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
-            _StudentsCard(notifier: notifier),
+            _StudentsCard(notifier: widget.notifier),
           ],
         ),
       );

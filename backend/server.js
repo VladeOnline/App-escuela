@@ -16,6 +16,7 @@ app.use('/api/estudiantes', require('./src/routes/estudianteRoutes'));
 app.use('/api/ejercicios', require('./src/routes/EjercicioRoutes'));
 app.use('/api/modulos', require('./src/routes/moduloRoutes'));
 app.use('/api/contenidos', require('./src/routes/contenidoRoutes'));
+app.use('/api/ranking', require('./src/routes/rankingRoutes'));
 
 app.get('/', (req, res) => {
   res.json({ message: 'API Refuerzo Academico funcionando' });
