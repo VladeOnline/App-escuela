@@ -86,9 +86,10 @@ class AuthNotifier extends ChangeNotifier {
     try {
       final response = await AuthService.login(username.trim(), password, role);
       final usuario =
-          (response['usuario'] as Map?)?.cast<String, dynamic>() ?? <String, dynamic>{};
-      final estudiante =
-          (response['estudiante'] as Map?)?.cast<String, dynamic>();
+          (response['usuario'] as Map?)?.cast<String, dynamic>() ??
+          <String, dynamic>{};
+      final estudiante = (response['estudiante'] as Map?)
+          ?.cast<String, dynamic>();
       final rawGrade = estudiante == null ? null : estudiante['grado'];
       final rawPoints = estudiante == null ? null : estudiante['puntos_total'];
       setAuth(
@@ -98,24 +99,27 @@ class AuthNotifier extends ChangeNotifier {
         userName: usuario['nombre']?.toString(),
         userPhotoUrl: usuario['foto_perfil_url']?.toString(),
         studentId: estudiante == null ? null : estudiante['id']?.toString(),
-        studentGrade: rawGrade is int ? rawGrade : int.tryParse('${rawGrade ?? ''}'),
+        studentGrade: rawGrade is int
+            ? rawGrade
+            : int.tryParse('${rawGrade ?? ''}'),
         studentPoints: rawPoints is int
             ? rawPoints
             : int.tryParse('${rawPoints ?? ''}') ?? 0,
-        studentPhotoUrl: estudiante == null ? null : estudiante['foto_url']?.toString(),
+        studentPhotoUrl: estudiante == null
+            ? null
+            : estudiante['foto_url']?.toString(),
       );
       return true;
     } on AuthFailure catch (failure) {
-      _emit(_state.copyWith(
-        status: AuthStatus.failure,
-        failure: failure,
-      ));
+      _emit(_state.copyWith(status: AuthStatus.failure, failure: failure));
       return false;
     } catch (_) {
-      _emit(_state.copyWith(
-        status: AuthStatus.failure,
-        failure: const AuthFailure('No se pudo conectar con el servidor.'),
-      ));
+      _emit(
+        _state.copyWith(
+          status: AuthStatus.failure,
+          failure: const AuthFailure('No se pudo conectar con el servidor.'),
+        ),
+      );
       return false;
     }
   }
@@ -126,11 +130,82 @@ class AuthNotifier extends ChangeNotifier {
 
   void addStudentPoints(int delta) {
     if (delta <= 0) return;
-    _emit(_state.copyWith(
-      status: AuthStatus.authenticated,
-      studentPoints: _state.studentPoints + delta,
-      failure: null,
-    ));
+    _emit(
+      _state.copyWith(
+        status: AuthStatus.authenticated,
+        studentPoints: _state.studentPoints + delta,
+        failure: null,
+      ),
+    );
+  }
+
+  Future<bool> updateProfilePhoto(String photoDataUrl) async {
+    final token = _state.token;
+    if (token == null || token.isEmpty) {
+      _emit(
+        _state.copyWith(
+          status: AuthStatus.failure,
+          failure: const AuthFailure(
+            'Sesion no valida. Vuelve a iniciar sesion.',
+          ),
+        ),
+      );
+      return false;
+    }
+
+    try {
+      final response = await AuthService.updateProfilePhoto(
+        token: token,
+        photoDataUrl: photoDataUrl,
+      );
+      final usuario =
+          (response['usuario'] as Map?)?.cast<String, dynamic>() ??
+          <String, dynamic>{};
+
+      final rawPhotoUrl = usuario['foto_perfil_url']?.toString();
+      final refreshedPhotoUrl =
+          (rawPhotoUrl != null &&
+              rawPhotoUrl.isNotEmpty &&
+              !rawPhotoUrl.startsWith('data:image/'))
+          ? _appendCacheBuster(rawPhotoUrl)
+          : rawPhotoUrl;
+
+      _emit(
+        _state.copyWith(
+          status: AuthStatus.authenticated,
+          userPhotoUrl: refreshedPhotoUrl,
+          studentPhotoUrl: _state.isStudent
+              ? refreshedPhotoUrl
+              : _state.studentPhotoUrl,
+          failure: null,
+        ),
+      );
+      return true;
+    } on AuthFailure catch (failure) {
+      _emit(_state.copyWith(status: AuthStatus.failure, failure: failure));
+      return false;
+    } catch (_) {
+      _emit(
+        _state.copyWith(
+          status: AuthStatus.failure,
+          failure: const AuthFailure('No se pudo subir la foto de perfil.'),
+        ),
+      );
+      return false;
+    }
+  }
+
+  void updateUserPhotoUrl(String photoUrl) {
+    _emit(
+      _state.copyWith(
+        status: _state.status == AuthStatus.unauthenticated
+            ? AuthStatus.unauthenticated
+            : AuthStatus.authenticated,
+        userPhotoUrl: photoUrl,
+        studentPhotoUrl: _state.isStudent ? photoUrl : _state.studentPhotoUrl,
+        failure: null,
+      ),
+    );
   }
 
   void setAuth({
@@ -144,21 +219,28 @@ class AuthNotifier extends ChangeNotifier {
     int studentPoints = 0,
     String? studentPhotoUrl,
   }) {
-    _emit(_state.copyWith(
-      status: AuthStatus.authenticated,
-      token: token,
-      role: role,
-      userId: userId,
-      userName: userName,
-      userPhotoUrl: userPhotoUrl,
-      studentId: studentId,
-      studentGrade: studentGrade,
-      studentPoints: studentPoints,
-      studentPhotoUrl: studentPhotoUrl,
-    ));
+    _emit(
+      _state.copyWith(
+        status: AuthStatus.authenticated,
+        token: token,
+        role: role,
+        userId: userId,
+        userName: userName,
+        userPhotoUrl: userPhotoUrl,
+        studentId: studentId,
+        studentGrade: studentGrade,
+        studentPoints: studentPoints,
+        studentPhotoUrl: studentPhotoUrl,
+      ),
+    );
   }
 
   void clearFailure() {
     _emit(_state.copyWith(status: AuthStatus.unauthenticated));
+  }
+
+  String _appendCacheBuster(String url) {
+    final separator = url.contains('?') ? '&' : '?';
+    return '$url${separator}v=${DateTime.now().millisecondsSinceEpoch}';
   }
 }
