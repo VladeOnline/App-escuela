@@ -1,8 +1,16 @@
+// ─── CAMBIOS respecto al original ────────────────────────────────────────────
+// ExFormFooter ahora acepta dos parámetros opcionales:
+//   · saveLabel  — texto del botón guardar  (default: 'Guardar ejercicio' / 'Guardar cambios')
+//   · saveIcon   — ícono del botón guardar  (default: save_rounded / check_rounded)
+// Esto permite reutilizar el footer en ContentFormPage sin duplicar código.
+// El comportamiento anterior queda 100% intacto cuando no se pasan esos params.
+// ─────────────────────────────────────────────────────────────────────────────
+
 import 'package:flutter/material.dart';
 
 import '../../../../../../core/theme/app_theme.dart';
 
-// ─── Header (solo título) ───
+// ─── Header (solo título) ─────────────────────────────────────────────────────
 
 class ExFormHeader extends StatelessWidget {
   const ExFormHeader({
@@ -36,7 +44,7 @@ class ExFormHeader extends StatelessWidget {
   }
 }
 
-// ─── Botón volver (pill) ───
+// ─── Botón volver (pill) ──────────────────────────────────────────────────────
 
 class ExFormBackButton extends StatelessWidget {
   const ExFormBackButton({super.key, required this.onTap});
@@ -70,7 +78,7 @@ class ExFormBackButton extends StatelessWidget {
   }
 }
 
-// ─── Footer fijo ───
+// ─── Footer fijo ──────────────────────────────────────────────────────────────
 
 class ExFormFooter extends StatelessWidget {
   const ExFormFooter({
@@ -79,15 +87,23 @@ class ExFormFooter extends StatelessWidget {
     required this.onClear,
     required this.onSave,
     this.isEditing = false,
+    // ── Nuevos params opcionales ──
+    this.saveLabel,   // null → usa el label por defecto según isEditing
+    this.saveIcon,    // null → usa el ícono por defecto según isEditing
   });
 
   final bool isLoading;
   final bool isEditing;
   final VoidCallback onClear;
   final VoidCallback onSave;
+  final String? saveLabel;      // ← NUEVO
+  final IconData? saveIcon;     // ← NUEVO
 
   @override
   Widget build(BuildContext context) {
+    final label = saveLabel ?? (isEditing ? 'Guardar cambios' : 'Guardar ejercicio');
+    final icon  = saveIcon  ?? (isEditing ? Icons.check_rounded : Icons.save_rounded);
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -125,8 +141,8 @@ class ExFormFooter extends StatelessWidget {
                 onPressed: isLoading ? null : onSave,
                 icon: isLoading
                     ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : Icon(isEditing ? Icons.check_rounded : Icons.save_rounded, size: 18),
-                label: Text(isEditing ? 'Guardar cambios' : 'Guardar ejercicio'),
+                    : Icon(icon, size: 18),
+                label: Text(label),
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   minimumSize: const Size(0, 44),

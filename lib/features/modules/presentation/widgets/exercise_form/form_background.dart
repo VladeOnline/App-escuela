@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../../../../core/theme/app_theme.dart';
 
@@ -55,7 +55,7 @@ class _ExFormBackgroundState extends State<ExFormBackground> with TickerProvider
 class _GridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final p = Paint()..color = AppColors.primary.withOpacity(0.055)..strokeWidth = 0.8;
+    final p = Paint()..color = AppColors.primary.withValues(alpha: 0.055)..strokeWidth = 0.8;
     for (double x = 0; x < size.width; x += 40) canvas.drawLine(Offset(x, 0), Offset(x, size.height), p);
     for (double y = 0; y < size.height; y += 40) canvas.drawLine(Offset(0, y), Offset(size.width, y), p);
   }
@@ -76,9 +76,11 @@ class _GlowOrb extends StatelessWidget {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           gradient: RadialGradient(
-            colors: [color.withOpacity(opacity), color.withOpacity(opacity * 0.4), color.withOpacity(0)],
+            colors: [color.withValues(alpha: opacity), color.withValues(alpha: opacity * 0.4), color.withValues(alpha: 0)],
             stops: const [0.0, 0.5, 1.0],
           ),
         ),
       );
 }
+
+

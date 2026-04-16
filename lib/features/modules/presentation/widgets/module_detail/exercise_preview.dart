@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../../../core/theme/app_theme.dart';
 import '../../../domain/entities/module_entities.dart';
@@ -16,8 +16,8 @@ class ExercisePreviewWidget extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(AppSpacing.sm),
         decoration: BoxDecoration(
-          color: exercise.subject.color.withOpacity(0.04),
-          border: Border.all(color: exercise.subject.color.withOpacity(0.18)),
+          color: exercise.subject.color.withValues(alpha: 0.04),
+          border: Border.all(color: exercise.subject.color.withValues(alpha: 0.18)),
           borderRadius: const BorderRadius.all(AppRadius.medium),
         ),
         child: OverflowBox(
@@ -37,7 +37,7 @@ class ExercisePreviewWidget extends StatelessWidget {
       };
 }
 
-// ─── Previews por tipo ───
+// --- Previews por tipo ---
 
 class _MultipleChoicePreview extends StatelessWidget {
   const _MultipleChoicePreview({required this.exercise});
@@ -117,7 +117,7 @@ class _OrderingPreview extends StatelessWidget {
   }
 }
 
-// ─── Helpers ───
+// --- Helpers ---
 
 class _PreviewQuestion extends StatelessWidget {
   const _PreviewQuestion({required this.text, this.maxLines = 3});
@@ -175,7 +175,7 @@ class _MiniPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: const BorderRadius.all(AppRadius.small),
       ),
       child: Text(
@@ -193,3 +193,4 @@ class _MiniPill extends StatelessWidget {
     );
   }
 }
+

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../../../core/theme/app_theme.dart';
 import '../../../domain/entities/module_entities.dart';
@@ -95,7 +95,7 @@ class _MultipleChoiceExerciseState extends State<MultipleChoiceExercise> {
   }
 }
 
-// ─── Subwidgets ───────────────────────────────────────────────────────────────
+// --- Subwidgets ---------------------------------------------------------------
 
 class _PassageCard extends StatelessWidget {
   const _PassageCard({required this.text});
@@ -107,9 +107,9 @@ class _PassageCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.05),
+        color: AppColors.primary.withValues(alpha: 0.05),
         borderRadius: const BorderRadius.all(AppRadius.large),
-        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -169,8 +169,8 @@ class _OptionTile extends StatelessWidget {
 
   Color _bgColor() {
     if (!answered) return AppColors.surfaceCard;
-    if (isCorrect) return AppColors.success.withOpacity(0.08);
-    if (selected && !isCorrect) return AppColors.error.withOpacity(0.08);
+    if (isCorrect) return AppColors.success.withValues(alpha: 0.08);
+    if (selected && !isCorrect) return AppColors.error.withValues(alpha: 0.08);
     return AppColors.surfaceCard;
   }
 
@@ -196,7 +196,7 @@ class _OptionTile extends StatelessWidget {
               width: 28,
               height: 28,
               decoration: BoxDecoration(
-                color: _borderColor().withOpacity(0.15),
+                color: _borderColor().withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
               child: Center(
@@ -218,7 +218,7 @@ class _OptionTile extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
             ),
-            // Ícono de resultado
+            // Icono de resultado
             if (answered)
               Icon(
                 isCorrect
@@ -245,9 +245,9 @@ class _ExplanationBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.info.withOpacity(0.08),
+        color: AppColors.info.withValues(alpha: 0.08),
         borderRadius: const BorderRadius.all(AppRadius.medium),
-        border: Border.all(color: AppColors.info.withOpacity(0.3)),
+        border: Border.all(color: AppColors.info.withValues(alpha: 0.3)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -268,3 +268,6 @@ class _ExplanationBanner extends StatelessWidget {
     );
   }
 }
+
+
+

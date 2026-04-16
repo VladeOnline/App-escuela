@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -173,7 +173,7 @@ class _GradeChip extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? c.withOpacity(0.12) : Colors.transparent,
+          color: isSelected ? c.withValues(alpha: 0.12) : Colors.transparent,
           borderRadius: const BorderRadius.all(AppRadius.full),
           border: Border.all(color: isSelected ? c : AppColors.border, width: isSelected ? 1.5 : 1),
         ),
@@ -231,10 +231,9 @@ class _StudentCard extends StatelessWidget {
                 children: [
                   Container(
                     width: double.infinity,
-                    color: gradeColor.withOpacity(0.07),
-                    child: Center(child: StudentAvatar(initials: student.initials, grade: student.grade, radius: 36)),
+                    color: gradeColor.withValues(alpha: 0.07),
+                    child: Center(child: StudentAvatar(initials: student.initials, grade: student.grade, radius: 36, photoUrl: student.photoUrl)),
                   ),
-                  // TODO(back): reemplazar StudentAvatar con Image.network(student.photoUrl)
                   Positioned(
                     top: AppSpacing.xs, right: AppSpacing.xs,
                     child: MouseRegion(
@@ -281,7 +280,7 @@ class _StudentCard extends StatelessWidget {
                           (c) => Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
-                              color: AppColors.primary.withOpacity(0.10),
+                              color: AppColors.primary.withValues(alpha: 0.10),
                               borderRadius: const BorderRadius.all(AppRadius.full),
                             ),
                             child: Text(
@@ -337,8 +336,8 @@ class _EmptyState extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Container(width: 80, height: 80,
-          decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.08), shape: BoxShape.circle),
-          child: Icon(hasFilters ? Icons.search_off_rounded : Icons.people_outline_rounded, size: 40, color: AppColors.primary.withOpacity(0.5))),
+          decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.08), shape: BoxShape.circle),
+          child: Icon(hasFilters ? Icons.search_off_rounded : Icons.people_outline_rounded, size: 40, color: AppColors.primary.withValues(alpha: 0.5))),
         const SizedBox(height: AppSpacing.md),
         Text(hasFilters ? 'No se encontraron estudiantes' : 'Aún no hay estudiantes',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: AppColors.textSecondary)),
@@ -353,3 +352,6 @@ class _EmptyState extends StatelessWidget {
     ),
   );
 }
+
+
+

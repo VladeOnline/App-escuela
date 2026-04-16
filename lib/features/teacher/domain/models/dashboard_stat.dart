@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 /// Modelo puro de una estadística del dashboard del docente.
 ///
-/// Es inmutable y sin dependencias de UI — solo datos.
+/// Es inmutable y sin dependencias de UI â€” solo datos.
 /// El Back reemplazará los valores mock por los reales de la API.
 @immutable
 class DashboardStat {
@@ -22,3 +22,4 @@ class DashboardStat {
     this.sublabel,
   });
 }
+

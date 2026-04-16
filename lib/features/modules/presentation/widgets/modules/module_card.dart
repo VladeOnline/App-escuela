@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../../../core/theme/app_theme.dart';
-import '../../../data/repositories/mock_module_repository.dart';
+import '../../../data/repositories/api_module_repository.dart';
 import '../../../domain/entities/module_entities.dart';
 import '../../pages/module_detail_page.dart';
 import 'create_module_card.dart';
@@ -14,11 +14,13 @@ class ModuleCard extends StatefulWidget {
     required this.module,
     required this.repository,
     required this.isTeacher,
+    required this.onDeleted,
   });
 
   final ModuleEntity module;
-  final MockModuleRepository repository;
+  final ApiModuleRepository repository;
   final bool isTeacher;
+  final VoidCallback onDeleted;
 
   @override
   State<ModuleCard> createState() => _ModuleCardState();
@@ -71,11 +73,11 @@ class _ModuleCardState extends State<ModuleCard> with TickerProviderStateMixin {
             decoration: BoxDecoration(
               color: t.bg,
               borderRadius: const BorderRadius.all(AppRadius.large),
-              border: Border.all(color: _hovered ? t.accent.withOpacity(0.55) : t.soft, width: _hovered ? 1.5 : 1.0),
+              border: Border.all(color: _hovered ? t.accent.withValues(alpha: 0.55) : t.soft, width: _hovered ? 1.5 : 1.0),
               boxShadow: _hovered
-                  ? [BoxShadow(color: t.accent.withOpacity(0.16), blurRadius: 20, offset: const Offset(0, 6)),
-                     BoxShadow(color: t.accent.withOpacity(0.07), blurRadius: 40, offset: const Offset(0, 16))]
-                  : [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 6, offset: const Offset(0, 2))],
+                  ? [BoxShadow(color: t.accent.withValues(alpha: 0.16), blurRadius: 20, offset: const Offset(0, 6)),
+                     BoxShadow(color: t.accent.withValues(alpha: 0.07), blurRadius: 40, offset: const Offset(0, 16))]
+                  : [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 6, offset: const Offset(0, 2))],
             ),
             child: ClipRRect(
               borderRadius: const BorderRadius.all(AppRadius.large),
@@ -126,9 +128,9 @@ class _ModuleCardState extends State<ModuleCard> with TickerProviderStateMixin {
                             duration: const Duration(milliseconds: 180),
                             width: 40, height: 40,
                             decoration: BoxDecoration(
-                              color: _hovered ? t.accent : t.accent.withOpacity(0.12),
+                              color: _hovered ? t.accent : t.accent.withValues(alpha: 0.12),
                               borderRadius: const BorderRadius.all(AppRadius.medium),
-                              boxShadow: _hovered ? [BoxShadow(color: t.accent.withOpacity(0.35), blurRadius: 8)] : [],
+                              boxShadow: _hovered ? [BoxShadow(color: t.accent.withValues(alpha: 0.35), blurRadius: 8)] : [],
                             ),
                             child: Icon(widget.module.type.icon, color: _hovered ? Colors.white : t.accent, size: 18),
                           ),
@@ -137,7 +139,7 @@ class _ModuleCardState extends State<ModuleCard> with TickerProviderStateMixin {
                       const SizedBox(height: 5),
                       Text(widget.module.description,
                         style: TextStyle(fontSize: 12, fontFamily: 'Nunito', height: 1.95,
-                            color: _hovered ? t.accent.withOpacity(0.7) : AppColors.textSecondary),
+                            color: _hovered ? t.accent.withValues(alpha: 0.7) : AppColors.textSecondary),
                         maxLines: 2, overflow: TextOverflow.ellipsis),
                       const SizedBox(height: 19),
                       const Spacer(),
@@ -146,7 +148,7 @@ class _ModuleCardState extends State<ModuleCard> with TickerProviderStateMixin {
                           duration: const Duration(milliseconds: 180),
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: _hovered ? t.accent : t.accent.withOpacity(0.1),
+                            color: _hovered ? t.accent : t.accent.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Row(mainAxisSize: MainAxisSize.min, children: [
@@ -160,7 +162,13 @@ class _ModuleCardState extends State<ModuleCard> with TickerProviderStateMixin {
                           ]),
                         ),
                         const Spacer(),
-                        DeleteModuleButton(hovered: _hovered, moduleName: widget.module.title),
+                        DeleteModuleButton(
+                          hovered: _hovered,
+                          moduleName: widget.module.title,
+                          moduleId: widget.module.id,
+                          repository: widget.repository,
+                          onDeleted: widget.onDeleted,
+                        ),
                       ]),
                     ],
                   ),
@@ -173,3 +181,4 @@ class _ModuleCardState extends State<ModuleCard> with TickerProviderStateMixin {
     );
   }
 }
+

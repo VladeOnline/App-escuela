@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../../../core/theme/app_theme.dart';
 
@@ -55,7 +55,7 @@ class SelectionActionBar extends StatelessWidget {
             borderRadius: const BorderRadius.all(AppRadius.large),
             boxShadow: [
               BoxShadow(
-                color: AppColors.primary.withOpacity(0.4),
+                color: AppColors.primary.withValues(alpha: 0.4),
                 blurRadius: 20,
                 offset: const Offset(0, 8),
               ),
@@ -65,10 +65,10 @@ class SelectionActionBar extends StatelessWidget {
             top: false,
             child: Row(
               children: [
-                // ── Botón cerrar ──
+                // -- Botón cerrar --
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: const BorderRadius.all(AppRadius.small),
                   ),
                   child: IconButton(
@@ -81,7 +81,7 @@ class SelectionActionBar extends StatelessWidget {
                 ),
                 const SizedBox(width: AppSpacing.md),
 
-                // ── Contador ──
+                // -- Contador --
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
@@ -89,7 +89,7 @@ class SelectionActionBar extends StatelessWidget {
                     Text(
                       'Modo Selección',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.9),
+                        color: Colors.white.withValues(alpha: 0.9),
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                         fontFamily: 'Nunito',
@@ -110,10 +110,10 @@ class SelectionActionBar extends StatelessWidget {
                 ),
                 const Spacer(),
 
-                // ── Botón "Todos" ──
+                // -- Botón "Todos" --
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: const BorderRadius.all(AppRadius.small),
                   ),
                   child: TextButton.icon(
@@ -137,7 +137,7 @@ class SelectionActionBar extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
 
-                // ── Botón "Ocultar" ──
+                // -- Botón "Ocultar" --
                 FilledButton.icon(
                   onPressed: selectedCount > 0 ? onDeactivate : null,
                   icon: const Icon(Icons.visibility_off_rounded, size: 16),
@@ -145,11 +145,11 @@ class SelectionActionBar extends StatelessWidget {
                   style: FilledButton.styleFrom(
                     backgroundColor: AppColors.error,
                     foregroundColor: Colors.white,
-                    disabledBackgroundColor: AppColors.error.withOpacity(0.5),
-                    disabledForegroundColor: Colors.white.withOpacity(0.5),
+                    disabledBackgroundColor: AppColors.error.withValues(alpha: 0.5),
+                    disabledForegroundColor: Colors.white.withValues(alpha: 0.5),
                     padding: _btnPadding,
                     elevation: 4,
-                    shadowColor: AppColors.error.withOpacity(0.2),
+                    shadowColor: AppColors.error.withValues(alpha: 0.2),
                     shape: _btnShape,
                     textStyle: _btnTextStyle,
                   ).copyWith(
@@ -161,7 +161,7 @@ class SelectionActionBar extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
 
-                // ── Botón "Mostrar" ──
+                // -- Botón "Mostrar" --
                 FilledButton.icon(
                   onPressed: selectedCount > 0 ? onActivate : null,
                   icon: const Icon(Icons.visibility_rounded, size: 16),
@@ -169,11 +169,11 @@ class SelectionActionBar extends StatelessWidget {
                   style: FilledButton.styleFrom(
                     backgroundColor: Colors.white,
                     foregroundColor: AppColors.primary,
-                    disabledBackgroundColor: Colors.white.withOpacity(0.5),
-                    disabledForegroundColor: AppColors.primary.withOpacity(0.5),
+                    disabledBackgroundColor: Colors.white.withValues(alpha: 0.5),
+                    disabledForegroundColor: AppColors.primary.withValues(alpha: 0.5),
                     padding: _btnPadding,
                     elevation: 4,
-                    shadowColor: Colors.white.withOpacity(0.4),
+                    shadowColor: Colors.white.withValues(alpha: 0.4),
                     shape: _btnShape,
                     textStyle: _btnTextStyle,
                   ).copyWith(
@@ -191,3 +191,4 @@ class SelectionActionBar extends StatelessWidget {
     );
   }
 }
+

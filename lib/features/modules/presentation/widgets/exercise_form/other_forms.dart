@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../../../../core/theme/app_theme.dart';
 import 'form_shared.dart';
 
-// ─── Verdadero / Falso ────────────────────────────────────────────────────────
+// --- Verdadero / Falso --------------------------------------------------------
 
 class ExFormTrueOrFalse extends StatelessWidget {
   const ExFormTrueOrFalse({
@@ -65,7 +65,7 @@ class ExFormTrueOrFalse extends StatelessWidget {
   }
 }
 
-// ─── Completar el espacio ─────────────────────────────────────────────────────
+// --- Completar el espacio -----------------------------------------------------
 
 class ExFormFillInBlank extends StatelessWidget {
   const ExFormFillInBlank({
@@ -120,7 +120,6 @@ class ExFormFillInBlank extends StatelessWidget {
   }
 }
 
-// ─── Ordenamiento — próximo sprint ────────────────────────────────────────────
 
 class ExFormOrderingComingSoon extends StatelessWidget {
   const ExFormOrderingComingSoon({super.key});
@@ -130,16 +129,16 @@ class ExFormOrderingComingSoon extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.secondary.withOpacity(0.06),
+        color: AppColors.secondary.withValues(alpha: 0.06),
         borderRadius: const BorderRadius.all(AppRadius.large),
-        border: Border.all(color: AppColors.secondary.withOpacity(0.3)),
+        border: Border.all(color: AppColors.secondary.withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
           const Icon(Icons.construction_rounded, color: AppColors.secondary, size: 32),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            'Ordenamiento — Próximo sprint',
+            'Ordenamiento - Próximo sprint',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(color: AppColors.secondary),
           ),
           const SizedBox(height: AppSpacing.xs),
@@ -153,3 +152,6 @@ class ExFormOrderingComingSoon extends StatelessWidget {
     );
   }
 }
+
+
+

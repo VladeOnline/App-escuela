@@ -1,9 +1,9 @@
-import 'dart:math';
+﻿import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../../../../../core/theme/app_theme.dart';
 
-// ─── Temas visuales ───
+// --- Temas visuales ---
 
 enum ModuleCardPattern { bubbles, waves, constellation, crystals, petals, mosaic }
 
@@ -30,7 +30,7 @@ const moduleCardThemes = [
 ModuleCardTheme themeForModule(String id) =>
     moduleCardThemes[id.hashCode.abs() % moduleCardThemes.length];
 
-// ─── Puntos de luz dispersos ───
+// --- Puntos de luz dispersos ---
 
 class DotsPainter extends CustomPainter {
   const DotsPainter({required this.color, required this.seed, required this.shift});
@@ -47,7 +47,7 @@ class DotsPainter extends CustomPainter {
       final baseY  = rng.nextDouble() * size.height;
       final radius = 1.2 + rng.nextDouble() * 2.8;
       final speed  = 0.4 + rng.nextDouble() * 0.8;
-      paint.color  = color.withOpacity(0.08 + rng.nextDouble() * 0.16);
+      paint.color  = color.withValues(alpha: 0.08 + rng.nextDouble() * 0.16);
       final x = (baseX + shift * size.width * speed) % size.width;
       final y = baseY + sin(shift * 2 * pi + i) * 2.0;
       canvas.drawCircle(Offset(x, y), radius, paint);
@@ -58,7 +58,7 @@ class DotsPainter extends CustomPainter {
   bool shouldRepaint(DotsPainter old) => old.shift != shift || old.color != color;
 }
 
-// ─── Patrones decorativos ───
+// --- Patrones decorativos ---
 
 class PatternPainter extends CustomPainter {
   const PatternPainter({required this.pattern, required this.color});
@@ -75,7 +75,7 @@ class PatternPainter extends CustomPainter {
         canvas.drawCircle(Offset(size.width * 0.72, size.height * 0.25), 22, stroke);
         canvas.drawCircle(Offset(size.width * 1.0,  size.height * 0.55), 16, fill);
         canvas.drawCircle(Offset(size.width * 0.55, size.height * 0.90), 10, stroke);
-        canvas.drawCircle(Offset(size.width * 0.85, size.height * 0.88), 6, fill..color = color.withOpacity(0.5));
+        canvas.drawCircle(Offset(size.width * 0.85, size.height * 0.88), 6, fill..color = color.withValues(alpha: 0.5));
 
       case ModuleCardPattern.waves:
         for (int i = 0; i < 3; i++) {
@@ -83,7 +83,7 @@ class PatternPainter extends CustomPainter {
           final y = size.height * (0.3 + i * 0.28);
           path.moveTo(size.width * 0.3, y);
           path.cubicTo(size.width * 0.55, y - 14, size.width * 0.75, y + 14, size.width * 1.05, y);
-          canvas.drawPath(path, stroke..strokeWidth = 2.0 - i * 0.4..color = color.withOpacity(1 - i * 0.2));
+          canvas.drawPath(path, stroke..strokeWidth = 2.0 - i * 0.4..color = color.withValues(alpha: 1 - i * 0.2));
         }
 
       case ModuleCardPattern.constellation:
@@ -94,7 +94,7 @@ class PatternPainter extends CustomPainter {
           Offset(size.width * 0.5,  size.height * 0.85),
           Offset(size.width * 1.0,  size.height * 0.80),
         ];
-        final line = Paint()..color = color.withOpacity(0.4)..strokeWidth = 1.0;
+        final line = Paint()..color = color.withValues(alpha: 0.4)..strokeWidth = 1.0;
         for (int i = 0; i < pts.length - 1; i++) canvas.drawLine(pts[i], pts[i + 1], line);
         for (final p in pts) canvas.drawCircle(p, 3.0, fill);
 
@@ -136,7 +136,7 @@ class PatternPainter extends CustomPainter {
             final h = 6.0 - xi * 1.2;
             canvas.drawRRect(
               RRect.fromRectAndRadius(Rect.fromCenter(center: Offset.zero, width: h * 2, height: h * 2), const Radius.circular(2)),
-              fill..color = color.withOpacity(0.3 + xi * 0.15),
+              fill..color = color.withValues(alpha: 0.3 + xi * 0.15),
             );
             canvas.restore();
           }
@@ -147,3 +147,5 @@ class PatternPainter extends CustomPainter {
   @override
   bool shouldRepaint(PatternPainter old) => old.color != color || old.pattern != pattern;
 }
+
+

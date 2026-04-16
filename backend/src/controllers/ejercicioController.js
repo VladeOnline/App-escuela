@@ -1,93 +1,157 @@
 const mongoose = require('mongoose');
 const Ejercicio = require('../models/ejercicioModel');
 const Resultado = require('../models/resultadoModel');
-const Evaluacion = require('../models/evaluacionModel');
-const Respuesta = require('../models/respuestamodel'); // modelo nuevo
+const Gamificacion = require('../models/gamificacionModel');
+const { registrarLog } = require('../utils/helpers');
 
 // ─────────────────────────────────────────────
-// RF-10: El docente crea un ejercicio
+// Función auxiliar: calcula los puntos según dificultad
+// Se usa en crearEjercicio y en responderEjercicio
+// ─────────────────────────────────────────────
+const calcularPuntos = (dificultad) => {
+  if (dificultad === 'basico')     return 10;
+  if (dificultad === 'intermedio') return 20;
+  if (dificultad === 'avanzado')   return 30;
+  return 0;
+};
+
+// ─────────────────────────────────────────────
+// Función auxiliar: valida el campo content según el tipo de ejercicio
+// Devuelve un mensaje de error si algo falta, o null si todo está bien
+// ─────────────────────────────────────────────
+const validarContent = (tipo, content) => {
+  if (!content || typeof content !== 'object') {
+    return 'El campo content es obligatorio';
+  }
+
+  switch (tipo) {
+    case 'seleccion_multiple':
+      // Necesita: question (string), options (array de al menos 2), correctIndex (número)
+      if (!content.question || content.question.trim() === '') return 'seleccion_multiple requiere el campo question';
+      if (!Array.isArray(content.options) || content.options.length < 2) return 'seleccion_multiple requiere al menos 2 opciones en options';
+      if (typeof content.correctIndex !== 'number') return 'seleccion_multiple requiere correctIndex (número)';
+      if (content.correctIndex < 0 || content.correctIndex >= content.options.length) return 'correctIndex está fuera del rango de opciones';
+      break;
+
+    case 'verdadero_falso':
+      // Necesita: statement (string), correctAnswer (boolean)
+      if (!content.statement || content.statement.trim() === '') return 'verdadero_falso requiere el campo statement';
+      if (typeof content.correctAnswer !== 'boolean') return 'verdadero_falso requiere correctAnswer (true o false)';
+      break;
+
+    case 'completar_espacio':
+      // Necesita: template con [BLANK], correctAnswer (string)
+      if (!content.template || !content.template.includes('[BLANK]')) return 'completar_espacio requiere template con la marca [BLANK]';
+      if (!content.correctAnswer || content.correctAnswer.trim() === '') return 'completar_espacio requiere correctAnswer';
+      break;
+
+    case 'ordenamiento':
+      // Necesita: words (array), correctOrder (array de igual longitud)
+      if (!Array.isArray(content.words) || content.words.length < 2) return 'ordenamiento requiere al menos 2 palabras en words';
+      if (!Array.isArray(content.correctOrder) || content.correctOrder.length !== content.words.length) return 'correctOrder debe tener la misma cantidad de elementos que words';
+      break;
+
+    default:
+      return 'Tipo de ejercicio no reconocido';
+  }
+
+  return null; // null = sin errores
+};
+
+// ─────────────────────────────────────────────
+// Función auxiliar: verifica si la respuesta del estudiante es correcta
+// Según el tipo de ejercicio, la comparación es diferente
+// ─────────────────────────────────────────────
+const verificarRespuesta = (tipo, content, respuestaDada) => {
+  switch (tipo) {
+    case 'seleccion_multiple':
+      // respuestaDada debe ser el índice de la opción seleccionada (número)
+      return Number(respuestaDada) === content.correctIndex;
+
+    case 'verdadero_falso':
+      // respuestaDada debe ser 'true' o 'false' como string
+      return respuestaDada.toString() === content.correctAnswer.toString();
+
+    case 'completar_espacio':
+      // Comparación sin importar mayúsculas ni espacios
+      return respuestaDada.trim().toLowerCase() === content.correctAnswer.trim().toLowerCase();
+
+    case 'ordenamiento':
+      // respuestaDada debe ser un array de índices en el orden que eligió el estudiante
+      if (!Array.isArray(respuestaDada)) return false;
+      return JSON.stringify(respuestaDada) === JSON.stringify(content.correctOrder);
+
+    default:
+      return false;
+  }
+};
+
+// ─────────────────────────────────────────────
+// RF-10: El docente crea un ejercicio nuevo
+// POST /api/ejercicios
 // ─────────────────────────────────────────────
 const crearEjercicio = async (req, res) => {
   try {
-    const { contenido_id, evaluacion_id, pregunta, opciones, respuesta_correcta, dificultad } = req.body;
+    const { contenido_id, titulo, instrucciones, tipo, dificultad, materia, tiempo_limite, intentos_max, content } = req.body;
 
-    // RF-29: validar campos obligatorios
-    if (!contenido_id || !evaluacion_id || !pregunta || !respuesta_correcta || !dificultad) {
+    // Validar campos obligatorios
+    if (!contenido_id || !titulo || !instrucciones || !tipo || !dificultad || !materia || !content) {
       return res.status(400).json({
-        mensaje: 'Faltan campos obligatorios: contenido_id, evaluacion_id, pregunta, respuesta_correcta, dificultad'
+        mensaje: 'Faltan campos obligatorios: contenido_id, titulo, instrucciones, tipo, dificultad, materia, content'
       });
     }
 
-    // Validar IDs de Mongo
-    if (
-      !mongoose.Types.ObjectId.isValid(contenido_id) ||
-      !mongoose.Types.ObjectId.isValid(evaluacion_id)
-    ) {
-      return res.status(400).json({
-        mensaje: 'contenido_id o evaluacion_id no tienen un formato válido'
-      });
+    // Validar que el contenido_id sea un ObjectId válido de MongoDB
+    if (!mongoose.Types.ObjectId.isValid(contenido_id)) {
+      return res.status(400).json({ mensaje: 'contenido_id no tiene un formato válido' });
     }
 
-    // Validar texto vacío
-    if (
-      pregunta.trim() === '' ||
-      respuesta_correcta.trim() === '' ||
-      dificultad.trim() === ''
-    ) {
-      return res.status(400).json({
-        mensaje: 'Pregunta, respuesta_correcta y dificultad no pueden ir vacíos'
-      });
+    // Validar que tipo y dificultad tengan valores permitidos
+    const tiposValidos = ['seleccion_multiple', 'verdadero_falso', 'completar_espacio', 'ordenamiento'];
+    if (!tiposValidos.includes(tipo)) {
+      return res.status(400).json({ mensaje: 'tipo debe ser: seleccion_multiple, verdadero_falso, completar_espacio u ordenamiento' });
     }
 
-    // RF-11: validar dificultad
-    const dificultadesValidas = ['facil', 'medio', 'dificil'];
-    if (!dificultadesValidas.includes(dificultad.trim().toLowerCase())) {
-      return res.status(400).json({
-        mensaje: 'La dificultad debe ser: facil, medio o dificil'
-      });
+    const dificultadesValidas = ['basico', 'intermedio', 'avanzado'];
+    if (!dificultadesValidas.includes(dificultad)) {
+      return res.status(400).json({ mensaje: 'dificultad debe ser: basico, intermedio o avanzado' });
     }
 
-    // RF-29: validar opciones si vienen
-    if (opciones && !Array.isArray(opciones)) {
-      return res.status(400).json({
-        mensaje: 'El campo opciones debe ser un arreglo'
-      });
+    const materiasValidas = ['español', 'matematicas', 'ciencias', 'estudios_sociales'];
+    if (!materiasValidas.includes(materia)) {
+      return res.status(400).json({ mensaje: 'materia debe ser: español, matematicas, ciencias o estudios_sociales' });
     }
 
-    if (opciones && opciones.length > 0) {
-      const opcionesLimpias = opciones.map(op => op.trim()).filter(op => op !== '');
-
-      if (opcionesLimpias.length < 2) {
-        return res.status(400).json({
-          mensaje: 'Debe haber al menos 2 opciones válidas'
-        });
-      }
-
-      if (!opcionesLimpias.includes(respuesta_correcta.trim())) {
-        return res.status(400).json({
-          mensaje: 'La respuesta correcta debe estar dentro de las opciones'
-        });
-      }
+    // Validar el campo content según el tipo de ejercicio
+    const errorContent = validarContent(tipo, content);
+    if (errorContent) {
+      return res.status(400).json({ mensaje: errorContent });
     }
 
-    const evaluacion = await Evaluacion.findById(evaluacion_id);
-    if (!evaluacion) {
-      return res.status(404).json({
-        mensaje: 'La evaluación indicada no existe'
-      });
-    }
+    // Calcular puntos automáticamente según la dificultad
+    const puntos = calcularPuntos(dificultad);
 
+    // Crear y guardar el ejercicio
     const nuevoEjercicio = new Ejercicio({
       contenido_id,
-      evaluacion_id,
-      pregunta: pregunta.trim(),
-      opciones: opciones ? opciones.map(op => op.trim()) : [],
-      respuesta_correcta: respuesta_correcta.trim(),
-      dificultad: dificultad.trim().toLowerCase(),
+      titulo: titulo.trim(),
+      instrucciones: instrucciones.trim(),
+      tipo,
+      dificultad,
+      materia,
+      puntos,                          // calculado automáticamente
+      tiempo_limite: tiempo_limite || 5,
+      intentos_max: intentos_max || 3,
+      content,
       activo: true
     });
 
     const ejercicioGuardado = await nuevoEjercicio.save();
+
+    // RF-26: Registrar acción del docente en el log
+    if (req.usuario?.id) {
+      await registrarLog(req.usuario.id, `Creó ejercicio: "${titulo.trim()}" en contenido ${contenido_id}`);
+    }
 
     res.status(201).json({
       mensaje: 'Ejercicio creado exitosamente',
@@ -95,143 +159,329 @@ const crearEjercicio = async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({
-      mensaje: 'Error al crear el ejercicio',
-      error: error.message
-    });
+    res.status(500).json({ mensaje: 'Error al crear el ejercicio', error: error.message });
   }
 };
-// RF-12: Activar o desactivar ejercicio
-const cambiarEstadoEjercicio = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { activo } = req.body;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        mensaje: 'ID de ejercicio inválido'
-      });
-    }
-
-    if (typeof activo !== 'boolean') {
-      return res.status(400).json({
-        mensaje: 'El campo activo debe ser true o false'
-      });
-    }
-
-    const ejercicioActualizado = await Ejercicio.findByIdAndUpdate(
-      id,
-      { activo },
-      { new: true }
-    );
-
-    if (!ejercicioActualizado) {
-      return res.status(404).json({
-        mensaje: 'Ejercicio no encontrado'
-      });
-    }
-
-    res.status(200).json({
-      mensaje: activo
-        ? 'Ejercicio activado correctamente'
-        : 'Ejercicio desactivado correctamente',
-      ejercicio: ejercicioActualizado
-    });
-
-  } catch (error) {
-    res.status(500).json({
-      mensaje: 'Error al cambiar el estado del ejercicio',
-      error: error.message
-    });
-  }
-};
+// ─────────────────────────────────────────────
+// Obtener ejercicios de un contenido específico
+// GET /api/ejercicios?contenido_id=xxx
+// El frontend llama esto cuando el docente abre un módulo/contenido
+// ─────────────────────────────────────────────
 const obtenerEjercicios = async (req, res) => {
   try {
-    const ejercicios = await Ejercicio.find()
-      .populate('contenido_id')
-      .populate('evaluacion_id');
+    const { contenido_id, estudiante_id, pendientes } = req.query;
+
+    // Si viene contenido_id filtramos por ese contenido
+    // Si no viene, devolvemos todos (útil para admin)
+    const filtro = contenido_id ? { contenido_id } : {};
+
+    // Cuando consulta un estudiante, devolvemos solo ejercicios activos.
+    if (estudiante_id) {
+      if (!mongoose.Types.ObjectId.isValid(estudiante_id)) {
+        return res.status(400).json({ mensaje: 'estudiante_id no tiene un formato válido' });
+      }
+      filtro.activo = true;
+    }
+
+    // Si se solicita "pendientes", ocultamos ejercicios ya resueltos correctamente
+    // por ese estudiante para evitar repeticiones y farming de puntos.
+    if (estudiante_id && pendientes === 'true') {
+      const ejerciciosCompletados = await Resultado.distinct('ejercicio_id', {
+        estudiante_id,
+        es_correcto: true
+      });
+      filtro._id = { $nin: ejerciciosCompletados };
+    }
+
+    const ejercicios = await Ejercicio.find(filtro)
+      .populate('contenido_id', 'titulo grado'); // traemos solo título y grado del contenido
 
     res.status(200).json({
       total: ejercicios.length,
       ejercicios
     });
+
   } catch (error) {
-    res.status(500).json({
-      mensaje: 'Error al obtener ejercicios',
-      error: error.message
-    });
+    res.status(500).json({ mensaje: 'Error al obtener ejercicios', error: error.message });
   }
 };
-// ─────────────────────────────────────────────
-// RF-13 + RF-14 (PASO 1): El estudiante responde UNA pregunta
-//
-// AHORA sí guarda la respuesta en la BD.
-// Flutter sigue recibiendo si fue correcta o no para mostrar el ✅ o ❌,
-// pero ya no necesitamos confiar en lo que Flutter nos diga al finalizar.
-// ─────────────────────────────────────────────
-const responderPregunta = async (req, res) => {
-  try {
-    // Ahora necesitamos también estudiante_id y evaluacion_id para guardar la respuesta
-    const { estudiante_id, evaluacion_id, ejercicio_id, respuesta_dada } = req.body;
 
-    // Validamos que lleguen todos los campos
-    if (!estudiante_id || !evaluacion_id || !ejercicio_id || !respuesta_dada) {
-      return res.status(400).json({
-        mensaje: 'Faltan campos: estudiante_id, evaluacion_id, ejercicio_id, respuesta_dada'
-      });
+// ─────────────────────────────────────────────
+// Obtener un ejercicio por su ID
+// GET /api/ejercicios/:id
+// El frontend llama esto cuando el estudiante abre un ejercicio específico
+// ─────────────────────────────────────────────
+const obtenerEjercicioPorId = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ mensaje: 'ID de ejercicio inválido' });
     }
 
-    // Buscamos el ejercicio para obtener la respuesta correcta
-    const ejercicio = await Ejercicio.findById(ejercicio_id);
+    const ejercicio = await Ejercicio.findById(id)
+      .populate('contenido_id', 'titulo grado');
+
     if (!ejercicio) {
       return res.status(404).json({ mensaje: 'Ejercicio no encontrado' });
     }
-    if (!ejercicio.activo) {
-      return res.status(403).json({ mensaje: 'Este ejercicio no está activo' });
+
+    res.status(200).json({ ejercicio });
+
+  } catch (error) {
+    res.status(500).json({ mensaje: 'Error al obtener el ejercicio', error: error.message });
+  }
+};
+
+// ─────────────────────────────────────────────
+// Editar un ejercicio existente
+// PUT /api/ejercicios/:id
+// ─────────────────────────────────────────────
+const editarEjercicio = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { titulo, instrucciones, tipo, dificultad, materia, tiempo_limite, intentos_max, content } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ mensaje: 'ID de ejercicio inválido' });
     }
 
-    // Verificamos que el ejercicio pertenece a la evaluación indicada
-    // Esto evita que alguien mande un ejercicio de otra evaluación
-    if (ejercicio.evaluacion_id.toString() !== evaluacion_id) {
-      return res.status(400).json({ mensaje: 'Este ejercicio no pertenece a esa evaluación' });
+    // Si cambió la dificultad, recalculamos los puntos
+    const actualizacion = {};
+    if (titulo)        actualizacion.titulo = titulo.trim();
+    if (instrucciones) actualizacion.instrucciones = instrucciones.trim();
+    if (tipo)          actualizacion.tipo = tipo;
+    if (materia)       actualizacion.materia = materia;
+    if (tiempo_limite) actualizacion.tiempo_limite = tiempo_limite;
+    if (intentos_max)  actualizacion.intentos_max = intentos_max;
+    if (content)       actualizacion.content = content;
+
+    if (dificultad) {
+      actualizacion.dificultad = dificultad;
+      actualizacion.puntos = calcularPuntos(dificultad); // recalculamos puntos
     }
 
-    // Verificamos que este estudiante no haya respondido ya este ejercicio
-    // en este intento — evitamos respuestas duplicadas
-    const yaRespondio = await Respuesta.findOne({ estudiante_id, evaluacion_id, ejercicio_id });
-    if (yaRespondio) {
-      return res.status(400).json({ mensaje: 'Ya respondiste este ejercicio en esta evaluación' });
+    // Si viene content nuevo, lo validamos con el tipo actual
+    if (content && tipo) {
+      const errorContent = validarContent(tipo, content);
+      if (errorContent) return res.status(400).json({ mensaje: errorContent });
     }
 
-    // ── RF-14: Comparamos la respuesta con la correcta ──
-    const esCorrecta = respuesta_dada.trim().toLowerCase() === ejercicio.respuesta_correcta.trim().toLowerCase();
+    const ejercicioActualizado = await Ejercicio.findByIdAndUpdate(
+      id,
+      actualizacion,
+      { new: true } // devuelve el documento ya actualizado
+    );
 
-    // Calculamos los puntos según dificultad
-    let puntosObtenidos = 0;
-    if (esCorrecta) {
-      if (ejercicio.dificultad === 'facil')   puntosObtenidos = 10;
-      if (ejercicio.dificultad === 'medio')   puntosObtenidos = 20;
-      if (ejercicio.dificultad === 'dificil') puntosObtenidos = 30;
+    if (!ejercicioActualizado) {
+      return res.status(404).json({ mensaje: 'Ejercicio no encontrado' });
     }
 
-    // ── RF-13: Guardamos la respuesta en la BD ──
-    // Ahora sí tenemos un registro real de lo que respondió el estudiante
-    const nuevaRespuesta = new Respuesta({
-      estudiante_id,
-      evaluacion_id,
-      ejercicio_id,
-      respuesta_dada,
-      es_correcta: esCorrecta,       // el backend decide esto, no Flutter
-      puntos_obtenidos: puntosObtenidos
+    if (req.usuario?.id) {
+      await registrarLog(req.usuario.id, `Editó ejercicio: "${ejercicioActualizado.titulo}"`);
+    }
+
+    res.status(200).json({
+      mensaje: 'Ejercicio actualizado correctamente',
+      ejercicio: ejercicioActualizado
     });
 
-    await nuevaRespuesta.save();
+  } catch (error) {
+    res.status(500).json({ mensaje: 'Error al editar el ejercicio', error: error.message });
+  }
+};
 
-    // Respondemos a Flutter para que muestre el ✅ o ❌
+// ─────────────────────────────────────────────
+// RF-12: Activar o desactivar un ejercicio
+// PATCH /api/ejercicios/:id/toggle
+// El docente puede ocultar ejercicios sin eliminarlos
+// ─────────────────────────────────────────────
+const toggleEjercicio = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ mensaje: 'ID de ejercicio inválido' });
+    }
+
+    // Buscamos el ejercicio para saber su estado actual
+    const ejercicio = await Ejercicio.findById(id);
+    if (!ejercicio) {
+      return res.status(404).json({ mensaje: 'Ejercicio no encontrado' });
+    }
+
+    // Invertimos el estado actual: si estaba activo lo desactivamos y viceversa
+    ejercicio.activo = !ejercicio.activo;
+    await ejercicio.save();
+
+    res.status(200).json({
+      mensaje: ejercicio.activo ? 'Ejercicio activado' : 'Ejercicio desactivado',
+      id: ejercicio._id,
+      activo: ejercicio.activo
+    });
+
+  } catch (error) {
+    res.status(500).json({ mensaje: 'Error al cambiar estado del ejercicio', error: error.message });
+  }
+};
+
+// ─────────────────────────────────────────────
+// Activar o desactivar varios ejercicios a la vez
+// PATCH /api/ejercicios/bulk-toggle
+// El docente selecciona varios y los activa/desactiva juntos
+// ─────────────────────────────────────────────
+const bulkToggleEjercicios = async (req, res) => {
+  try {
+    const { ids, activo } = req.body;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ mensaje: 'Se requiere un arreglo de ids' });
+    }
+
+    if (typeof activo !== 'boolean') {
+      return res.status(400).json({ mensaje: 'El campo activo debe ser true o false' });
+    }
+
+    // Actualizamos todos los ejercicios del arreglo de una sola vez
+    // $in es el operador de MongoDB equivalente al IN de SQL
+    const resultado = await Ejercicio.updateMany(
+      { _id: { $in: ids } },
+      { activo }
+    );
+
+    res.status(200).json({
+      mensaje: activo ? 'Ejercicios activados' : 'Ejercicios desactivados',
+      actualizados: resultado.modifiedCount
+    });
+
+  } catch (error) {
+    res.status(500).json({ mensaje: 'Error al actualizar ejercicios', error: error.message });
+  }
+};
+
+// ─────────────────────────────────────────────
+// Eliminar un ejercicio
+// DELETE /api/ejercicios/:id
+// ─────────────────────────────────────────────
+const eliminarEjercicio = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ mensaje: 'ID de ejercicio inválido' });
+    }
+
+    const ejercicio = await Ejercicio.findByIdAndDelete(id);
+    if (!ejercicio) {
+      return res.status(404).json({ mensaje: 'Ejercicio no encontrado' });
+    }
+
+    if (req.usuario?.id) {
+      await registrarLog(req.usuario.id, `Eliminó ejercicio: "${ejercicio.titulo}"`);
+    }
+
+    res.status(200).json({ mensaje: 'Ejercicio eliminado correctamente' });
+
+  } catch (error) {
+    res.status(500).json({ mensaje: 'Error al eliminar el ejercicio', error: error.message });
+  }
+};
+
+// ─────────────────────────────────────────────
+// RF-13 + RF-14 + RF-24: El estudiante responde un ejercicio
+// POST /api/ejercicios/:id/responder
+//
+// Compara la respuesta con la correcta, guarda el resultado
+// y devuelve retroalimentación inmediata para que Flutter
+// muestre el ✅ o ❌ con los puntos ganados
+// ─────────────────────────────────────────────
+const responderEjercicio = async (req, res) => {
+  try {
+    const { id } = req.params;                        // ejercicio_id viene en la URL
+    const { estudiante_id, respuesta_dada } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ mensaje: 'ID de ejercicio inválido' });
+    }
+
+    if (!estudiante_id || respuesta_dada === undefined) {
+      return res.status(400).json({ mensaje: 'Se requieren: estudiante_id y respuesta_dada' });
+    }
+
+    // Buscamos el ejercicio
+    const ejercicio = await Ejercicio.findById(id);
+    if (!ejercicio) return res.status(404).json({ mensaje: 'Ejercicio no encontrado' });
+    if (!ejercicio.activo) return res.status(403).json({ mensaje: 'Este ejercicio no está activo' });
+
+    // Verificamos cuántos intentos previos tuvo este estudiante en este ejercicio
+    const intentosPrevios = await Resultado.countDocuments({ estudiante_id, ejercicio_id: id });
+
+    // Si ya agotó los intentos, permitimos seguir respondiendo,
+    // pero ya no puede ganar puntos.
+    const superoIntentos = intentosPrevios >= ejercicio.intentos_max;
+
+    // Si ya lo respondió bien una vez, permitimos reintento pero sin sumar puntos.
+    const yaRespondioCorrecto = await Resultado.exists({
+      estudiante_id,
+      ejercicio_id: id,
+      es_correcto: true
+    });
+
+    // ── RF-14: Verificamos si la respuesta es correcta ──
+    // La función verificarRespuesta sabe cómo comparar según el tipo
+    const esCorrecta = verificarRespuesta(ejercicio.tipo, ejercicio.content, respuesta_dada);
+
+    // Los puntos se ganan solo si:
+    // 1) es correcto, 2) no había acierto previo, 3) aún está dentro de intentos con premio.
+    const puntosObtenidos = (esCorrecta && !yaRespondioCorrecto && !superoIntentos)
+      ? ejercicio.puntos
+      : 0;
+
+    // ── RF-13: Guardamos el resultado en la BD ──
+    const nuevoResultado = new Resultado({
+      estudiante_id,
+      ejercicio_id: id,
+      puntuacion: puntosObtenidos,
+      intentos: intentosPrevios + 1,
+      es_correcto: esCorrecta,
+      fecha: new Date()
+    });
+
+    await nuevoResultado.save();
+
+    // ── RF-20: Si acertó, sumamos puntos a la gamificación ──
+    if (esCorrecta) {
+      await Gamificacion.findOneAndUpdate(
+        { estudiante_id },
+        {
+          $inc: { puntos_total: puntosObtenidos },
+          $set: { actualizado_en: new Date() }
+        },
+        { upsert: true, new: true }
+      );
+    }
+
+    // ── RF-24: Retroalimentación inmediata para Flutter ──
     res.status(201).json({
-      esCorrecta,
-      puntosObtenidos,
-      respuestaCorrecta: esCorrecta ? null : ejercicio.respuesta_correcta
+      mensaje: esCorrecta
+          ? (superoIntentos
+              ? '¡Respuesta correcta! Ya no suma puntos porque superaste los intentos con premio.'
+              : (yaRespondioCorrecto
+                  ? '¡Respuesta correcta! Ya habías ganado puntos en un intento anterior.'
+                  : '¡Respuesta correcta!'))
+          : 'Respuesta incorrecta',
+      retroalimentacion: {
+        esCorrecta,
+        puntosObtenidos,
+        yaRespondioCorrecto: Boolean(yaRespondioCorrecto),
+        sinPuntosPorIntentos: Boolean(superoIntentos),
+        intento: intentosPrevios + 1,
+        intentosRestantes: Math.max(0, ejercicio.intentos_max - (intentosPrevios + 1)),
+        // Si falló le mostramos la respuesta correcta para que aprenda
+        respuestaCorrecta: esCorrecta ? null : ejercicio.content.correctAnswer ?? ejercicio.content.correctIndex,
+        explicacion: ejercicio.content.explanation ?? null
+      }
     });
 
   } catch (error) {
@@ -240,93 +490,20 @@ const responderPregunta = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────
-// RF-13 + RF-14 (PASO 2): Finalizar la evaluación
-//
-// Ya NO recibe respuestasCorrectas desde Flutter.
-// El backend busca en la BD todas las respuestas guardadas
-// y calcula la nota él solo. Flutter no puede mentir.
+// Obtener resultados de un ejercicio (para el docente)
+// GET /api/ejercicios/:id/resultados
 // ─────────────────────────────────────────────
-const finalizarEvaluacion = async (req, res) => {
-  try {
-    const { estudiante_id, evaluacion_id } = req.body;
-
-    if (!estudiante_id || !evaluacion_id) {
-      return res.status(400).json({ mensaje: 'Se requieren: estudiante_id y evaluacion_id' });
-    }
-
-    // Verificamos que la evaluación existe
-    const evaluacion = await Evaluacion.findById(evaluacion_id);
-    if (!evaluacion) {
-      return res.status(404).json({ mensaje: 'Evaluación no encontrada' });
-    }
-
-    // Verificamos el límite de intentos
-    const intentosPrevios = await Resultado.countDocuments({ estudiante_id, evaluacion_id });
-    if (intentosPrevios >= evaluacion.intentos_max) {
-      return res.status(403).json({
-        mensaje: `Ya usaste todos los intentos permitidos (${evaluacion.intentos_max})`
-      });
-    }
-
-    // ── Aquí está la clave: el backend busca las respuestas guardadas ──
-    // Buscamos todas las respuestas que guardó /responder para este estudiante en esta evaluación
-    const respuestasGuardadas = await Respuesta.find({ estudiante_id, evaluacion_id });
-
-    // Si no hay ninguna respuesta guardada, el estudiante no respondió nada
-    if (respuestasGuardadas.length === 0) {
-      return res.status(400).json({ mensaje: 'No hay respuestas registradas para esta evaluación' });
-    }
-
-    // Contamos cuántas fueron correctas leyendo los datos reales de la BD
-    // .filter() crea un arreglo nuevo solo con los elementos que cumplan la condición
-    const correctas = respuestasGuardadas.filter(r => r.es_correcta).length;
-    const totalPreguntas = respuestasGuardadas.length;
-
-    // ── RF-14: Calculamos la nota final con datos reales ──
-    const notaFinal = Math.round((correctas / totalPreguntas) * 100);
-
-    // ── RF-13: Guardamos el resultado final en la BD ──
-    const nuevoResultado = new Resultado({
-      estudiante_id,
-      evaluacion_id,
-      puntuacion: notaFinal,          // nota calculada por el backend, no por Flutter
-      intentos: intentosPrevios + 1,
-      fecha: new Date()
-    });
-
-    await nuevoResultado.save();
-
-    // Limpiamos las respuestas temporales de este intento
-    // Ya no las necesitamos porque el resultado final quedó guardado en 'resultados'
-    await Respuesta.deleteMany({ estudiante_id, evaluacion_id });
-
-    // Respondemos con el resumen final
-    res.status(201).json({
-      mensaje: 'Evaluación finalizada',
-      resumen: {
-        notaFinal,                             // calculado por el backend
-        respuestasCorrectas: correctas,        // contado por el backend
-        totalPreguntas,                        // contado por el backend
-        intento: intentosPrevios + 1,
-        intentosRestantes: evaluacion.intentos_max - (intentosPrevios + 1),
-        aprobado: notaFinal >= 70              // 70 es la nota mínima en Costa Rica
-      }
-    });
-
-  } catch (error) {
-    res.status(500).json({ mensaje: 'Error al finalizar la evaluación', error: error.message });
-  }
-};
-
-// ─────────────────────────────────────────────
-// Extra: El docente consulta los resultados de una evaluación
-// ─────────────────────────────────────────────
-const obtenerResultadosPorEvaluacion = async (req, res) => {
+const obtenerResultadosPorEjercicio = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const resultados = await Resultado.find({ evaluacion_id: id })
-      .populate('estudiante_id', 'nombre grado');
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ mensaje: 'ID de ejercicio inválido' });
+    }
+
+    const resultados = await Resultado.find({ ejercicio_id: id })
+      .populate('estudiante_id', 'nombre grado')
+      .sort({ fecha: -1 }); // más recientes primero
 
     res.status(200).json({
       total: resultados.length,
@@ -340,10 +517,12 @@ const obtenerResultadosPorEvaluacion = async (req, res) => {
 
 module.exports = {
   crearEjercicio,
-  cambiarEstadoEjercicio,
   obtenerEjercicios,
-  responderPregunta,
-  finalizarEvaluacion,
-  obtenerResultadosPorEvaluacion
-
+  obtenerEjercicioPorId,
+  editarEjercicio,
+  toggleEjercicio,
+  bulkToggleEjercicios,
+  eliminarEjercicio,
+  responderEjercicio,
+  obtenerResultadosPorEjercicio
 };

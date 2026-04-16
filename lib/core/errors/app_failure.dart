@@ -1,4 +1,4 @@
-/// Tipos de fallo del dominio.
+﻿/// Tipos de fallo del dominio.
 /// El Back puede extender estos cuando conecte la lógica real.
 sealed class AppFailure {
   final String message;
@@ -28,3 +28,4 @@ final class ServerFailure extends AppFailure {
 final class UnexpectedFailure extends AppFailure {
   const UnexpectedFailure(super.message);
 }
+

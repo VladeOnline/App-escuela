@@ -1,13 +1,13 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import 'subject.dart';
 
 export 'subject.dart';
 
-// ─── Enums ───
+// --- Enums ---
 
 /// Tipo de módulo académico disponible en el sistema.
-enum ModuleType { reading, writing }
+enum ModuleType { reading, writing, math }
 
 /// Nivel de dificultad de un ejercicio.
 enum DifficultyLevel { basic, intermediate, advanced }
@@ -20,17 +20,19 @@ enum ExerciseType {
   ordering,         // Ordenar elementos
 }
 
-// ─── Extensiones de conveniencia ───
+// --- Extensiones de conveniencia ---
 
 extension ModuleTypeX on ModuleType {
   String get label => switch (this) {
         ModuleType.reading => 'Lectura',
         ModuleType.writing => 'Escritura',
+        ModuleType.math    => 'Matemáticas',
       };
-
+ 
   IconData get icon => switch (this) {
         ModuleType.reading => Icons.chrome_reader_mode_outlined,
         ModuleType.writing => Icons.edit_note_rounded,
+        ModuleType.math    => Icons.calculate_outlined,
       };
 }
 
@@ -70,7 +72,7 @@ extension ExerciseTypeX on ExerciseType {
       };
 }
 
-// ─── Entidades de dominio ───
+// --- Entidades de dominio ---
 
 /// Entidad de un módulo académico (Lectura o Escritura).
 @immutable
@@ -136,22 +138,28 @@ class ExerciseResult {
   final bool isCorrect;
   final int pointsEarned;
   final DateTime completedAt;
+  final dynamic submittedAnswer;
 
   const ExerciseResult({
     required this.exerciseId,
     required this.isCorrect,
     required this.pointsEarned,
     required this.completedAt,
+    this.submittedAnswer,
   });
 
   factory ExerciseResult.fromExercise({
     required ExerciseEntity exercise,
     required bool isCorrect,
+    dynamic submittedAnswer,
+    int? pointsEarned,
   }) => ExerciseResult(
     exerciseId: exercise.id,
     isCorrect: isCorrect,
-    pointsEarned: isCorrect ? exercise.difficulty.basePoints : 0,
+    pointsEarned: pointsEarned ?? (isCorrect ? exercise.difficulty.basePoints : 0),
     completedAt: DateTime.now(),
+    submittedAnswer: submittedAnswer,
   );
 
 }
+

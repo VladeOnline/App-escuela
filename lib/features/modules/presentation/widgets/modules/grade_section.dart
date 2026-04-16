@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../core/theme/app_theme.dart';
-import '../../../data/repositories/mock_module_repository.dart';
+import '../../../data/repositories/api_module_repository.dart';
 import '../../../domain/entities/module_entities.dart';
+import '../../pages/content_form_page.dart'; // ← nueva página
 import 'create_module_card.dart';
 import 'module_card.dart';
 
-// ─── Sección por grado ───
+// ─── Sección por grado ────────────────────────────────────────────────────────
 
 class GradeSection extends StatelessWidget {
   const GradeSection({
@@ -15,17 +16,35 @@ class GradeSection extends StatelessWidget {
     required this.modules,
     required this.repository,
     required this.isTeacher,
+    required this.moduleType,
+    required this.onCreated,
   });
 
   final int grade;
   final List<ModuleEntity> modules;
-  final MockModuleRepository repository;
+  final ApiModuleRepository repository;
   final bool isTeacher;
+  final ModuleType moduleType;
+  final VoidCallback onCreated;
 
   static const _gradeNames = {
     1: 'Primer grado',  2: 'Segundo grado', 3: 'Tercer grado',
     4: 'Cuarto grado',  5: 'Quinto grado',  6: 'Sexto grado',
   };
+
+  /// Navega a ContentFormPage y recarga si se creó algo.
+  Future<void> _goToCreateContent(BuildContext context) async {
+    final created = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => ContentFormPage(
+          moduleType: moduleType,
+          grade: grade,
+          repository: repository,
+        ),
+      ),
+    );
+    if (created == true) onCreated();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +56,7 @@ class GradeSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Encabezado del grado ───
+          // ── Encabezado del grado ───────────────────────────────────────
           Row(children: [
             Container(
               width: 28, height: 28,
@@ -65,9 +84,14 @@ class GradeSection extends StatelessWidget {
           ]),
           const SizedBox(height: AppSpacing.md),
 
-          // ── Cards o estado vacío ───
+          // ── Cards o estado vacío ───────────────────────────────────────
           if (modules.isEmpty)
-            GradeEmptyState(color: color, gradeName: name)
+            GradeEmptyState(
+              color: color,
+              gradeName: name,
+              // ← ahora pasa el callback real en vez del snackbar
+              onCreateTap: () => _goToCreateContent(context),
+            )
           else
             LayoutBuilder(builder: (_, constraints) {
               const cols    = 3;
@@ -84,12 +108,18 @@ class GradeSection extends StatelessWidget {
                       module: m,
                       repository: repository,
                       isTeacher: isTeacher,
+                      onDeleted: onCreated,
                     ),
                   )),
                   SizedBox(
                     width: cardW,
                     height: 190,
-                    child: const CreateModuleCard(),
+                    child: CreateModuleCard(
+                      repository: repository,
+                      moduleType: moduleType,
+                      grade: grade,
+                      onCreated: onCreated,
+                    ),
                   ),
                 ],
               );
@@ -100,17 +130,19 @@ class GradeSection extends StatelessWidget {
   }
 }
 
-// ─── Estado vacío de grado ───
+// ─── Estado vacío de grado ────────────────────────────────────────────────────
 
 class GradeEmptyState extends StatelessWidget {
   const GradeEmptyState({
     super.key,
     required this.color,
     required this.gradeName,
+    required this.onCreateTap, // ← antes no existía; era un snackbar hardcodeado
   });
 
   final Color color;
   final String gradeName;
+  final VoidCallback onCreateTap; // ← NUEVO
 
   @override
   Widget build(BuildContext context) {
@@ -143,15 +175,12 @@ class GradeEmptyState extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: AppSpacing.xs),
+          // ── Antes: snackbar "Esta función aún no está disponible 🚧"
+          // ── Ahora: navega a ContentFormPage
           MouseRegion(
             cursor: SystemMouseCursors.click,
             child: GestureDetector(
-              onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Esta función aún no está disponible 🚧'),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              ),
+              onTap: onCreateTap,
               child: Text(
                 '¡Empieza a crearlos →!',
                 style: TextStyle(

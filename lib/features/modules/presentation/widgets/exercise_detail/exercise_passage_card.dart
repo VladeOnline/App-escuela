@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../../../../core/theme/app_theme.dart';
 
@@ -21,26 +21,26 @@ class _ExercisePassageCardState extends State<ExercisePassageCard> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: const BorderRadius.all(AppRadius.xl),
-        border: Border.all(color: AppColors.accent.withOpacity(0.2)),
+        border: Border.all(color: AppColors.accent.withValues(alpha: 0.2)),
         boxShadow: [BoxShadow(
-            color: AppColors.accent.withOpacity(0.08),
+            color: AppColors.accent.withValues(alpha: 0.08),
             blurRadius: 16, offset: const Offset(0, 4))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // ── Header ────────────────────────────────────────────
+          // -- Header --------------------------------------------
           Container(
             padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.lg, vertical: AppSpacing.md),
             decoration: BoxDecoration(
-              color: AppColors.accent.withOpacity(0.07),
+              color: AppColors.accent.withValues(alpha: 0.07),
               borderRadius: const BorderRadius.vertical(top: AppRadius.xl),
               border: Border(
-                  bottom: BorderSide(color: AppColors.accent.withOpacity(0.15))),
+                  bottom: BorderSide(color: AppColors.accent.withValues(alpha: 0.15))),
             ),
             child: Row(children: [
-              // Búho sin fondo negro — blendMode multiply elimina el negro
+              // Búho sin fondo negro â€” blendMode multiply elimina el negro
               SizedBox(
                 width: 44, height: 44,
                 child: Image.asset(
@@ -57,7 +57,7 @@ class _ExercisePassageCardState extends State<ExercisePassageCard> {
                         fontWeight: FontWeight.w700, color: AppColors.accent)),
                 Text('Lee con atención antes de responder',
                     style: TextStyle(fontSize: 11, fontFamily: 'Nunito',
-                        color: AppColors.accent.withOpacity(0.7))),
+                        color: AppColors.accent.withValues(alpha: 0.7))),
               ]),
               const Spacer(),
               if (_needsToggle)
@@ -69,7 +69,7 @@ class _ExercisePassageCardState extends State<ExercisePassageCard> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: AppSpacing.sm, vertical: 4),
                       decoration: BoxDecoration(
-                        color: AppColors.accent.withOpacity(0.12),
+                        color: AppColors.accent.withValues(alpha: 0.12),
                         borderRadius: const BorderRadius.all(AppRadius.full),
                       ),
                       child: Row(mainAxisSize: MainAxisSize.min, children: [
@@ -91,7 +91,7 @@ class _ExercisePassageCardState extends State<ExercisePassageCard> {
             ]),
           ),
 
-          // ── Texto ──────────────────────────────────────────────
+          // -- Texto ----------------------------------------------
           Padding(
             padding: const EdgeInsets.all(AppSpacing.lg),
             child: AnimatedCrossFade(
@@ -118,3 +118,4 @@ class _ExercisePassageCardState extends State<ExercisePassageCard> {
     );
   }
 }
+

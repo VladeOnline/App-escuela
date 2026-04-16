@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../shared/widgets/app_snackbar.dart';
-import '../../data/repositories/mock_module_repository.dart';
+import '../../data/repositories/api_module_repository.dart';
 import '../../domain/entities/module_entities.dart';
 import '../widgets/exercise_form/form_background.dart';
 import '../widgets/exercise_form/form_chrome.dart';
@@ -25,7 +25,7 @@ class ExerciseFormPage extends StatefulWidget {
 
   final String moduleId;
   final String moduleTitle;
-  final MockModuleRepository repository;
+  final ApiModuleRepository repository; // CAMBIO: Api en vez de Mock
   final DifficultyLevel? preselectedLevel;
 
   /// Si no es null, la página entra en modo edición con estos datos cargados.
@@ -40,24 +40,24 @@ class ExerciseFormPage extends StatefulWidget {
 class _ExerciseFormPageState extends State<ExerciseFormPage> {
   final _uuid = const Uuid();
 
-  // ─── Controllers comunes ───
+  // --- Controllers comunes ---
   final _titleCtrl        = TextEditingController();
   final _instructionsCtrl = TextEditingController();
   ExerciseType    _type       = ExerciseType.multipleChoice;
   DifficultyLevel _difficulty = DifficultyLevel.basic;
   Subject         _subject    = Subject.spanish;
 
-  // ─── Selección múltiple ───
+  // --- Selección múltiple ---
   final _questionCtrl    = TextEditingController();
   List<TextEditingController> _optionCtrls = List.generate(3, (_) => TextEditingController());
   int  _correctIndex     = 0;
   final _explanationCtrl = TextEditingController();
 
-  // ─── Verdadero / Falso ───
+  // --- Verdadero / Falso ---
   final _statementCtrl   = TextEditingController();
   bool _correctBool      = true;
 
-  // ─── Completar espacio ───
+  // --- Completar espacio ---
   final _templateCtrl    = TextEditingController();
   final _blankAnswerCtrl = TextEditingController();
   final _hintCtrl        = TextEditingController();
@@ -122,7 +122,7 @@ class _ExerciseFormPageState extends State<ExerciseFormPage> {
     super.dispose();
   }
 
-  // ─── Opciones dinámicas ───
+  // --- Opciones dinámicas ---
 
   void _addOption() => setState(() => _optionCtrls.add(TextEditingController()));
 
@@ -135,7 +135,7 @@ class _ExerciseFormPageState extends State<ExerciseFormPage> {
     });
   }
 
-  // ─── Limpiar ───
+  // --- Limpiar ---
 
   void _onClear() {
     for (final c in [
@@ -148,7 +148,7 @@ class _ExerciseFormPageState extends State<ExerciseFormPage> {
     setState(() { _correctIndex = 0; _correctBool = true; });
   }
 
-  // ─── Validación y guardado ───
+  // --- Validación y guardado ---
 
   Map<String, dynamic> _buildContent() => switch (_type) {
         ExerciseType.multipleChoice => {
@@ -209,10 +209,21 @@ class _ExerciseFormPageState extends State<ExerciseFormPage> {
     );
 
     if (widget.isEditing) {
-      // TODO(back): reemplazar con PATCH /api/exercises/:id
-      await widget.repository.updateExercise(exercise);
+      final result = await widget.repository.updateExercise(exercise);
+      if (!mounted) return;
+      if (result.failure != null) {
+        setState(() => _isLoading = false);
+        AppSnackbar.showError(context, result.failure!.message);
+        return;
+      }
     } else {
-      await widget.repository.createExercise(exercise);
+      final result = await widget.repository.createExercise(exercise);
+      if (!mounted) return;
+      if (result.failure != null) {
+        setState(() => _isLoading = false);
+        AppSnackbar.showError(context, result.failure!.message);
+        return;
+      }
     }
 
     if (!mounted) return;
@@ -224,7 +235,7 @@ class _ExerciseFormPageState extends State<ExerciseFormPage> {
     Navigator.of(context).pop(true);
   }
 
-  // ─── Build ───
+  // --- Build ---
 
   @override
   Widget build(BuildContext context) {

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../../../../core/theme/app_theme.dart';
 import '../../../domain/entities/module_entities.dart';
@@ -57,7 +57,7 @@ class _OrderingPlaceholder extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.all(AppSpacing.xl),
         decoration: BoxDecoration(
-          color: AppColors.secondary.withOpacity(0.06),
+          color: AppColors.secondary.withValues(alpha: 0.06),
           borderRadius: const BorderRadius.all(AppRadius.large),
         ),
         child: Column(children: [
@@ -68,7 +68,7 @@ class _OrderingPlaceholder extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            'Ejercicio de ordenamiento — próximo sprint',
+            'Ejercicio de ordenamiento - próximo sprint',
             style: Theme.of(context)
                 .textTheme
                 .titleMedium
@@ -78,3 +78,4 @@ class _OrderingPlaceholder extends StatelessWidget {
         ]),
       );
 }
+

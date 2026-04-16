@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../../../../core/theme/app_theme.dart';
 import '../../../domain/entities/module_entities.dart';
 
-// ─── Dropdown de materia ──────────────────────────────────────────────────────
+// --- Dropdown de materia ------------------------------------------------------
 
 class ExFormSubjectDropdown extends StatelessWidget {
   const ExFormSubjectDropdown({super.key, required this.value, required this.onChanged});
@@ -38,7 +38,7 @@ class ExFormSubjectDropdown extends StatelessWidget {
   }
 }
 
-// ─── Dropdown de tipo de ejercicio ────────────────────────────────────────────
+// --- Dropdown de tipo de ejercicio --------------------------------------------
 
 class ExFormTypeDropdown extends StatelessWidget {
   const ExFormTypeDropdown({super.key, required this.value, required this.onChanged});
@@ -62,7 +62,7 @@ class ExFormTypeDropdown extends StatelessWidget {
   }
 }
 
-// ─── Dropdown de nivel de dificultad ─────────────────────────────────────────
+// --- Dropdown de nivel de dificultad -----------------------------------------
 
 class ExFormDifficultyDropdown extends StatelessWidget {
   const ExFormDifficultyDropdown({super.key, required this.value, required this.onChanged});
@@ -95,7 +95,7 @@ class ExFormDifficultyDropdown extends StatelessWidget {
   }
 }
 
-// ─── Badge de puntos por dificultad ──────────────────────────────────────────
+// --- Badge de puntos por dificultad ------------------------------------------
 
 class ExFormDifficultyBadge extends StatelessWidget {
   const ExFormDifficultyBadge({super.key, required this.level});
@@ -120,3 +120,4 @@ class ExFormDifficultyBadge extends StatelessWidget {
     );
   }
 }
+

@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../../../../core/theme/app_theme.dart';
 
-// ─── Card con header coloreado ────────────────────────────────────────────────
+// --- Card con header coloreado ------------------------------------------------
 
 class ExFormSectionCard extends StatelessWidget {
   const ExFormSectionCard({
@@ -23,7 +23,7 @@ class ExFormSectionCard extends StatelessWidget {
         color: AppColors.surfaceCard,
         borderRadius: const BorderRadius.all(AppRadius.large),
         border: Border.all(color: AppColors.border),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 12, offset: const Offset(0, 4))],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 4))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -53,7 +53,7 @@ class ExFormSectionCard extends StatelessWidget {
   }
 }
 
-// ─── Label de campo con asterisco opcional ────────────────────────────────────
+// --- Label de campo con asterisco opcional ------------------------------------
 
 class ExFormFieldLabel extends StatelessWidget {
   const ExFormFieldLabel({
@@ -95,7 +95,7 @@ class ExFormFieldLabel extends StatelessWidget {
   }
 }
 
-// ─── Tile seleccionable (V/F) ─────────────────────────────────────────────────
+// --- Tile seleccionable (V/F) -------------------------------------------------
 
 class ExFormSelectableTile extends StatelessWidget {
   const ExFormSelectableTile({
@@ -123,7 +123,7 @@ class ExFormSelectableTile extends StatelessWidget {
           duration: const Duration(milliseconds: 180),
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: selected ? color.withOpacity(0.10) : Colors.transparent,
+            color: selected ? color.withValues(alpha: 0.10) : Colors.transparent,
             borderRadius: const BorderRadius.all(AppRadius.medium),
             border: Border.all(color: selected ? color : AppColors.border, width: 2),
           ),
@@ -147,3 +147,5 @@ class ExFormSelectableTile extends StatelessWidget {
     );
   }
 }
+
+

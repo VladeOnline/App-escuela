@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../../../../core/theme/app_theme.dart';
 import '../../../domain/entities/module_entities.dart';
@@ -11,7 +11,7 @@ class ExerciseInstructionsDialog extends StatelessWidget {
     return showGeneralDialog(
       context: context,
       barrierDismissible: false,
-      barrierColor: Colors.black.withOpacity(0.55),
+      barrierColor: Colors.black.withValues(alpha: 0.55),
       transitionDuration: const Duration(milliseconds: 380),
       transitionBuilder: (_, anim, __, child) => ScaleTransition(
         scale: CurvedAnimation(parent: anim, curve: Curves.elasticOut),
@@ -31,18 +31,18 @@ class ExerciseInstructionsDialog extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: const BorderRadius.all(AppRadius.xl),
-          boxShadow: [BoxShadow(color: color.withOpacity(0.25), blurRadius: 48, offset: const Offset(0, 20))],
+          boxShadow: [BoxShadow(color: color.withValues(alpha: 0.25), blurRadius: 48, offset: const Offset(0, 20))],
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // ── Cabecera con búho pensando ──
+            // -- Cabecera con búho pensando --
             Container(
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, 0),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [color.withOpacity(0.15), color.withOpacity(0.04)],
+                  colors: [color.withValues(alpha: 0.15), color.withValues(alpha: 0.04)],
                   begin: Alignment.topLeft, end: Alignment.bottomRight,
                 ),
                 borderRadius: const BorderRadius.vertical(top: AppRadius.xl),
@@ -56,7 +56,7 @@ class ExerciseInstructionsDialog extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 4),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.15),
+                    color: color.withValues(alpha: 0.15),
                     borderRadius: const BorderRadius.all(AppRadius.full),
                   ),
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
@@ -78,7 +78,7 @@ class ExerciseInstructionsDialog extends StatelessWidget {
               ]),
             ),
 
-            // ── Cuerpo ──
+            // -- Cuerpo --
             Padding(
               padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.lg),
               child: Column(children: [
@@ -86,9 +86,9 @@ class ExerciseInstructionsDialog extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.all(AppSpacing.md),
                   decoration: BoxDecoration(
-                    color: AppColors.accent.withOpacity(0.07),
+                    color: AppColors.accent.withValues(alpha: 0.07),
                     borderRadius: const BorderRadius.all(AppRadius.large),
-                    border: Border.all(color: AppColors.accent.withOpacity(0.2)),
+                    border: Border.all(color: AppColors.accent.withValues(alpha: 0.2)),
                   ),
                   child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     const Icon(Icons.lightbulb_outline_rounded, color: AppColors.accent, size: 20),
@@ -104,7 +104,7 @@ class ExerciseInstructionsDialog extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
                   decoration: BoxDecoration(
-                    color: AppColors.secondary.withOpacity(0.1),
+                    color: AppColors.secondary.withValues(alpha: 0.1),
                     borderRadius: const BorderRadius.all(AppRadius.full),
                   ),
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
@@ -141,3 +141,4 @@ class ExerciseInstructionsDialog extends StatelessWidget {
     );
   }
 }
+

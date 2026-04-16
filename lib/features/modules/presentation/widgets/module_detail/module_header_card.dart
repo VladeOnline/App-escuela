@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../../../core/theme/app_theme.dart';
 import '../../../domain/entities/module_entities.dart';
@@ -23,20 +23,20 @@ class ModuleHeaderCard extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.primary.withOpacity(0.08),
-            AppColors.primaryLight.withOpacity(0.04),
+            AppColors.primary.withValues(alpha: 0.08),
+            AppColors.primaryLight.withValues(alpha: 0.04),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: const BorderRadius.all(AppRadius.large),
         border: Border.all(
-          color: AppColors.primary.withOpacity(0.2),
+          color: AppColors.primary.withValues(alpha: 0.2),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.08),
+            color: AppColors.primary.withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -70,7 +70,7 @@ class ModuleHeaderCard extends StatelessWidget {
                   gradient: LinearGradient(
                     colors: [
                       Colors.transparent,
-                      AppColors.primary.withOpacity(0.2),
+                      AppColors.primary.withValues(alpha: 0.2),
                       Colors.transparent,
                     ],
                     begin: Alignment.topCenter,
@@ -90,7 +90,7 @@ class ModuleHeaderCard extends StatelessWidget {
   }
 }
 
-// ─── Bloque del título ───
+// --- Bloque del título ---
 
 class _TitleBlock extends StatelessWidget {
   const _TitleBlock({required this.module});
@@ -108,7 +108,7 @@ class _TitleBlock extends StatelessWidget {
             borderRadius: const BorderRadius.all(AppRadius.medium),
             boxShadow: [
               BoxShadow(
-                color: AppColors.primary.withOpacity(0.4),
+                color: AppColors.primary.withValues(alpha: 0.4),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -154,7 +154,7 @@ class _TitleBlock extends StatelessWidget {
   }
 }
 
-// ─── Filtro de materia (dropdown) ───
+// --- Filtro de materia (dropdown) ---
 
 class _SubjectFilter extends StatelessWidget {
   const _SubjectFilter({required this.selected, required this.onChanged});
@@ -208,12 +208,12 @@ class _SubjectFilter extends StatelessWidget {
             color: Colors.white,
             borderRadius: const BorderRadius.all(AppRadius.medium),
             border: Border.all(
-              color: AppColors.primary.withOpacity(0.3),
+              color: AppColors.primary.withValues(alpha: 0.3),
               width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: AppColors.primary.withOpacity(0.08),
+                color: AppColors.primary.withValues(alpha: 0.08),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -221,7 +221,7 @@ class _SubjectFilter extends StatelessWidget {
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<Subject?>(
-              mouseCursor: SystemMouseCursors.click,
+              //mouseCursor: SystemMouseCursors.click,
               value: selected,
               isDense: true,
               icon: const Icon(
@@ -273,3 +273,4 @@ class _SubjectFilter extends StatelessWidget {
     );
   }
 }
+

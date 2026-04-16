@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../../../../core/theme/app_theme.dart';
 import '../../../domain/entities/module_entities.dart';
@@ -53,6 +53,7 @@ class _MultipleChoiceExerciseState extends State<MultipleChoiceExercise> {
     widget.onResult(ExerciseResult.fromExercise(
       exercise: widget.exercise,
       isCorrect: _selected == _correctIndex,
+      submittedAnswer: _selected,
     ));
   }
 
@@ -68,13 +69,13 @@ class _MultipleChoiceExerciseState extends State<MultipleChoiceExercise> {
   @override
   Widget build(BuildContext context) {
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      // ── Enunciado / texto de lectura ──────────────────────────────────────
+      // -- Enunciado / texto de lectura --------------------------------------
       if (_passage != null && _passage!.isNotEmpty) ...[
         _PassageCard(text: _passage!),
         const SizedBox(height: AppSpacing.lg),
       ],
 
-      // ── Pregunta ──────────────────────────────────────────────────────────
+      // -- Pregunta ----------------------------------------------------------
       Container(
         padding: const EdgeInsets.all(AppSpacing.lg),
         decoration: BoxDecoration(
@@ -82,7 +83,7 @@ class _MultipleChoiceExerciseState extends State<MultipleChoiceExercise> {
           borderRadius: const BorderRadius.all(AppRadius.xl),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.06),
+              color: Colors.black.withValues(alpha: 0.06),
               blurRadius: 16,
               offset: const Offset(0, 4),
             ),
@@ -101,7 +102,7 @@ class _MultipleChoiceExerciseState extends State<MultipleChoiceExercise> {
       ),
       const SizedBox(height: AppSpacing.lg),
 
-      // ── Opciones ──────────────────────────────────────────────────────────
+      // -- Opciones ----------------------------------------------------------
       ...List.generate(
         _options.length,
         (i) => ExerciseOptionCard(
@@ -113,13 +114,13 @@ class _MultipleChoiceExerciseState extends State<MultipleChoiceExercise> {
         ),
       ),
 
-      // ── Explicación ───────────────────────────────────────────────────────
+      // -- Explicación -------------------------------------------------------
       if (_submitted && _explanation != null) ...[
         const SizedBox(height: AppSpacing.md),
         _ExplanationBanner(text: _explanation!),
       ],
 
-      // ── Botón confirmar (fase answering) ──────────────────────────────────
+      // -- Botón confirmar (fase answering) ----------------------------------
       if (!_submitted) ...[
         const SizedBox(height: AppSpacing.lg),
         FilledButton(
@@ -144,7 +145,7 @@ class _MultipleChoiceExerciseState extends State<MultipleChoiceExercise> {
         ),
       ],
 
-      // ── Botones Reintentar / Continuar (fase reviewing) ───────────────────
+      // -- Botones Reintentar / Continuar (fase reviewing) -------------------
       if (_submitted) ...[
         const SizedBox(height: AppSpacing.lg),
         _ActionButtons(
@@ -158,7 +159,7 @@ class _MultipleChoiceExerciseState extends State<MultipleChoiceExercise> {
   }
 }
 
-// ─── Widgets internos ────────────────────────────────────────────────────────
+// --- Widgets internos --------------------------------------------------------
 
 class _PassageCard extends StatelessWidget {
   const _PassageCard({required this.text});
@@ -170,12 +171,12 @@ class _PassageCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.05),
+        color: AppColors.primary.withValues(alpha: 0.05),
         borderRadius: const BorderRadius.all(AppRadius.xl),
-        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 12,
             offset: const Offset(0, 3),
           ),
@@ -217,9 +218,9 @@ class _ExplanationBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.accent.withOpacity(0.07),
+        color: AppColors.accent.withValues(alpha: 0.07),
         borderRadius: const BorderRadius.all(AppRadius.large),
-        border: Border.all(color: AppColors.accent.withOpacity(0.25)),
+        border: Border.all(color: AppColors.accent.withValues(alpha: 0.25)),
       ),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
         const Icon(Icons.lightbulb_rounded, color: AppColors.accent, size: 18),
@@ -293,3 +294,4 @@ class _ActionButtons extends StatelessWidget {
     ]);
   }
 }
+

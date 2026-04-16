@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../../../core/theme/app_theme.dart';
 import '../../../domain/entities/module_entities.dart';
@@ -86,18 +86,18 @@ class _SectionHeader extends StatelessWidget {
 
     return Row(
       children: [
-        // ── Ícono de nivel ───
+        // -- Icono de nivel ---
         Container(
           padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.12),
+            color: color.withValues(alpha: 0.12),
             borderRadius: const BorderRadius.all(AppRadius.small),
           ),
           child: _SignalIcon(difficulty: difficulty, color: color),
         ),
         const SizedBox(width: AppSpacing.sm),
 
-        // ── Texto del nivel ───
+        // -- Texto del nivel ---
         Text(
           'Nivel ${difficulty.label}',
           style: TextStyle(
@@ -110,7 +110,7 @@ class _SectionHeader extends StatelessWidget {
         ),
         const SizedBox(width: AppSpacing.sm),
 
-        // ── Línea degradada ───
+        // -- Línea degradada ---
         Expanded(
           child: Padding(
             padding: const EdgeInsets.only(top: 8),
@@ -118,7 +118,7 @@ class _SectionHeader extends StatelessWidget {
               height: 2,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [color.withOpacity(0.55), color.withOpacity(0.0)],
+                  colors: [color.withValues(alpha: 0.55), color.withValues(alpha: 0.0)],
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
                 ),
@@ -128,7 +128,7 @@ class _SectionHeader extends StatelessWidget {
         ),
         const SizedBox(width: AppSpacing.md),
 
-        // ── Ojito ───
+        // -- Ojito ---
         if (isTeacher)
           Tooltip(
             message: isSelectionMode ? 'Salir de selección' : 'Activar / Desactivar',
@@ -141,14 +141,14 @@ class _SectionHeader extends StatelessWidget {
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
                     color: isSelectionMode
-                        ? color.withOpacity(0.15)
-                        : color.withOpacity(0.12),
+                        ? color.withValues(alpha: 0.15)
+                        : color.withValues(alpha: 0.12),
                     borderRadius: const BorderRadius.all(AppRadius.small),
                   ),
                   child: Icon(
                     isSelectionMode ? Icons.visibility_off_rounded : Icons.visibility_rounded,
                     size: 16,
-                    color: isEmpty ? color.withOpacity(0.3) : color,
+                    color: isEmpty ? color.withValues(alpha: 0.3) : color,
                   ),
                 ),
               ),
@@ -159,7 +159,7 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-// ─── Mensaje cuando no hay ejercicios ───
+// --- Mensaje cuando no hay ejercicios ---
 
 class _EmptyLevelMessage extends StatelessWidget {
   const _EmptyLevelMessage({
@@ -180,16 +180,16 @@ class _EmptyLevelMessage extends StatelessWidget {
         vertical: AppSpacing.md,
       ),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.05),
+        color: color.withValues(alpha: 0.05),
         borderRadius: const BorderRadius.all(AppRadius.medium),
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(AppSpacing.sm),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.10),
+              color: color.withValues(alpha: 0.10),
               borderRadius: const BorderRadius.all(AppRadius.small),
             ),
             child: Icon(
@@ -200,7 +200,7 @@ class _EmptyLevelMessage extends StatelessWidget {
           ),
           const SizedBox(width: AppSpacing.md),
 
-          // ── Texto + acción ───
+          // -- Texto + acción ---
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -235,7 +235,7 @@ class _EmptyLevelMessage extends StatelessWidget {
                                 decorationColor: color,
                               ),
                             ),
-                            const TextSpan(text: ' →'),
+                            const TextSpan(text: ' ->'),
                           ],
                         ),
                       ),
@@ -255,7 +255,7 @@ class _EmptyLevelMessage extends StatelessWidget {
   }
 }
 
-// ─── Ícono de señal con barras activas/inactivas ───
+// --- Icono de senal con barras activas/inactivas ---
 
 class _SignalIcon extends StatelessWidget {
   const _SignalIcon({required this.difficulty, required this.color});
@@ -278,7 +278,7 @@ class _SignalIcon extends StatelessWidget {
       height: 16,
       child: Stack(
         children: [
-          Icon(_base, size: 16, color: color.withOpacity(0.25)),
+          Icon(_base, size: 16, color: color.withValues(alpha: 0.25)),
           Icon(_activeIcon, size: 16, color: color),
         ],
       ),
@@ -286,7 +286,7 @@ class _SignalIcon extends StatelessWidget {
   }
 }
 
-// ─── Grid responsive de ejercicios ───
+// --- Grid responsive de ejercicios ---
 
 class _ExerciseGrid extends StatelessWidget {
   const _ExerciseGrid({
@@ -356,3 +356,5 @@ class _ExerciseGrid extends StatelessWidget {
     );
   }
 }
+
+

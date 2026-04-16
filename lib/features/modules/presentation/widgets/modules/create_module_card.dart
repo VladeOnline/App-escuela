@@ -1,9 +1,23 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../core/theme/app_theme.dart';
+import '../../../data/repositories/api_module_repository.dart';
+import '../../../domain/entities/module_entities.dart';
+import '../../pages/content_form_page.dart';
 
 class CreateModuleCard extends StatefulWidget {
-  const CreateModuleCard({super.key});
+  const CreateModuleCard({
+    super.key,
+    required this.repository,
+    required this.moduleType,
+    required this.grade,
+    required this.onCreated,
+  });
+
+  final ApiModuleRepository repository;
+  final ModuleType moduleType;
+  final int grade;
+  final VoidCallback onCreated;
 
   @override
   State<CreateModuleCard> createState() => _CreateModuleCardState();
@@ -12,6 +26,19 @@ class CreateModuleCard extends StatefulWidget {
 class _CreateModuleCardState extends State<CreateModuleCard> {
   bool _hovered = false;
 
+  Future<void> _goToCreateContent() async {
+    final created = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => ContentFormPage(
+          moduleType: widget.moduleType,
+          grade: widget.grade,
+          repository: widget.repository,
+        ),
+      ),
+    );
+    if (created == true) widget.onCreated();
+  }
+
   @override
   Widget build(BuildContext context) {
     return MouseRegion(
@@ -19,9 +46,7 @@ class _CreateModuleCardState extends State<CreateModuleCard> {
       onEnter: (_) => setState(() => _hovered = true),
       onExit:  (_) => setState(() => _hovered = false),
       child: GestureDetector(
-        onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Esta función aún no está disponible 🚧'), behavior: SnackBarBehavior.floating),
-        ),
+        onTap: _goToCreateContent,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
           curve: Curves.easeOut,
@@ -63,7 +88,9 @@ class _CreateModuleCardState extends State<CreateModuleCard> {
                     child: Text(
                       '¡Crea otro módulo haciendo click aquí!',
                       style: TextStyle(
-                        fontSize: 14, fontFamily: 'Nunito', fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                        fontFamily: 'Nunito',
+                        fontWeight: FontWeight.w700,
                         color: _hovered ? AppColors.primary : AppColors.textSecondary.withOpacity(0.7),
                       ),
                       textAlign: TextAlign.center,

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../../../../core/theme/app_theme.dart';
 import 'form_shared.dart';
@@ -89,7 +89,7 @@ class ExFormMultipleChoice extends StatelessWidget {
   }
 }
 
-// ─── Fila de opción ───────────────────────────────────────────────────────────
+// --- Fila de opción -----------------------------------------------------------
 
 class _OptionRow extends StatelessWidget {
   const _OptionRow({
@@ -168,7 +168,7 @@ class _OptionRow extends StatelessWidget {
   }
 }
 
-// ─── Botón agregar opción ─────────────────────────────────────────────────────
+// --- Botón agregar opción -----------------------------------------------------
 
 class _AddOptionButton extends StatelessWidget {
   const _AddOptionButton({required this.onTap});
@@ -184,16 +184,16 @@ class _AddOptionButton extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
           decoration: BoxDecoration(
-            border: Border.all(color: AppColors.primary.withOpacity(0.3), width: 1.5),
+            border: Border.all(color: AppColors.primary.withValues(alpha: 0.3), width: 1.5),
             borderRadius: const BorderRadius.all(AppRadius.medium),
-            color: AppColors.primary.withOpacity(0.04),
+            color: AppColors.primary.withValues(alpha: 0.04),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.add_circle_outline_rounded, size: 16, color: AppColors.primary.withOpacity(0.7)),
+              Icon(Icons.add_circle_outline_rounded, size: 16, color: AppColors.primary.withValues(alpha: 0.7)),
               const SizedBox(width: AppSpacing.xs),
-              Text('Agregar opción', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, fontFamily: 'Nunito', color: AppColors.primary.withOpacity(0.7))),
+              Text('Agregar opción', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, fontFamily: 'Nunito', color: AppColors.primary.withValues(alpha: 0.7))),
             ],
           ),
         ),
@@ -201,3 +201,5 @@ class _AddOptionButton extends StatelessWidget {
     );
   }
 }
+
+

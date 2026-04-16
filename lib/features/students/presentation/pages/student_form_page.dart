@@ -1,3 +1,6 @@
+﻿import 'dart:convert';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -23,6 +26,7 @@ class _StudentFormPageState extends State<StudentFormPage> {
   final _ageCtrl  = TextEditingController();
   final _validator = const ValidateStudentUseCase();
   int? _grade;
+  String? _photoDataUrl;
   bool _gradeError = false, _isLoading = false, _conditionsExpanded = false;
   final Set<String> _selectedConditions = {};
 
@@ -43,6 +47,7 @@ class _StudentFormPageState extends State<StudentFormPage> {
       _ageCtrl.text  = widget.student!.age.toString();
       _grade         = widget.student!.grade;
       _selectedConditions.addAll(widget.student!.conditions);
+      _photoDataUrl = widget.student!.photoUrl;
     }
     _nameCtrl.addListener(() => setState(() {}));
   }
@@ -56,8 +61,8 @@ class _StudentFormPageState extends State<StudentFormPage> {
     if (!formValid || _grade == null) return;
     setState(() => _isLoading = true);
     final ok = widget.isEditing
-        ? await widget.notifier.updateStudent(id: widget.student!.id, fullName: _nameCtrl.text, ageText: _ageCtrl.text, grade: _grade, conditions: _selectedConditions.toList())
-        : await widget.notifier.createStudent(fullName: _nameCtrl.text, ageText: _ageCtrl.text, grade: _grade, conditions: _selectedConditions.toList());
+        ? await widget.notifier.updateStudent(id: widget.student!.id, fullName: _nameCtrl.text, ageText: _ageCtrl.text, grade: _grade, conditions: _selectedConditions.toList(), photoDataUrl: _photoDataUrl)
+        : await widget.notifier.createStudent(fullName: _nameCtrl.text, ageText: _ageCtrl.text, grade: _grade, conditions: _selectedConditions.toList(), photoDataUrl: _photoDataUrl);
     if (!mounted) return;
     setState(() => _isLoading = false);
     if (ok) { Navigator.of(context).pop(true); return; }
@@ -91,6 +96,8 @@ class _StudentFormPageState extends State<StudentFormPage> {
                   selectedConditions: _selectedConditions,
                   onToggleCondition: (c) => setState(() => _selectedConditions.contains(c) ? _selectedConditions.remove(c) : _selectedConditions.add(c)),
                   conditions: _conditions, isLoading: _isLoading,
+                  photoDataUrl: _photoDataUrl,
+                  onPhotoChanged: (value) => setState(() => _photoDataUrl = value),
                   onSubmit: _onSubmit, onCancel: () => Navigator.of(context).pop(),
                 ),
               ),
@@ -102,7 +109,7 @@ class _StudentFormPageState extends State<StudentFormPage> {
   }
 }
 
-// ─── Fondo ───
+// --- Fondo ---
 
 class _FormBackground extends StatefulWidget {
   const _FormBackground();
@@ -127,7 +134,7 @@ class _FormBackgroundState extends State<_FormBackground> with TickerProviderSta
       CustomPaint(painter: _GridPainter(), child: const SizedBox.expand()),
       AnimatedBuilder(
         animation: Listenable.merge([_pulseA, _pulseB]),
-        builder: (_, __) => Stack(children: [
+        builder: (_, _) => Stack(children: [
           Positioned(top: -s.height * 0.15, left: -s.width * 0.08, child: _GlowOrb(size: s.width * 0.55 + _pulseA.value * 40, color: AppColors.primary, opacity: 0.14 + _pulseA.value * 0.06)),
           Positioned(top: s.height * 0.05, right: -s.width * 0.05, child: _GlowOrb(size: s.width * 0.35 + _pulseB.value * 30, color: AppColors.primaryLight, opacity: 0.11 + _pulseB.value * 0.05)),
           Positioned(bottom: -s.height * 0.12, right: -s.width * 0.06, child: _GlowOrb(size: s.width * 0.45 + _pulseB.value * 35, color: AppColors.primaryDark, opacity: 0.12 + _pulseB.value * 0.05)),
@@ -141,9 +148,13 @@ class _FormBackgroundState extends State<_FormBackground> with TickerProviderSta
 class _GridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final p = Paint()..color = AppColors.primary.withOpacity(0.055)..strokeWidth = 0.8;
-    for (double x = 0; x < size.width; x += 40) canvas.drawLine(Offset(x, 0), Offset(x, size.height), p);
-    for (double y = 0; y < size.height; y += 40) canvas.drawLine(Offset(0, y), Offset(size.width, y), p);
+    final p = Paint()..color = AppColors.primary.withValues(alpha: 0.055)..strokeWidth = 0.8;
+    for (double x = 0; x < size.width; x += 40) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), p);
+    }
+    for (double y = 0; y < size.height; y += 40) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), p);
+    }
   }
   @override
   bool shouldRepaint(_GridPainter _) => false;
@@ -156,13 +167,13 @@ class _GlowOrb extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     width: size, height: size,
     decoration: BoxDecoration(shape: BoxShape.circle, gradient: RadialGradient(
-      colors: [color.withOpacity(opacity), color.withOpacity(opacity * 0.4), color.withOpacity(0)],
+      colors: [color.withValues(alpha: opacity), color.withValues(alpha: opacity * 0.4), color.withValues(alpha: 0)],
       stops: const [0.0, 0.5, 1.0],
     )),
   );
 }
 
-// ─── Botón volver ───
+// --- Botón volver ---
 
 class _BackButton extends StatelessWidget {
   const _BackButton({required this.onTap});
@@ -175,7 +186,7 @@ class _BackButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
         decoration: BoxDecoration(color: AppColors.surfaceCard, borderRadius: const BorderRadius.all(AppRadius.full), border: Border.all(color: AppColors.border),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 8, offset: const Offset(0, 2))]),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 8, offset: const Offset(0, 2))]),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           const Icon(Icons.arrow_back_rounded, size: 16, color: AppColors.textSecondary),
           const SizedBox(width: AppSpacing.xs),
@@ -186,7 +197,7 @@ class _BackButton extends StatelessWidget {
   );
 }
 
-// ─── Card principal ───
+// --- Card principal ---
 
 class _FormCard extends StatelessWidget {
   const _FormCard({
@@ -195,7 +206,8 @@ class _FormCard extends StatelessWidget {
     required this.gradeError, required this.onGradeChanged, required this.conditionsExpanded,
     required this.onToggleConditions, required this.selectedConditions,
     required this.onToggleCondition, required this.conditions,
-    required this.isLoading, required this.onSubmit, required this.onCancel,
+    required this.isLoading, required this.photoDataUrl, required this.onPhotoChanged,
+    required this.onSubmit, required this.onCancel,
   });
   final bool isEditing, gradeError, conditionsExpanded, isLoading;
   final GlobalKey<FormState> formKey;
@@ -207,18 +219,20 @@ class _FormCard extends StatelessWidget {
   final Set<String> selectedConditions;
   final ValueChanged<String> onToggleCondition;
   final List<(String, String)> conditions;
+  final String? photoDataUrl;
+  final ValueChanged<String?> onPhotoChanged;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(color: AppColors.surfaceCard, borderRadius: const BorderRadius.all(AppRadius.xl),
-        boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.10), blurRadius: 40, offset: const Offset(0, 12)), BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 16, offset: const Offset(0, 4))]),
+        boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.10), blurRadius: 40, offset: const Offset(0, 12)), BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 16, offset: const Offset(0, 4))]),
       child: Form(
         key: formKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _AvatarSection(isEditing: isEditing, nameCtrl: nameCtrl, grade: grade),
+            _AvatarSection(isEditing: isEditing, nameCtrl: nameCtrl, grade: grade, photoDataUrl: photoDataUrl, onPhotoChanged: onPhotoChanged),
             const Divider(height: 1, color: AppColors.border),
             Padding(
               padding: const EdgeInsets.all(AppSpacing.lg),
@@ -282,13 +296,15 @@ class _FormCard extends StatelessWidget {
   }
 }
 
-// ─── Avatar con preview en tiempo real ───
+// --- Avatar con preview en tiempo real ---
 
 class _AvatarSection extends StatefulWidget {
-  const _AvatarSection({required this.isEditing, required this.nameCtrl, required this.grade});
+  const _AvatarSection({required this.isEditing, required this.nameCtrl, required this.grade, required this.photoDataUrl, required this.onPhotoChanged});
   final bool isEditing;
   final TextEditingController nameCtrl;
   final int? grade;
+  final String? photoDataUrl;
+  final ValueChanged<String?> onPhotoChanged;
   @override
   State<_AvatarSection> createState() => _AvatarSectionState();
 }
@@ -303,13 +319,66 @@ class _AvatarSectionState extends State<_AvatarSection> {
     return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
   }
 
-  // TODO(back): conectar con file_picker para subir foto del estudiante
-  Future<void> _pickImage() async {}
+  Future<void> _pickImage() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: const ['jpg', 'jpeg', 'png', 'webp'],
+      withData: true,
+    );
+
+    if (!mounted || result == null || result.files.isEmpty) return;
+
+    final file = result.files.single;
+    final bytes = file.bytes;
+
+    if (bytes == null || bytes.isEmpty) {
+      AppSnackbar.showError(context, 'No se pudo leer el archivo seleccionado.');
+      return;
+    }
+
+    if (bytes.length > 2 * 1024 * 1024) {
+      AppSnackbar.showError(context, 'La imagen debe pesar maximo 2 MB.');
+      return;
+    }
+
+    final mime = _mimeFromFileName(file.name);
+    final dataUrl = 'data:$mime;base64,${base64Encode(bytes)}';
+    widget.onPhotoChanged(dataUrl);
+  }
+
+  String _mimeFromFileName(String fileName) {
+    final lower = fileName.toLowerCase();
+    if (lower.endsWith('.png')) return 'image/png';
+    if (lower.endsWith('.webp')) return 'image/webp';
+    return 'image/jpeg';
+  }
+
+  ImageProvider? _resolvePhotoProvider(String? value) {
+    if (value == null || value.trim().isEmpty) return null;
+
+    final trimmed = value.trim();
+    if (trimmed.startsWith('data:image/')) {
+      final comma = trimmed.indexOf(',');
+      if (comma > 0 && comma < trimmed.length - 1) {
+        try {
+          return MemoryImage(base64Decode(trimmed.substring(comma + 1)));
+        } catch (_) {
+          return null;
+        }
+      }
+      return null;
+    }
+
+    return NetworkImage(trimmed);
+  }
 
   @override
   Widget build(BuildContext context) {
     final hasName = widget.nameCtrl.text.trim().isNotEmpty;
-    final gradeColor = widget.grade != null ? AppColors.forGrade(widget.grade!) : AppColors.textHint;
+    final gradeColor =
+        widget.grade != null ? AppColors.forGrade(widget.grade!) : AppColors.textHint;
+    final photoProvider = _resolvePhotoProvider(widget.photoDataUrl);
+
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Row(children: [
@@ -322,19 +391,62 @@ class _AvatarSectionState extends State<_AvatarSection> {
             child: Stack(children: [
               AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                width: 72, height: 72,
-                decoration: BoxDecoration(shape: BoxShape.circle,
-                  color: hasName ? gradeColor.withOpacity(0.15) : AppColors.primary.withOpacity(0.08),
-                  border: Border.all(color: hasName ? gradeColor.withOpacity(0.4) : AppColors.primary.withOpacity(0.25), width: 2)),
-                child: Center(child: hasName
-                    ? Text(_initials, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, fontFamily: 'Nunito', color: gradeColor))
-                    : const Icon(Icons.person_outline_rounded, size: 32, color: AppColors.textHint)),
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: hasName
+                      ? gradeColor.withValues(alpha: 0.15)
+                      : AppColors.primary.withValues(alpha: 0.08),
+                  border: Border.all(
+                    color: hasName
+                        ? gradeColor.withValues(alpha: 0.4)
+                        : AppColors.primary.withValues(alpha: 0.25),
+                    width: 2,
+                  ),
+                ),
+                child: ClipOval(
+                  child: photoProvider != null
+                      ? Image(
+                          image: photoProvider,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, _, _) => const Icon(
+                            Icons.person_outline_rounded,
+                            size: 32,
+                            color: AppColors.textHint,
+                          ),
+                        )
+                      : Center(
+                          child: hasName
+                              ? Text(
+                                  _initials,
+                                  style: TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w800,
+                                    fontFamily: 'Nunito',
+                                    color: gradeColor,
+                                  ),
+                                )
+                              : const Icon(
+                                  Icons.person_outline_rounded,
+                                  size: 32,
+                                  color: AppColors.textHint,
+                                ),
+                        ),
+                ),
               ),
               AnimatedOpacity(
-                opacity: _hovered ? 1.0 : 0.0, duration: const Duration(milliseconds: 180),
-                child: Container(width: 72, height: 72,
-                  decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.primary.withOpacity(0.72)),
-                  child: const Icon(Icons.upload_rounded, size: 26, color: Colors.white)),
+                opacity: _hovered ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 180),
+                child: Container(
+                  width: 72,
+                  height: 72,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.primary.withValues(alpha: 0.72),
+                  ),
+                  child: const Icon(Icons.upload_rounded, size: 26, color: Colors.white),
+                ),
               ),
             ]),
           ),
@@ -342,17 +454,28 @@ class _AvatarSectionState extends State<_AvatarSection> {
         const SizedBox(width: AppSpacing.md),
         Container(width: 1, height: 56, color: AppColors.border),
         const SizedBox(width: AppSpacing.md),
-        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(widget.isEditing ? 'Editar estudiante' : 'Nuevo estudiante', style: Theme.of(context).textTheme.headlineMedium),
-          const SizedBox(height: 2),
-          Text('Sin imagen, se usarán las siglas del nombre como avatar', style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 11, color: AppColors.textHint)),
-        ])),
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(
+              widget.isEditing ? 'Editar estudiante' : 'Nuevo estudiante',
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              'Puedes subir una foto para este estudiante.',
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(fontSize: 11, color: AppColors.textHint),
+            ),
+          ]),
+        ),
       ]),
     );
   }
 }
 
-// ─── Helpers ───
+// --- Helpers ---
 
 class _SectionLabel extends StatelessWidget {
   const _SectionLabel({required this.text, this.required = false});
@@ -383,7 +506,7 @@ class _GradeSelector extends StatelessWidget {
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 180),
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
-            decoration: BoxDecoration(color: isSelected ? color.withOpacity(0.12) : Colors.white, borderRadius: const BorderRadius.all(AppRadius.full),
+            decoration: BoxDecoration(color: isSelected ? color.withValues(alpha: 0.12) : Colors.white, borderRadius: const BorderRadius.all(AppRadius.full),
               border: Border.all(color: isSelected ? color : AppColors.border, width: isSelected ? 2 : 1.5)),
             child: Row(mainAxisSize: MainAxisSize.min, children: [
               if (isSelected) ...[Icon(Icons.check_circle_rounded, size: 14, color: color), const SizedBox(width: AppSpacing.xs)],
@@ -397,7 +520,7 @@ class _GradeSelector extends StatelessWidget {
   );
 }
 
-// ─── Condiciones especiales ───
+// --- Condiciones especiales ---
 
 class _ConditionsSection extends StatelessWidget {
   const _ConditionsSection({required this.expanded, required this.onToggle, required this.selected, required this.onToggleCondition, required this.conditions});
@@ -419,12 +542,12 @@ class _ConditionsSection extends StatelessWidget {
               const SizedBox(width: AppSpacing.sm),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text('Condiciones especiales', style: Theme.of(context).textTheme.titleMedium),
-                Text('Opcional — selecciona las que apliquen', style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 12)),
+                Text('Opcional - selecciona las que apliquen', style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 12)),
               ])),
               if (selected.isNotEmpty) ...[
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.10), borderRadius: const BorderRadius.all(AppRadius.full)),
+                  decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.10), borderRadius: const BorderRadius.all(AppRadius.full)),
                   child: Text('${selected.length}', style: const TextStyle(color: AppColors.primary, fontSize: 12, fontWeight: FontWeight.w700, fontFamily: 'Nunito')),
                 ),
                 const SizedBox(width: AppSpacing.sm),
@@ -452,16 +575,16 @@ class _ConditionsSection extends StatelessWidget {
                       duration: const Duration(milliseconds: 150),
                       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
                       decoration: BoxDecoration(
-                        color: isSel ? AppColors.success.withOpacity(0.10) : AppColors.surface,
+                        color: isSel ? AppColors.success.withValues(alpha: 0.10) : AppColors.surface,
                         borderRadius: const BorderRadius.all(AppRadius.medium),
                         border: Border.all(
-                          color: isSel ? AppColors.success.withOpacity(0.55) : AppColors.border,
+                          color: isSel ? AppColors.success.withValues(alpha: 0.55) : AppColors.border,
                           width: isSel ? 1.7 : 1,
                         ),
                         boxShadow: isSel
                             ? [
                                 BoxShadow(
-                                  color: AppColors.success.withOpacity(0.12),
+                                  color: AppColors.success.withValues(alpha: 0.12),
                                   blurRadius: 10,
                                   offset: const Offset(0, 3),
                                 ),
@@ -498,7 +621,7 @@ class _ConditionsSection extends StatelessWidget {
                               fontSize: 10,
                               fontFamily: 'Nunito',
                               color: isSel
-                                  ? AppColors.success.withOpacity(0.70)
+                                  ? AppColors.success.withValues(alpha: 0.70)
                                   : AppColors.textHint,
                             ),
                             maxLines: 1,
@@ -520,11 +643,11 @@ class _ConditionsSection extends StatelessWidget {
                 child: Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-                  decoration: BoxDecoration(border: Border.all(color: AppColors.primary.withOpacity(0.3), width: 1.5), borderRadius: const BorderRadius.all(AppRadius.medium), color: AppColors.primary.withOpacity(0.04)),
+                  decoration: BoxDecoration(border: Border.all(color: AppColors.primary.withValues(alpha: 0.3), width: 1.5), borderRadius: const BorderRadius.all(AppRadius.medium), color: AppColors.primary.withValues(alpha: 0.04)),
                   child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Icon(Icons.add_circle_outline_rounded, size: 16, color: AppColors.primary.withOpacity(0.7)),
+                    Icon(Icons.add_circle_outline_rounded, size: 16, color: AppColors.primary.withValues(alpha: 0.7)),
                     const SizedBox(width: AppSpacing.xs),
-                    Text('Más condiciones conocidas', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, fontFamily: 'Nunito', color: AppColors.primary.withOpacity(0.7))),
+                    Text('Más condiciones conocidas', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, fontFamily: 'Nunito', color: AppColors.primary.withValues(alpha: 0.7))),
                   ]),
                 ),
               ),
@@ -537,3 +660,11 @@ class _ConditionsSection extends StatelessWidget {
     ]);
   }
 }
+
+
+
+
+
+
+
+

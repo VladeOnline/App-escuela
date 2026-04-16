@@ -1,4 +1,4 @@
-import 'dart:math';
+﻿import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../../../../../../core/theme/app_theme.dart';
@@ -52,14 +52,14 @@ class _ExerciseOptionCardState extends State<ExerciseOptionCard>
   }
 
   Color get _bg => switch (widget.state) {
-        ExerciseOptionState.idle     => _hovered ? widget.color.withOpacity(0.07) : Colors.white,
-        ExerciseOptionState.selected => widget.color.withOpacity(0.12),
-        ExerciseOptionState.correct  => AppColors.success.withOpacity(0.12),
-        ExerciseOptionState.wrong    => AppColors.error.withOpacity(0.10),
+        ExerciseOptionState.idle     => _hovered ? widget.color.withValues(alpha: 0.07) : Colors.white,
+        ExerciseOptionState.selected => widget.color.withValues(alpha: 0.12),
+        ExerciseOptionState.correct  => AppColors.success.withValues(alpha: 0.12),
+        ExerciseOptionState.wrong    => AppColors.error.withValues(alpha: 0.10),
       };
 
   Color get _borderColor => switch (widget.state) {
-        ExerciseOptionState.idle     => _hovered ? widget.color.withOpacity(0.4) : AppColors.border,
+        ExerciseOptionState.idle     => _hovered ? widget.color.withValues(alpha: 0.4) : AppColors.border,
         ExerciseOptionState.selected => widget.color,
         ExerciseOptionState.correct  => AppColors.success,
         ExerciseOptionState.wrong    => AppColors.error,
@@ -112,11 +112,11 @@ class _ExerciseOptionCardState extends State<ExerciseOptionCard>
                     width: widget.state != ExerciseOptionState.idle ? 2 : 1.5),
                 boxShadow: widget.state == ExerciseOptionState.correct
                     ? [BoxShadow(
-                        color: AppColors.success.withOpacity(0.2),
+                        color: AppColors.success.withValues(alpha: 0.2),
                         blurRadius: 12,
                         offset: const Offset(0, 4))]
                     : [BoxShadow(
-                        color: Colors.black.withOpacity(0.04),
+                        color: Colors.black.withValues(alpha: 0.04),
                         blurRadius: 6,
                         offset: const Offset(0, 2))],
               ),
@@ -128,8 +128,8 @@ class _ExerciseOptionCardState extends State<ExerciseOptionCard>
                   decoration: BoxDecoration(
                     color: widget.state == ExerciseOptionState.idle
                         ? (_hovered
-                            ? widget.color.withOpacity(0.15)
-                            : widget.color.withOpacity(0.08))
+                            ? widget.color.withValues(alpha: 0.15)
+                            : widget.color.withValues(alpha: 0.08))
                         : widget.state == ExerciseOptionState.correct
                             ? AppColors.success
                             : widget.state == ExerciseOptionState.wrong
@@ -143,7 +143,7 @@ class _ExerciseOptionCardState extends State<ExerciseOptionCard>
                       style: TextStyle(
                         fontSize: 14, fontFamily: 'Nunito', fontWeight: FontWeight.w800,
                         color: widget.state == ExerciseOptionState.idle
-                            ? (_hovered ? widget.color : widget.color.withOpacity(0.7))
+                            ? (_hovered ? widget.color : widget.color.withValues(alpha: 0.7))
                             : Colors.white,
                       ),
                     ),
@@ -167,3 +167,5 @@ class _ExerciseOptionCardState extends State<ExerciseOptionCard>
     );
   }
 }
+
+

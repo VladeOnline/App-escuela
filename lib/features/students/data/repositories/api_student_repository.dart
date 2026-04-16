@@ -1,22 +1,16 @@
-import 'dart:convert';
-
+﻿import 'dart:convert';
 import 'package:http/http.dart' as http;
-
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/errors/app_failure.dart';
 import '../../domain/entities/student_entity.dart';
 import '../../domain/repositories/student_repository.dart';
-
 class ApiStudentRepository implements StudentRepository {
   final String token;
-
   ApiStudentRepository({required this.token});
-
   Map<String, String> get _headers => {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       };
-
   ServerFailure _serverFailureFromResponse(
     http.Response response,
     String fallbackMessage,
@@ -32,10 +26,8 @@ class ApiStudentRepository implements StudentRepository {
     } catch (_) {
       // Si no hay JSON usable, devolvemos el mensaje por defecto.
     }
-
     return ServerFailure(fallbackMessage);
   }
-
   StudentEntity _studentFromJson(Map<String, dynamic> json) {
     final rawConditions = json['conditions'] ?? json['condiciones'];
     return StudentEntity(
@@ -47,9 +39,9 @@ class ApiStudentRepository implements StudentRepository {
           ? rawConditions.map((e) => e.toString()).toList()
           : const [],
       createdAt: DateTime.parse(json['creado_en']),
+      photoUrl: json['foto_url']?.toString(),
     );
   }
-
   @override
   Future<({List<StudentEntity> students, AppFailure? failure})> getAll() async {
     try {
@@ -57,7 +49,6 @@ class ApiStudentRepository implements StudentRepository {
         Uri.parse('${AppConstants.apiBaseUrl}/estudiantes'),
         headers: _headers,
       );
-
       if (response.statusCode == 200) {
         final List data = jsonDecode(response.body);
         final students = data
@@ -66,7 +57,6 @@ class ApiStudentRepository implements StudentRepository {
             .toList();
         return (students: students, failure: null);
       }
-
       return (
         students: <StudentEntity>[],
         failure: _serverFailureFromResponse(
@@ -81,7 +71,6 @@ class ApiStudentRepository implements StudentRepository {
       );
     }
   }
-
   @override
   Future<({List<StudentEntity> students, AppFailure? failure})> search({
     String? name,
@@ -95,11 +84,9 @@ class ApiStudentRepository implements StudentRepository {
       if (grade != null) {
         queryParameters['grado'] = grade.toString();
       }
-
       final uri = Uri.parse('${AppConstants.apiBaseUrl}/estudiantes')
           .replace(queryParameters: queryParameters);
       final response = await http.get(uri, headers: _headers);
-
       if (response.statusCode == 200) {
         final List data = jsonDecode(response.body);
         final students = data
@@ -108,7 +95,6 @@ class ApiStudentRepository implements StudentRepository {
             .toList();
         return (students: students, failure: null);
       }
-
       return (
         students: <StudentEntity>[],
         failure: _serverFailureFromResponse(response, 'Error en la búsqueda'),
@@ -120,7 +106,6 @@ class ApiStudentRepository implements StudentRepository {
       );
     }
   }
-
   @override
   Future<
       ({
@@ -133,19 +118,24 @@ class ApiStudentRepository implements StudentRepository {
     required int grade,
     required int age,
     List<String> conditions = const [],
+    String? photoDataUrl,
   }) async {
     try {
+      final payload = <String, dynamic>{
+        'nombre': fullName,
+        'grado': grade,
+        'edad': age,
+        'conditions': conditions,
+      };
+      if (photoDataUrl != null && photoDataUrl.trim().isNotEmpty) {
+        payload['foto_perfil_url'] = photoDataUrl;
+      }
+
       final response = await http.post(
         Uri.parse('${AppConstants.apiBaseUrl}/estudiantes'),
         headers: _headers,
-        body: jsonEncode({
-          'nombre': fullName,
-          'grado': grade,
-          'edad': age,
-          'conditions': conditions,
-        }),
+        body: jsonEncode(payload),
       );
-
       if (response.statusCode == 201) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         final student = _studentFromJson(
@@ -153,7 +143,6 @@ class ApiStudentRepository implements StudentRepository {
         );
         final credentials =
             (data['credenciales'] as Map?)?.cast<String, dynamic>();
-
         return (
           student: student,
           generatedUsername: credentials?['username']?.toString(),
@@ -161,7 +150,6 @@ class ApiStudentRepository implements StudentRepository {
           failure: null,
         );
       }
-
       return (
         student: null,
         generatedUsername: null,
@@ -177,44 +165,64 @@ class ApiStudentRepository implements StudentRepository {
       );
     }
   }
-
   @override
-  Future<({StudentEntity? student, AppFailure? failure})> update({
+  Future<
+      ({
+        StudentEntity? student,
+        String? generatedUsername,
+        String? generatedPassword,
+        AppFailure? failure
+      })> update({
     required String id,
     required String fullName,
     required int grade,
     required int age,
     List<String> conditions = const [],
+    String? photoDataUrl,
   }) async {
     try {
+      final payload = <String, dynamic>{
+        'nombre': fullName,
+        'grado': grade,
+        'edad': age,
+        'conditions': conditions,
+      };
+      if (photoDataUrl != null && photoDataUrl.trim().isNotEmpty) {
+        payload['foto_perfil_url'] = photoDataUrl;
+      }
+
       final response = await http.put(
         Uri.parse('${AppConstants.apiBaseUrl}/estudiantes/$id'),
         headers: _headers,
-        body: jsonEncode({
-          'nombre': fullName,
-          'grado': grade,
-          'edad': age,
-          'conditions': conditions,
-        }),
+        body: jsonEncode(payload),
       );
-
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
-        return (student: _studentFromJson(data), failure: null);
+        final studentJson = (data['estudiante'] as Map?)?.cast<String, dynamic>() ?? data;
+        final credentials =
+            (data['credenciales'] as Map?)?.cast<String, dynamic>();
+        return (
+          student: _studentFromJson(studentJson),
+          generatedUsername: credentials?['username']?.toString(),
+          generatedPassword: credentials?['password']?.toString(),
+          failure: null,
+        );
       }
-
       return (
         student: null,
+        generatedUsername: null,
+        generatedPassword: null,
         failure: _serverFailureFromResponse(response, 'Error al editar estudiante'),
       );
     } catch (_) {
       return (
         student: null,
+        generatedUsername: null,
+        generatedPassword: null,
         failure: const ServerFailure('Sin conexión al servidor'),
       );
     }
   }
-
   @override
   Future<({bool success, AppFailure? failure})> delete(String id) async {
     try {
@@ -222,11 +230,9 @@ class ApiStudentRepository implements StudentRepository {
         Uri.parse('${AppConstants.apiBaseUrl}/estudiantes/$id'),
         headers: _headers,
       );
-
       if (response.statusCode == 200) {
         return (success: true, failure: null);
       }
-
       return (
         success: false,
         failure:
@@ -239,9 +245,11 @@ class ApiStudentRepository implements StudentRepository {
       );
     }
   }
-
   @override
   Future<({bool success, AppFailure? failure})> deactivate(String id) async {
     return delete(id);
   }
 }
+
+
+

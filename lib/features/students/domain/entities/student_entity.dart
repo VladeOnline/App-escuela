@@ -1,4 +1,4 @@
-class StudentEntity {
+﻿class StudentEntity {
   final String id;
   final String fullName;
   final int grade;
@@ -6,6 +6,7 @@ class StudentEntity {
   final bool isActive;
   final DateTime createdAt;
   final List<String> conditions;
+  final String? photoUrl;
 
   const StudentEntity({
     required this.id,
@@ -15,6 +16,7 @@ class StudentEntity {
     this.isActive = true,
     required this.createdAt,
     this.conditions = const [],
+    this.photoUrl,
   });
 
   StudentEntity copyWith({
@@ -25,6 +27,7 @@ class StudentEntity {
     bool? isActive,
     DateTime? createdAt,
     List<String>? conditions,
+    String? photoUrl,
   }) {
     return StudentEntity(
       id: id ?? this.id,
@@ -34,6 +37,7 @@ class StudentEntity {
       isActive: isActive ?? this.isActive,
       createdAt: createdAt ?? this.createdAt,
       conditions: conditions ?? this.conditions,
+      photoUrl: photoUrl ?? this.photoUrl,
     );
   }
 

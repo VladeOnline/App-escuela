@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../../../core/theme/app_theme.dart';
 
@@ -18,11 +18,11 @@ class ExercisesEmptyState extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(AppSpacing.lg),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.08),
+                color: AppColors.primary.withValues(alpha: 0.08),
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: AppColors.primary.withValues(alpha: 0.1),
                     blurRadius: 20,
                     offset: const Offset(0, 6),
                   ),
@@ -31,7 +31,7 @@ class ExercisesEmptyState extends StatelessWidget {
               child: Icon(
                 Icons.assignment_outlined,
                 size: 72,
-                color: AppColors.primary.withOpacity(0.6),
+                color: AppColors.primary.withValues(alpha: 0.6),
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
@@ -64,7 +64,7 @@ class ExercisesEmptyState extends StatelessWidget {
                   borderRadius: const BorderRadius.all(AppRadius.medium),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primary.withOpacity(0.3),
+                      color: AppColors.primary.withValues(alpha: 0.3),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -103,3 +103,4 @@ class ExercisesEmptyState extends StatelessWidget {
     );
   }
 }
+

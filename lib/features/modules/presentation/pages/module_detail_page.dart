@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../shared/widgets/app_snackbar.dart';
 import '../../../../../shared/widgets/confirm_dialog.dart';
-import '../../data/repositories/mock_module_repository.dart';
+import '../../data/repositories/api_module_repository.dart';
 import '../../domain/entities/module_entities.dart';
 import '../widgets/module_detail/difficulty_section.dart';
 import '../widgets/module_detail/exercises_empty_state.dart';
@@ -20,18 +20,21 @@ class ModuleDetailPage extends StatefulWidget {
     required this.module,
     required this.repository,
     this.isTeacher = true,
+    this.studentId,
   });
 
   final ModuleEntity module;
-  final MockModuleRepository repository;
+  final ApiModuleRepository repository; // CAMBIO: Api en vez de Mock
   final bool isTeacher;
+  final String? studentId;
 
   @override
   State<ModuleDetailPage> createState() => _ModuleDetailPageState();
 }
 
 class _ModuleDetailPageState extends State<ModuleDetailPage> {
-  late List<ExerciseEntity> _exercises;
+  List<ExerciseEntity> _exercises = [];
+  bool _isLoadingExercises = false;
   Subject? _subjectFilter;
   DifficultyLevel? _selectionLevel;
   final Set<String> _selectedIds = {};
@@ -42,9 +45,19 @@ class _ModuleDetailPageState extends State<ModuleDetailPage> {
     _reload();
   }
 
-  void _reload() => setState(() {
-        _exercises = widget.repository.getExercisesByModule(widget.module.id);
-      });
+  Future<void> _reload() async {
+    setState(() => _isLoadingExercises = true);
+    final result = await widget.repository.getExercisesByModule(
+      widget.module.id,
+      studentId: widget.isTeacher ? null : widget.studentId,
+      pendingOnly: !widget.isTeacher,
+    );
+    if (!mounted) return;
+    setState(() {
+      _isLoadingExercises = false;
+      if (result.failure == null) _exercises = result.exercises;
+    });
+  }
 
   List<ExerciseEntity> get _filteredExercises => _subjectFilter == null
       ? _exercises
@@ -53,16 +66,16 @@ class _ModuleDetailPageState extends State<ModuleDetailPage> {
   List<ExerciseEntity> _byLevel(DifficultyLevel d) =>
       _filteredExercises.where((e) => e.difficulty == d).toList();
 
-  // ─── Acciones de ejercicios ───────────────────────────────────────────────
+  // --- Acciones de ejercicios -----------------------------------------------
 
-  /// Sin nivel preseleccionado — desde InfoPanel o estado vacío del módulo.
+  /// Sin nivel preseleccionado â€” desde InfoPanel o estado vacío del módulo.
   Future<void> _onCreateExercise() => _navigateToForm();
 
-  /// Con nivel preseleccionado — desde card "Agregar" o link vacío de nivel.
+  /// Con nivel preseleccionado â€” desde card "Agregar" o link vacío de nivel.
   Future<void> _onCreateExerciseForLevel(DifficultyLevel level) =>
       _navigateToForm(preselectedLevel: level);
 
-  /// Modo edición — carga los datos del ejercicio existente en el form.
+  /// Modo edición â€” carga los datos del ejercicio existente en el form.
   Future<void> _onEditExercise(ExerciseEntity exercise) async {
     final updated = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
@@ -97,8 +110,15 @@ class _ModuleDetailPageState extends State<ModuleDetailPage> {
       return;
     }
     await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => ExerciseDetailPage(exercise: exercise)),
+      MaterialPageRoute(
+        builder: (_) => ExerciseDetailPage(
+          exercise: exercise,
+          repository: widget.repository,
+          studentId: widget.studentId,
+        ),
+      ),
     );
+    if (mounted && !widget.isTeacher) _reload();
   }
 
   Future<void> _onDeleteExercise(ExerciseEntity exercise) async {
@@ -112,12 +132,17 @@ class _ModuleDetailPageState extends State<ModuleDetailPage> {
       icon: Icons.delete_outline_rounded,
     );
     if (!confirmed) return;
-    await widget.repository.deleteExercise(exercise.id);
-    _reload();
-    if (mounted) AppSnackbar.showSuccess(context, 'Ejercicio eliminado correctamente');
+    final failure = await widget.repository.deleteExercise(exercise.id);
+    if (!mounted) return;
+    if (failure != null) {
+      AppSnackbar.showError(context, failure.message);
+    } else {
+      _reload();
+      AppSnackbar.showSuccess(context, 'Ejercicio eliminado correctamente');
+    }
   }
 
-  // ─── Selección masiva ───
+  // --- Selección masiva ---
 
   void _toggleSelectionMode(DifficultyLevel level) {
     setState(() {
@@ -147,6 +172,7 @@ class _ModuleDetailPageState extends State<ModuleDetailPage> {
   Future<void> _applyMassiveVisibility({required bool isActive}) async {
     if (_selectedIds.isEmpty) return;
     await widget.repository.setExercisesActive(_selectedIds.toList(), isActive: isActive);
+    // ignore failure — reload will show updated state
     setState(() {
       _selectionLevel = null;
       _selectedIds.clear();
@@ -165,7 +191,7 @@ class _ModuleDetailPageState extends State<ModuleDetailPage> {
         _selectedIds.clear();
       });
 
-  // ─── Build ───
+  // --- Build ---
 
   @override
   Widget build(BuildContext context) {
@@ -179,7 +205,7 @@ class _ModuleDetailPageState extends State<ModuleDetailPage> {
                 gradient: RadialGradient(
                   center: Alignment.topRight,
                   radius: 1.5,
-                  colors: [AppColors.primaryLight.withOpacity(0.08), Colors.transparent],
+                  colors: [AppColors.primaryLight.withValues(alpha: 0.08), Colors.transparent],
                 ),
               ),
             ),
@@ -221,7 +247,7 @@ class _ModuleDetailPageState extends State<ModuleDetailPage> {
     );
   }
 
-  // ─── Layouts ───
+  // --- Layouts ---
 
   Widget _buildWideLayout() => Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -262,7 +288,7 @@ class _ModuleDetailPageState extends State<ModuleDetailPage> {
         borderRadius: const BorderRadius.all(AppRadius.xl),
         border: Border.all(color: AppColors.border),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 20, offset: const Offset(0, 6)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 20, offset: const Offset(0, 6)),
         ],
       ),
       child: Column(
@@ -306,7 +332,7 @@ class _ModuleDetailPageState extends State<ModuleDetailPage> {
   }
 }
 
-// ─── Header de la página ───
+// --- Header de la página ---
 
 class _PageHeader extends StatelessWidget {
   const _PageHeader({required this.onBack});
@@ -316,7 +342,7 @@ class _PageHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: 80,
+      height: 72,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [AppColors.primary, AppColors.primaryLight],
@@ -324,7 +350,7 @@ class _PageHeader extends StatelessWidget {
           end: Alignment.bottomRight,
         ),
         boxShadow: [
-          BoxShadow(color: AppColors.primary.withOpacity(0.2), blurRadius: 12, offset: const Offset(0, 4)),
+          BoxShadow(color: AppColors.primary.withValues(alpha: 0.2), blurRadius: 12, offset: const Offset(0, 4)),
         ],
       ),
       child: Stack(
@@ -333,18 +359,6 @@ class _PageHeader extends StatelessWidget {
           Positioned(
             left: AppSpacing.md, top: 0, bottom: 0,
             child: Center(child: _BackButton(onTap: onBack)),
-          ),
-          Center(
-            child: Text(
-              'Creación y Edición de Ejercicios',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 26,
-                    letterSpacing: 0.5,
-                  ),
-            ),
           ),
         ],
       ),
@@ -359,14 +373,14 @@ class _BackButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white.withOpacity(0.3),
+      color: Colors.white.withValues(alpha: 0.3),
       borderRadius: const BorderRadius.all(AppRadius.medium),
       child: InkWell(
         onTap: onTap,
         mouseCursor: SystemMouseCursors.click,
         borderRadius: const BorderRadius.all(AppRadius.medium),
-        splashColor: Colors.white.withOpacity(0.2),
-        highlightColor: Colors.white.withOpacity(0.1),
+        splashColor: Colors.white.withValues(alpha: 0.2),
+        highlightColor: Colors.white.withValues(alpha: 0.1),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs + 2),
           child: Row(
@@ -389,3 +403,4 @@ class _BackButton extends StatelessWidget {
     );
   }
 }
+

@@ -1,4 +1,4 @@
-import '../../../../core/constants/app_constants.dart';
+﻿import '../../../../core/constants/app_constants.dart';
 import '../../../../core/errors/app_failure.dart';
 
 /// Validaciones de negocio para los datos de un estudiante.
@@ -80,3 +80,4 @@ class ValidateStudentUseCase {
     }
   }
 }
+

@@ -1,19 +1,19 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 /// Design system principal de la aplicación.
 /// Paleta pensada para ser profesional para el docente
 /// y amigable/atractiva visualmente para niños de primaria.
 abstract class AppColors {
-  // Primarios — verde teal cálido (educación, naturaleza, confianza)
+  // Primarios - verde teal cálido (educación, naturaleza, confianza)
   static const primary = Color(0xFF0D9488);
   static const primaryLight = Color(0xFF14B8A6);
   static const primaryDark = Color(0xFF0F766E);
 
-  // Secundario — ámbar cálido (energía, motivación, gamificación)
+  // Secundario - ámbar cálido (energía, motivación, gamificación)
   static const secondary = Color(0xFFF59E0B);
   static const secondaryLight = Color(0xFFFBBF24);
 
-  // Acento — violeta suave (creatividad, aprendizaje)
+  // Acento - violeta suave (creatividad, aprendizaje)
   static const accent = Color(0xFF8B5CF6);
 
   // Semánticos
@@ -286,3 +286,5 @@ class AppTheme {
     ),
   );
 }
+
+

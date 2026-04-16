@@ -1,4 +1,4 @@
-/// Constantes globales de la aplicación.
+﻿/// Constantes globales de la aplicación.
 abstract class AppConstants {
   // App info
   static const appName = 'Refuerzo Escolar';
@@ -28,12 +28,13 @@ abstract class AppConstants {
   // Mock credentials (hasta que Back conecte auth real)
   static const mockTeacherPassword = '1234';
 
-  // Storage keys (del equipo — auth_provider original)
+  // Storage keys (del equipo â€” auth_provider original)
   // El Back los usará cuando conecte el token JWT real.
   static const tokenKey = 'auth_token';
   static const roleKey = 'user_role';
 
-  // API (del equipo — api_config original)
+  // API (del equipo â€” api_config original)
   // Cambiar la URL cuando Back defina el endpoint de producción.
   static const apiBaseUrl = 'http://localhost:3000/api';
 }
+

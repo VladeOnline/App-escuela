@@ -1,4 +1,4 @@
-import 'package:uuid/uuid.dart';
+﻿import 'package:uuid/uuid.dart';
 
 import '../../../../core/errors/app_failure.dart';
 import '../../domain/entities/student_entity.dart';
@@ -80,6 +80,7 @@ class MockStudentRepository implements StudentRepository {
     required int grade,
     required int age,
     List<String> conditions = const [],
+    String? photoDataUrl,
   }) async {
     await _simulateDelay();
 
@@ -90,6 +91,7 @@ class MockStudentRepository implements StudentRepository {
       grade: grade,
       age: age,
       conditions: conditions,
+      photoUrl: photoDataUrl,
       createdAt: DateTime.now(),
     );
 
@@ -103,18 +105,27 @@ class MockStudentRepository implements StudentRepository {
   }
 
   @override
-  Future<({StudentEntity? student, AppFailure? failure})> update({
+  Future<
+      ({
+        StudentEntity? student,
+        String? generatedUsername,
+        String? generatedPassword,
+        AppFailure? failure
+      })> update({
     required String id,
     required String fullName,
     required int grade,
     required int age,
     List<String> conditions = const [],
+    String? photoDataUrl,
   }) async {
     await _simulateDelay();
     final index = _students.indexWhere((s) => s.id == id);
     if (index == -1) {
       return (
         student: null,
+        generatedUsername: null,
+        generatedPassword: null,
         failure: const NotFoundFailure('Estudiante no encontrado'),
       );
     }
@@ -124,9 +135,15 @@ class MockStudentRepository implements StudentRepository {
       grade: grade,
       age: age,
       conditions: conditions,
+      photoUrl: photoDataUrl ?? _students[index].photoUrl,
     );
     _students[index] = updated;
-    return (student: updated, failure: null);
+    return (
+      student: updated,
+      generatedUsername: updated.fullName.trim(),
+      generatedPassword: '${updated.fullName.trim()}${updated.age}',
+      failure: null,
+    );
   }
 
   @override
@@ -164,3 +181,9 @@ class MockStudentRepository implements StudentRepository {
   Future<void> _simulateDelay() =>
       Future.delayed(const Duration(milliseconds: 300));
 }
+
+
+
+
+
+

@@ -1,4 +1,4 @@
-import 'dart:math';
+﻿import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 
@@ -60,7 +60,7 @@ class _AnimatedLoginBackgroundState extends State<AnimatedLoginBackground>
   }
 }
 
-// ─── Fondo base ───
+// --- Fondo base ---
 
 class _BackgroundBase extends StatelessWidget {
   const _BackgroundBase();
@@ -92,7 +92,7 @@ class _GridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = AppColors.primary.withOpacity(0.055)
+      ..color = AppColors.primary.withValues(alpha: 0.055)
       ..strokeWidth = 0.8;
 
     const spacing = 40.0;
@@ -111,7 +111,7 @@ class _GridPainter extends CustomPainter {
   bool shouldRepaint(_GridPainter old) => false;
 }
 
-// ─── Luces de ambiente ───
+// --- Luces de ambiente ---
 
 class _AmbientLights extends StatefulWidget {
   const _AmbientLights();
@@ -153,7 +153,7 @@ class _AmbientLightsState extends State<_AmbientLights>
       animation: Listenable.merge([_pulseA, _pulseB]),
       builder: (_, __) => Stack(children: [
 
-        // Luz grande superior izquierda — teal principal
+        // Luz grande superior izquierda â€” teal principal
         Positioned(
           top: -size.height * 0.15,
           left: -size.width * 0.08,
@@ -164,7 +164,7 @@ class _AmbientLightsState extends State<_AmbientLights>
           ),
         ),
 
-        // Luz media superior derecha — teal claro
+        // Luz media superior derecha â€” teal claro
         Positioned(
           top: size.height * 0.05,
           right: -size.width * 0.05,
@@ -175,7 +175,7 @@ class _AmbientLightsState extends State<_AmbientLights>
           ),
         ),
 
-        // Luz pequeña centro derecha — ámbar suave
+        // Luz pequeña centro derecha â€” ámbar suave
         Positioned(
           top: size.height * 0.30,
           right: size.width * 0.18,
@@ -186,7 +186,7 @@ class _AmbientLightsState extends State<_AmbientLights>
           ),
         ),
 
-        // Luz grande inferior derecha — teal oscuro
+        // Luz grande inferior derecha â€” teal oscuro
         Positioned(
           bottom: -size.height * 0.12,
           right: -size.width * 0.06,
@@ -197,7 +197,7 @@ class _AmbientLightsState extends State<_AmbientLights>
           ),
         ),
 
-        // Luz pequeña inferior izquierda — teal claro
+        // Luz pequeña inferior izquierda â€” teal claro
         Positioned(
           bottom: size.height * 0.08,
           left: size.width * 0.20,
@@ -208,7 +208,7 @@ class _AmbientLightsState extends State<_AmbientLights>
           ),
         ),
 
-        // Luz centro izquierda — accent violeta sutil
+        // Luz centro izquierda â€” accent violeta sutil
         Positioned(
           top: size.height * 0.55,
           left: size.width * 0.25,
@@ -223,7 +223,7 @@ class _AmbientLightsState extends State<_AmbientLights>
   }
 }
 
-/// Orbe de luz con gradiente radial — centro opaco, bordes transparentes.
+/// Orbe de luz con gradiente radial â€” centro opaco, bordes transparentes.
 class _GlowOrb extends StatelessWidget {
   const _GlowOrb({required this.size, required this.color, required this.opacity});
   final double size;
@@ -238,9 +238,9 @@ class _GlowOrb extends StatelessWidget {
       shape: BoxShape.circle,
       gradient: RadialGradient(
         colors: [
-          color.withOpacity(opacity),
-          color.withOpacity(opacity * 0.4),
-          color.withOpacity(0),
+          color.withValues(alpha: opacity),
+          color.withValues(alpha: opacity * 0.4),
+          color.withValues(alpha: 0),
         ],
         stops: const [0.0, 0.5, 1.0],
       ),
@@ -248,7 +248,7 @@ class _GlowOrb extends StatelessWidget {
   );
 }
 
-// ─── Letras flotantes ───
+// --- Letras flotantes ---
 
 class _FloatingItemController {
   const _FloatingItemController({
@@ -295,3 +295,4 @@ class _FloatingLabel extends StatelessWidget {
     );
   }
 }
+
