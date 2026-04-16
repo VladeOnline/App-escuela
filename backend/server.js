@@ -1,4 +1,4 @@
-const express = require('express');
+﻿const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
@@ -15,9 +15,12 @@ app.use('/api/reportes', require('./src/routes/reporteRotes'));
 app.use('/api/auth', require('./src/routes/authRoutes'));
 app.use('/api/estudiantes', require('./src/routes/estudianteRoutes'));
 app.use('/api/ejercicios', require('./src/routes/EjercicioRoutes'));
+app.use('/api/modulos', require('./src/routes/moduloRoutes'));
+app.use('/api/contenidos', require('./src/routes/contenidoRoutes'));
+app.use('/api/ranking', require('./src/routes/rankingRoutes'));
 
 app.get('/', (req, res) => {
-  res.json({ message: 'API Refuerzo Académico funcionando ✅' });
+  res.json({ message: 'API Refuerzo Academico funcionando' });
 });
 
 const PORT = process.env.PORT || 3000;
