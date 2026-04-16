@@ -13,6 +13,11 @@ class AuthState {
   final String? role;
   final String? userId;
   final String? userName;
+  final String? userPhotoUrl;
+  final String? studentId;
+  final int? studentGrade;
+  final int studentPoints;
+  final String? studentPhotoUrl;
   final AppFailure? failure;
 
   const AuthState({
@@ -21,6 +26,11 @@ class AuthState {
     this.role,
     this.userId,
     this.userName,
+    this.userPhotoUrl,
+    this.studentId,
+    this.studentGrade,
+    this.studentPoints = 0,
+    this.studentPhotoUrl,
     this.failure,
   });
 
@@ -34,6 +44,11 @@ class AuthState {
     String? role,
     String? userId,
     String? userName,
+    String? userPhotoUrl,
+    String? studentId,
+    int? studentGrade,
+    int? studentPoints,
+    String? studentPhotoUrl,
     AppFailure? failure,
   }) {
     return AuthState(
@@ -42,6 +57,11 @@ class AuthState {
       role: role ?? this.role,
       userId: userId ?? this.userId,
       userName: userName ?? this.userName,
+      userPhotoUrl: userPhotoUrl ?? this.userPhotoUrl,
+      studentId: studentId ?? this.studentId,
+      studentGrade: studentGrade ?? this.studentGrade,
+      studentPoints: studentPoints ?? this.studentPoints,
+      studentPhotoUrl: studentPhotoUrl ?? this.studentPhotoUrl,
       failure: failure,
     );
   }
@@ -65,12 +85,24 @@ class AuthNotifier extends ChangeNotifier {
 
     try {
       final response = await AuthService.login(username.trim(), password, role);
-      final usuario = response['usuario'] as Map<String, dynamic>;
+      final usuario =
+          (response['usuario'] as Map?)?.cast<String, dynamic>() ?? <String, dynamic>{};
+      final estudiante =
+          (response['estudiante'] as Map?)?.cast<String, dynamic>();
+      final rawGrade = estudiante == null ? null : estudiante['grado'];
+      final rawPoints = estudiante == null ? null : estudiante['puntos_total'];
       setAuth(
-        token: response['token'],
-        role: usuario['rol'],
-        userId: usuario['id'],
-        userName: usuario['nombre'],
+        token: response['token']?.toString() ?? '',
+        role: usuario['rol']?.toString() ?? role,
+        userId: usuario['id']?.toString(),
+        userName: usuario['nombre']?.toString(),
+        userPhotoUrl: usuario['foto_perfil_url']?.toString(),
+        studentId: estudiante == null ? null : estudiante['id']?.toString(),
+        studentGrade: rawGrade is int ? rawGrade : int.tryParse('${rawGrade ?? ''}'),
+        studentPoints: rawPoints is int
+            ? rawPoints
+            : int.tryParse('${rawPoints ?? ''}') ?? 0,
+        studentPhotoUrl: estudiante == null ? null : estudiante['foto_url']?.toString(),
       );
       return true;
     } on AuthFailure catch (failure) {
@@ -92,11 +124,25 @@ class AuthNotifier extends ChangeNotifier {
     _emit(const AuthState(status: AuthStatus.unauthenticated));
   }
 
+  void addStudentPoints(int delta) {
+    if (delta <= 0) return;
+    _emit(_state.copyWith(
+      status: AuthStatus.authenticated,
+      studentPoints: _state.studentPoints + delta,
+      failure: null,
+    ));
+  }
+
   void setAuth({
     required String token,
     required String role,
     String? userId,
     String? userName,
+    String? userPhotoUrl,
+    String? studentId,
+    int? studentGrade,
+    int studentPoints = 0,
+    String? studentPhotoUrl,
   }) {
     _emit(_state.copyWith(
       status: AuthStatus.authenticated,
@@ -104,6 +150,11 @@ class AuthNotifier extends ChangeNotifier {
       role: role,
       userId: userId,
       userName: userName,
+      userPhotoUrl: userPhotoUrl,
+      studentId: studentId,
+      studentGrade: studentGrade,
+      studentPoints: studentPoints,
+      studentPhotoUrl: studentPhotoUrl,
     ));
   }
 

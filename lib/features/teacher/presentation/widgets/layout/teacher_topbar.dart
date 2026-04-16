@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
 import '../../../../../core/theme/app_theme.dart';
 import '../modals/change_password_modal.dart';
 import '../modals/help_modal.dart';
@@ -7,10 +8,12 @@ class TeacherTopbar extends StatelessWidget implements PreferredSizeWidget {
   const TeacherTopbar({
     super.key,
     required this.teacherName,
+    this.teacherPhotoUrl,
     required this.onLogout,
   });
 
   final String teacherName;
+  final String? teacherPhotoUrl;
   final VoidCallback onLogout;
 
   @override
@@ -51,6 +54,7 @@ class TeacherTopbar extends StatelessWidget implements PreferredSizeWidget {
           const SizedBox(width: AppSpacing.sm),
           _UserMenuButton(
             teacherName: teacherName,
+            teacherPhotoUrl: teacherPhotoUrl,
             onLogout: onLogout,
             onChangePassword: () => ChangePasswordModal.show(context),
           ),
@@ -80,12 +84,33 @@ class _TopbarIconButton extends StatelessWidget {
 class _UserMenuButton extends StatelessWidget {
   const _UserMenuButton({
     required this.teacherName,
+    required this.teacherPhotoUrl,
     required this.onLogout,
     required this.onChangePassword,
   });
   final String teacherName;
+  final String? teacherPhotoUrl;
   final VoidCallback onLogout;
   final VoidCallback onChangePassword;
+
+  ImageProvider _resolvePhotoProvider(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return const AssetImage('assets/images/buho_profesor.png');
+    }
+    final trimmed = value.trim();
+    if (trimmed.startsWith('data:image/')) {
+      final comma = trimmed.indexOf(',');
+      if (comma > 0 && comma < trimmed.length - 1) {
+        try {
+          final bytes = base64Decode(trimmed.substring(comma + 1));
+          return MemoryImage(bytes);
+        } catch (_) {
+          return const AssetImage('assets/images/buho_profesor.png');
+        }
+      }
+    }
+    return NetworkImage(trimmed);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -110,8 +135,13 @@ class _UserMenuButton extends StatelessWidget {
               Container(
                 width: 36, height: 36,
                 decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppColors.primary, width: 2)),
-                // TODO(back): reemplazar con la imagen de perfil real del docente desde la BD.
-                child: ClipOval(child: Image.asset('assets/images/buho_profesor.png', fit: BoxFit.cover)),
+                child: ClipOval(
+                  child: Image(
+                    image: _resolvePhotoProvider(teacherPhotoUrl),
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Image.asset('assets/images/buho_profesor.png', fit: BoxFit.cover),
+                  ),
+                ),
               ),
               const SizedBox(width: AppSpacing.sm),
               Column(
@@ -141,8 +171,13 @@ class _UserMenuButton extends StatelessWidget {
           children: [
             SizedBox(
               width: 28, height: 28,
-              // TODO(back): reemplazar con la imagen de perfil real del docente desde la BD.
-              child: ClipOval(child: Image.asset('assets/images/buho_profesor.png', fit: BoxFit.cover)),
+              child: ClipOval(
+                child: Image(
+                  image: _resolvePhotoProvider(teacherPhotoUrl),
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Image.asset('assets/images/buho_profesor.png', fit: BoxFit.cover),
+                ),
+              ),
             ),
             const SizedBox(width: AppSpacing.xs),
             const Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: AppColors.textHint),

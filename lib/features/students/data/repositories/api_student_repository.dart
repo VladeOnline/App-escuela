@@ -30,6 +30,11 @@ class ApiStudentRepository implements StudentRepository {
   }
   StudentEntity _studentFromJson(Map<String, dynamic> json) {
     final rawConditions = json['conditions'] ?? json['condiciones'];
+    final usuarioMap = (json['usuario_id'] as Map?)?.cast<String, dynamic>();
+    final photoUrl = json['foto_url']?.toString() ??
+        json['foto_perfil_url']?.toString() ??
+        usuarioMap?['foto_perfil_url']?.toString();
+
     return StudentEntity(
       id: json['_id'],
       fullName: json['nombre'],
@@ -39,7 +44,7 @@ class ApiStudentRepository implements StudentRepository {
           ? rawConditions.map((e) => e.toString()).toList()
           : const [],
       createdAt: DateTime.parse(json['creado_en']),
-      photoUrl: json['foto_url']?.toString(),
+      photoUrl: photoUrl,
     );
   }
   @override

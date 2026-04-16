@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
 import '../../../../../core/theme/app_theme.dart';
 
 // ─── Modelos ───
@@ -38,12 +39,14 @@ class TeacherSidebar extends StatefulWidget {
     required this.selectedIndex,
     required this.teacherName,
     required this.usuarioId,
+    this.teacherPhotoUrl,
     required this.onSelectIndex,
     required this.onLogout,
   });
   final int selectedIndex;
   final String teacherName;
   final String usuarioId;
+  final String? teacherPhotoUrl;
   final ValueChanged<int> onSelectIndex;
   final VoidCallback onLogout;
 
@@ -105,6 +108,7 @@ class _TeacherSidebarState extends State<TeacherSidebar> {
           _TeacherAvatarHeader(
             teacherName: widget.teacherName,
             usuarioId: widget.usuarioId,
+            teacherPhotoUrl: widget.teacherPhotoUrl,
             collapsed: _collapsed,
             onToggle: _toggleCollapse,
           ),
@@ -149,11 +153,13 @@ class _TeacherAvatarHeader extends StatelessWidget {
   const _TeacherAvatarHeader({
     required this.teacherName,
     required this.usuarioId,
+    required this.teacherPhotoUrl,
     required this.collapsed,
     required this.onToggle,
   });
   final String teacherName;
   final String usuarioId;
+  final String? teacherPhotoUrl;
   final bool collapsed;
   final VoidCallback onToggle;
 
@@ -164,6 +170,25 @@ class _TeacherAvatarHeader extends StatelessWidget {
     return '¡Buenas noches,';
   }
 
+  ImageProvider _resolvePhotoProvider(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return const AssetImage('assets/images/buho_profesor.png');
+    }
+    final trimmed = value.trim();
+    if (trimmed.startsWith('data:image/')) {
+      final comma = trimmed.indexOf(',');
+      if (comma > 0 && comma < trimmed.length - 1) {
+        try {
+          final bytes = base64Decode(trimmed.substring(comma + 1));
+          return MemoryImage(bytes);
+        } catch (_) {
+          return const AssetImage('assets/images/buho_profesor.png');
+        }
+      }
+    }
+    return NetworkImage(trimmed);
+  }
+
   Widget _avatar(double size) => Container(
         width: size,
         height: size,
@@ -172,9 +197,13 @@ class _TeacherAvatarHeader extends StatelessWidget {
           border: Border.all(color: AppColors.primary, width: 2.5),
           boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.15), blurRadius: 8, offset: const Offset(0, 2))],
         ),
-        // TODO(back): reemplazar Image.asset con la imagen real del docente.
-       // Conectar con el campo de foto de perfil que devuelva el endpoint de login.
-        child: ClipOval(child: Image.asset('assets/images/buho_profesor.png', fit: BoxFit.cover)),
+        child: ClipOval(
+          child: Image(
+            image: _resolvePhotoProvider(teacherPhotoUrl),
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => Image.asset('assets/images/buho_profesor.png', fit: BoxFit.cover),
+          ),
+        ),
       );
 
   Widget _collapseBtn({required bool expanded}) => MouseRegion(
