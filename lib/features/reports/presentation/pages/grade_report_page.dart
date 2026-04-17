@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-import '../../../../core/constants/app_constants.dart';
-import '../../../../core/theme/app_theme.dart';
+import '../../../../../core/constants/app_constants.dart';
+import '../../../../../core/theme/app_theme.dart';
+import '../../../../../shared/widgets/grade_badge.dart';
 import '../../data/repositories/report_repository_impl.dart';
+import '../../domain/entities/grade_report_entity.dart';
 import '../notifiers/report_notifier.dart';
 import '../widgets/grade_report_summary.dart';
-import '../widgets/results_table.dart';
 
-/// Página de reportes por grado
+/// Tab "Por Grado": selector de grado + estadísticas del grupo.
 class GradeReportPage extends StatefulWidget {
-  const GradeReportPage({Key? key}) : super(key: key);
+  const GradeReportPage({super.key});
 
   @override
   State<GradeReportPage> createState() => _GradeReportPageState();
@@ -18,26 +19,25 @@ class GradeReportPage extends StatefulWidget {
 
 class _GradeReportPageState extends State<GradeReportPage> {
   int? _selectedGrade;
-  late GradeReportNotifier _gradeNotifier;
+  late final GradeReportNotifier _notifier;
 
   @override
   void initState() {
     super.initState();
-    final repository = ReportRepositoryImpl(httpClient: http.Client());
-    _gradeNotifier = GradeReportNotifier(repository);
+    _notifier = GradeReportNotifier(
+      ReportRepositoryImpl(httpClient: http.Client()),
+    );
   }
 
   @override
   void dispose() {
-    _gradeNotifier.dispose();
+    _notifier.dispose();
     super.dispose();
   }
 
-  Future<void> _loadGradeReport(int grado) async {
-    setState(() {
-      _selectedGrade = grado;
-    });
-    await _gradeNotifier.getGradeReport(grado);
+  Future<void> _select(int grade) async {
+    setState(() => _selectedGrade = grade);
+    await _notifier.getGradeReport(grade);
   }
 
   @override
@@ -49,140 +49,181 @@ class _GradeReportPageState extends State<GradeReportPage> {
         children: [
           Text(
             'Reporte por Grado',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            'Selecciona un grado para ver el rendimiento del grupo',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppColors.textHint,
+                ),
           ),
           const SizedBox(height: AppSpacing.lg),
 
-          // Selector de grado
-          Text(
-            'Seleccionar Grado',
-            style: Theme.of(context).textTheme.titleMedium,
+          // ── Selector de grado ──────────────────────────────────
+          _GradeSelector(
+            selected: _selectedGrade,
+            onSelect: _select,
           ),
-          const SizedBox(height: AppSpacing.md),
-          Wrap(
-            spacing: AppSpacing.md,
-            runSpacing: AppSpacing.md,
-            children: AppConstants.grades.map((grado) {
-              final isSelected = _selectedGrade == grado;
-              return ElevatedButton(
-                onPressed: () => _loadGradeReport(grado),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isSelected ? Colors.blue : Colors.grey[300],
-                  foregroundColor: isSelected ? Colors.white : Colors.black,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: Text('Grado $grado'),
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: AppSpacing.xl),
+          const SizedBox(height: AppSpacing.lg),
 
-          // Contenido del reporte
+          // ── Contenido del reporte ──────────────────────────────
           ListenableBuilder(
-            listenable: _gradeNotifier,
+            listenable: _notifier,
             builder: (context, _) {
-              if (_gradeNotifier.isLoading) {
-                return const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(AppSpacing.xl),
-                    child: CircularProgressIndicator(),
-                  ),
+              if (_notifier.isLoading) {
+                return const _LoadingState();
+              }
+              if (_notifier.state == ReportLoadState.error) {
+                return _ErrorState(message: _notifier.error);
+              }
+              if (_notifier.report == null) {
+                return const _EmptyState(
+                  message: 'Selecciona un grado para ver el reporte',
                 );
               }
-
-              if (_gradeNotifier.state == ReportLoadState.error) {
-                return _buildErrorWidget();
-              }
-
-              if (_gradeNotifier.report == null) {
-                return Container(
-                  padding: const EdgeInsets.all(AppSpacing.xl),
-                  alignment: Alignment.center,
-                  child: Text(
-                    'Selecciona un grado para ver el reporte',
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                );
-              }
-
-              final report = _gradeNotifier.report!;
-
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Resumen
-                  GradeReportSummary(report: report),
-                  const SizedBox(height: AppSpacing.xl),
-
-                  // Título de estudiantes
-                  Text(
-                    'Resultados por Estudiante',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-
-                  // Tabla de resultados
-                  Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey[300]!),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: ResultsTable(
-                      report: report.resultados.isEmpty
-                          ? null
-                          : _convertToIndividualReport(report),
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xl),
-                ],
-              );
+              return _ReportContent(report: _notifier.report!);
             },
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildErrorWidget() {
+// ── Grade selector chips ───────────────────────────────────────────────────────
+
+class _GradeSelector extends StatelessWidget {
+  const _GradeSelector({required this.selected, required this.onSelect});
+
+  final int? selected;
+  final ValueChanged<int> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: AppSpacing.sm,
+      runSpacing: AppSpacing.sm,
+      children: AppConstants.grades.map((g) {
+        final isSelected = selected == g;
+        final color = AppColors.forGrade(g);
+        return GestureDetector(
+          onTap: () => onSelect(g),
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.sm,
+            ),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? color.withValues(alpha: 0.15)
+                  : AppColors.surfaceCard,
+              borderRadius: const BorderRadius.all(AppRadius.full),
+              border: Border.all(
+                color: isSelected
+                    ? color.withValues(alpha: 0.5)
+                    : AppColors.border,
+                width: isSelected ? 1.5 : 1,
+              ),
+            ),
+            child: Text(
+              AppConstants.gradeLabels[g] ?? '$g° grado',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: isSelected ? color : AppColors.textSecondary,
+                fontFamily: 'Nunito',
+              ),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+}
+
+// ── Report content ────────────────────────────────────────────────────────────
+
+class _ReportContent extends StatelessWidget {
+  const _ReportContent({required this.report});
+  final GradeReportEntity report;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceCard,
+        borderRadius: const BorderRadius.all(AppRadius.large),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: GradeReportSummary(report: report),
+    );
+  }
+}
+
+// ── State helpers ─────────────────────────────────────────────────────────────
+
+class _LoadingState extends StatelessWidget {
+  const _LoadingState();
+
+  @override
+  Widget build(BuildContext context) => const Center(
+        child: Padding(
+          padding: EdgeInsets.all(AppSpacing.xl),
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
+      );
+}
+
+class _ErrorState extends StatelessWidget {
+  const _ErrorState({this.message});
+  final String? message;
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: Colors.red[50],
-        border: Border.all(color: Colors.red[300]!),
-        borderRadius: BorderRadius.circular(8),
+        color: AppColors.error.withValues(alpha: 0.06),
+        border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+        borderRadius: const BorderRadius.all(AppRadius.large),
       ),
-      child: Column(
+      child: Row(
         children: [
-          Icon(Icons.error_outline, color: Colors.red[700], size: 40),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            'Error al cargar reporte',
-            style: TextStyle(color: Colors.red[700]),
-          ),
-          if (_gradeNotifier.error != null) ...[
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              _gradeNotifier.error!,
-              style: TextStyle(
-                color: Colors.red[600],
-                fontSize: 12,
-              ),
-              textAlign: TextAlign.center,
+          Icon(Icons.error_outline_rounded, color: AppColors.error, size: 24),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Text(
+              message ?? 'Error al cargar el reporte',
+              style: TextStyle(color: AppColors.error),
             ),
-          ],
+          ),
         ],
       ),
     );
   }
+}
 
-  // Convertir GradeReport a IndividualReport para mostrar en ResultsTable
-  dynamic _convertToIndividualReport(dynamic report) {
-    // Simplemente retornamos el reporte ya que ResultsTable puede trabajar con cualquier
-    // estructura que tenga resultados
-    return report;
+class _EmptyState extends StatelessWidget {
+  const _EmptyState({required this.message});
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.xxl),
+        child: Text(
+          message,
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: AppColors.textHint,
+              ),
+          textAlign: TextAlign.center,
+        ),
+      ),
+    );
   }
 }

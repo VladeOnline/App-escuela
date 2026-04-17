@@ -1,144 +1,103 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:http/http.dart' as http;
 
-import '../../../../core/theme/app_theme.dart';
-import '../../../../features/students/domain/entities/student_entity.dart';
-import '../../../../features/students/presentation/notifiers/students_notifier.dart';
-import '../../data/repositories/report_repository_impl.dart';
-import '../notifiers/report_notifier.dart';
-import '../widgets/progress_chart_widget.dart';
-import '../widgets/student_selector.dart';
+import '../../../../../core/theme/app_theme.dart';
+import '../../../../../features/students/domain/entities/student_entity.dart';
+import '../../../../../features/students/presentation/notifiers/students_notifier.dart';
+import '../mock/report_mock_data.dart';
+import '../widgets/progress_line_chart.dart';
+import '../widgets/student_selector_panel.dart';
 
-/// Página de gráficas de progreso
+/// Tab "Progreso": selector de estudiante + gráfico de evolución del promedio.
+///
+/// TODO(back): conectar [ProgressChartNotifier] cuando el endpoint esté listo.
 class ProgressChartPage extends StatefulWidget {
-  const ProgressChartPage({Key? key}) : super(key: key);
+  const ProgressChartPage({super.key});
 
   @override
   State<ProgressChartPage> createState() => _ProgressChartPageState();
 }
 
 class _ProgressChartPageState extends State<ProgressChartPage> {
-  StudentEntity? _selectedStudent;
-  late ProgressChartNotifier _chartNotifier;
-
-  @override
-  void initState() {
-    super.initState();
-    final repository = ReportRepositoryImpl(httpClient: http.Client());
-    _chartNotifier = ProgressChartNotifier(repository);
-  }
-
-  @override
-  void dispose() {
-    _chartNotifier.dispose();
-    super.dispose();
-  }
-
-  Future<void> _onStudentSelected(StudentEntity? student) async {
-    setState(() {
-      _selectedStudent = student;
-    });
-
-    if (student != null) {
-      await _chartNotifier.getProgressChart(student.id);
-    }
-  }
+  StudentEntity? _selected;
 
   @override
   Widget build(BuildContext context) {
-    final studentsNotifier = context.read<StudentsNotifier>();
-    final students = studentsNotifier.state.students;
+    final students = context.read<StudentsNotifier>().state.students;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Gráfica de Progreso',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ── Selector izquierdo ──────────────────────────────────
+        Container(
+          width: 290,
+          decoration: const BoxDecoration(
+            color: AppColors.surfaceCard,
+            border: Border(right: BorderSide(color: AppColors.border)),
+          ),
+          child: StudentSelectorPanel(
+            students: students,
+            selectedStudent: _selected,
+            onChanged: (s) => setState(() => _selected = s),
+          ),
+        ),
+
+        // ── Contenido principal ──────────────────────────────────
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (_selected != null) ...[
+                  Text(
+                    '${_selected!.fullName} — Evolución del promedio',
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                ],
+                _SectionCard(
+                  child: ProgressLineChart(
+                    points: ReportMockData.progressHistory,
+                  ),
+                ),
+                if (_selected == null) ...[
+                  const SizedBox(height: AppSpacing.xxl),
+                  Center(
+                    child: Text(
+                      'Selecciona un estudiante para ver su progreso',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            color: AppColors.textHint,
+                          ),
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
-          const SizedBox(height: AppSpacing.lg),
-          StudentSelector(
-            students: students,
-            selectedStudent: _selectedStudent,
-            onChanged: _onStudentSelected,
-          ),
-          const SizedBox(height: AppSpacing.xl),
-          ListenableBuilder(
-            listenable: _chartNotifier,
-            builder: (context, _) {
-              if (_chartNotifier.isLoading) {
-                return const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(AppSpacing.xl),
-                    child: CircularProgressIndicator(),
-                  ),
-                );
-              }
-
-              if (_chartNotifier.state == ReportLoadState.error) {
-                return _buildErrorWidget();
-              }
-
-              if (_chartNotifier.chart == null) {
-                return Container(
-                  padding: const EdgeInsets.all(AppSpacing.xl),
-                  alignment: Alignment.center,
-                  child: Text(
-                    'Selecciona un estudiante para ver su progreso',
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                );
-              }
-
-              return Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey[300]!),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: ProgressChart(chart: _chartNotifier.chart!),
-              );
-            },
-          ),
-          const SizedBox(height: AppSpacing.xl),
-        ],
-      ),
+        ),
+      ],
     );
   }
+}
 
-  Widget _buildErrorWidget() {
+class _SectionCard extends StatelessWidget {
+  const _SectionCard({required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: Colors.red[50],
-        border: Border.all(color: Colors.red[300]!),
-        borderRadius: BorderRadius.circular(8),
+        color: AppColors.surfaceCard,
+        borderRadius: const BorderRadius.all(AppRadius.large),
+        border: Border.all(color: AppColors.border),
       ),
-      child: Column(
-        children: [
-          Icon(Icons.error_outline, color: Colors.red[700], size: 40),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            'Error al cargar gráfica',
-            style: TextStyle(color: Colors.red[700]),
-          ),
-          if (_chartNotifier.error != null) ...[
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              _chartNotifier.error!,
-              style: TextStyle(
-                color: Colors.red[600],
-                fontSize: 12,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ],
-      ),
+      child: child,
     );
   }
 }
