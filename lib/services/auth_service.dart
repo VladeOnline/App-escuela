@@ -54,6 +54,26 @@ class AuthService {
       throw AuthFailure(fallback);
     }
   }
+
+  static Future<void> deleteAccount({required String token}) async {
+    final response = await http.delete(
+      Uri.parse('${AppConstants.apiBaseUrl}/auth/me'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      final fallback = 'No se pudo eliminar la cuenta.';
+      try {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        throw AuthFailure(data['message']?.toString() ?? fallback);
+      } catch (_) {
+        throw AuthFailure(fallback);
+      }
+    }
+  }
 }
 
 

@@ -167,6 +167,33 @@ const actualizarFotoPerfil = async (req, res) => {
   }
 };
 
-module.exports = { login, registrarDocente, registrarEstudiante, actualizarFotoPerfil };
+const deleteAccount = async (req, res) => {
+  try {
+    const { id } = req.usuario;
+
+    const usuario = await Usuario.findById(id);
+    if (!usuario) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    // Si es docente, eliminar todos sus estudiantes
+    if (usuario.rol === 'docente') {
+      const estudiantes = await Estudiante.find({ docente_id: id, activo: true });
+      for (const estudiante of estudiantes) {
+        await Usuario.findByIdAndDelete(estudiante.usuario_id);
+      }
+      await Estudiante.deleteMany({ docente_id: id });
+    }
+
+    // Eliminar el usuario
+    await Usuario.findByIdAndDelete(id);
+
+    return res.json({ message: 'Cuenta eliminada correctamente' });
+  } catch (error) {
+    return res.status(500).json({ message: 'Error al eliminar cuenta', error: error.message });
+  }
+};
+
+module.exports = { login, registrarDocente, registrarEstudiante, actualizarFotoPerfil, deleteAccount };
 
 

@@ -167,6 +167,37 @@ class AuthNotifier extends ChangeNotifier {
     _emit(const AuthState(status: AuthStatus.unauthenticated));
   }
 
+  Future<bool> deleteAccount() async {
+    final token = _state.token;
+    if (token == null || token.isEmpty) {
+      _emit(_state.copyWith(
+        status: AuthStatus.failure,
+        failure: const AuthFailure('Sesion no valida. Vuelve a iniciar sesion.'),
+      ));
+      return false;
+    }
+
+    _emit(_state.copyWith(status: AuthStatus.loading));
+
+    try {
+      await AuthService.deleteAccount(token: token);
+      _emit(const AuthState(status: AuthStatus.unauthenticated));
+      return true;
+    } on AuthFailure catch (failure) {
+      _emit(_state.copyWith(
+        status: AuthStatus.failure,
+        failure: failure,
+      ));
+      return false;
+    } catch (_) {
+      _emit(_state.copyWith(
+        status: AuthStatus.failure,
+        failure: const AuthFailure('No se pudo eliminar la cuenta.'),
+      ));
+      return false;
+    }
+  }
+
   void addStudentPoints(int delta) {
     if (delta <= 0) return;
     _emit(_state.copyWith(

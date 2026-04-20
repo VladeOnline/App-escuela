@@ -211,7 +211,59 @@ const eliminarEstudiante = async (req, res) => {
   }
 };
 
-module.exports = { obtenerEstudiantes, crearEstudiante, editarEstudiante, eliminarEstudiante };
+const resetAll = async (req, res) => {
+  try {
+    // El token ya fue verificado en el middleware
+    const teacherId = req.user.id;
+
+    // Obtener todos los estudiantes del docente
+    const estudiantes = await Estudiante.find({ docente_id: teacherId, activo: true });
+
+    if (estudiantes.length === 0) {
+      return res.json({ message: 'No hay datos para reiniciar' });
+    }
+
+    const studentIds = estudiantes.map(e => e._id);
+    const userIds = estudiantes.map(e => e.usuario_id).filter(id => id);
+
+    // Eliminar ejercicios de los estudiantes
+    const Ejercicio = require('../models/ejercicioModel');
+    await Ejercicio.deleteMany({ estudiante_id: { $in: studentIds } });
+
+    // Eliminar reportes de los estudiantes
+    const Reporte = require('../models/reporteModel');
+    await Reporte.deleteMany({ estudiante_id: { $in: studentIds } });
+
+    // Eliminar gamificación de los estudiantes
+    const Gamificacion = require('../models/gamificacionModel');
+    await Gamificacion.deleteMany({ estudiante_id: { $in: studentIds } });
+
+    // Eliminar todos los estudiantes
+    await Estudiante.deleteMany({ docente_id: teacherId, activo: true });
+
+    // Eliminar usuarios de estudiantes
+    if (userIds.length > 0) {
+      await Usuario.deleteMany({ _id: { $in: userIds } });
+    }
+
+    // Eliminar contenidos del docente
+    const Contenido = require('../models/contenidoModel');
+    await Contenido.deleteMany({ docente_id: teacherId });
+
+    res.json({
+      message: 'Todos los datos han sido reiniciados correctamente',
+      deleted: {
+        students: estudiantes.length,
+        exercises: await Ejercicio.countDocuments({}),
+        reports: await Reporte.countDocuments({}),
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Error al reiniciar datos', error: error.message });
+  }
+};
+
+module.exports = { obtenerEstudiantes, crearEstudiante, editarEstudiante, eliminarEstudiante, resetAll };
 
 
 

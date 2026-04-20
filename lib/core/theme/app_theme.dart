@@ -1,4 +1,5 @@
 ﻿import 'package:flutter/material.dart';
+import '../../providers/app_settings_provider.dart';
 
 /// Design system principal de la aplicación.
 /// Paleta pensada para ser profesional para el docente
@@ -72,6 +73,23 @@ class AppTheme {
   AppTheme._();
 
   static ThemeData get light {
+    return _buildTheme('Nunito');
+  }
+
+  static ThemeData getTheme(FontFamily fontFamily) {
+    final fontName = _getFontName(fontFamily);
+    return _buildTheme(fontName);
+  }
+
+  static String _getFontName(FontFamily fontFamily) {
+    return switch (fontFamily) {
+      FontFamily.nunito => 'Nunito',
+      FontFamily.roboto => 'Roboto',
+      FontFamily.openSans => 'Open Sans',
+    };
+  }
+
+  static ThemeData _buildTheme(String fontFamily) {
     return ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
@@ -83,17 +101,217 @@ class AppTheme {
         brightness: Brightness.light,
       ),
       scaffoldBackgroundColor: AppColors.surface,
-      fontFamily: 'Nunito',
-      textTheme: _textTheme,
-      elevatedButtonTheme: _elevatedButtonTheme,
-      outlinedButtonTheme: _outlinedButtonTheme,
-      inputDecorationTheme: _inputDecorationTheme,
+      fontFamily: fontFamily,
+      textTheme: _buildTextTheme(fontFamily),
+      elevatedButtonTheme: _buildElevatedButtonTheme(fontFamily),
+      outlinedButtonTheme: _buildOutlinedButtonTheme(fontFamily),
+      inputDecorationTheme: _buildInputDecorationTheme(fontFamily),
       cardTheme: _cardTheme,
-      appBarTheme: _appBarTheme,
-      dialogTheme: _dialogTheme,
-      snackBarTheme: _snackBarTheme,
+      appBarTheme: _buildAppBarTheme(fontFamily),
+      dialogTheme: _buildDialogTheme(fontFamily),
+      snackBarTheme: _buildSnackBarTheme(fontFamily),
     );
   }
+
+  static TextTheme _buildTextTheme(String fontFamily) => TextTheme(
+    displayLarge: TextStyle(
+      fontSize: 32,
+      fontWeight: FontWeight.w800,
+      color: AppColors.textPrimary,
+      letterSpacing: -0.5,
+      fontFamily: fontFamily,
+    ),
+    displayMedium: TextStyle(
+      fontSize: 26,
+      fontWeight: FontWeight.w700,
+      color: AppColors.textPrimary,
+      letterSpacing: -0.3,
+      fontFamily: fontFamily,
+    ),
+    headlineLarge: TextStyle(
+      fontSize: 22,
+      fontWeight: FontWeight.w700,
+      color: AppColors.textPrimary,
+      fontFamily: fontFamily,
+    ),
+    headlineMedium: TextStyle(
+      fontSize: 18,
+      fontWeight: FontWeight.w600,
+      color: AppColors.textPrimary,
+      fontFamily: fontFamily,
+    ),
+    titleLarge: TextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.w600,
+      color: AppColors.textPrimary,
+      fontFamily: fontFamily,
+    ),
+    titleMedium: TextStyle(
+      fontSize: 14,
+      fontWeight: FontWeight.w600,
+      color: AppColors.textPrimary,
+      fontFamily: fontFamily,
+    ),
+    bodyLarge: TextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.w400,
+      color: AppColors.textPrimary,
+      fontFamily: fontFamily,
+    ),
+    bodyMedium: TextStyle(
+      fontSize: 14,
+      fontWeight: FontWeight.w400,
+      color: AppColors.textSecondary,
+      fontFamily: fontFamily,
+    ),
+    labelLarge: TextStyle(
+      fontSize: 14,
+      fontWeight: FontWeight.w600,
+      color: AppColors.textPrimary,
+      letterSpacing: 0.2,
+      fontFamily: fontFamily,
+    ),
+  );
+
+  static ElevatedButtonThemeData _buildElevatedButtonTheme(String fontFamily) =>
+      ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.md,
+          ),
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(AppRadius.medium),
+          ),
+          textStyle: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            fontFamily: fontFamily,
+          ),
+        ),
+      );
+
+  static OutlinedButtonThemeData _buildOutlinedButtonTheme(String fontFamily) =>
+      OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.primary,
+          side: const BorderSide(color: AppColors.primary, width: 1.5),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.md,
+          ),
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(AppRadius.medium),
+          ),
+          textStyle: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            fontFamily: fontFamily,
+          ),
+        ),
+      );
+
+  static InputDecorationTheme _buildInputDecorationTheme(String fontFamily) =>
+      InputDecorationTheme(
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.md,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: const BorderRadius.all(AppRadius.medium),
+          borderSide: BorderSide(color: AppColors.border, width: 1.5),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: const BorderRadius.all(AppRadius.medium),
+          borderSide: BorderSide(color: AppColors.border, width: 1.5),
+        ),
+        focusedBorder: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(AppRadius.medium),
+          borderSide: BorderSide(color: AppColors.primary, width: 2),
+        ),
+        errorBorder: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(AppRadius.medium),
+          borderSide: BorderSide(color: AppColors.error, width: 1.5),
+        ),
+        focusedErrorBorder: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(AppRadius.medium),
+          borderSide: BorderSide(color: AppColors.error, width: 2),
+        ),
+        labelStyle: TextStyle(
+          color: AppColors.textSecondary,
+          fontWeight: FontWeight.w500,
+          fontFamily: fontFamily,
+        ),
+        hintStyle: TextStyle(
+          color: AppColors.textHint,
+          fontFamily: fontFamily,
+        ),
+        errorStyle: TextStyle(
+          color: AppColors.error,
+          fontWeight: FontWeight.w500,
+          fontFamily: fontFamily,
+        ),
+      );
+
+  static final CardThemeData _cardTheme = CardThemeData(
+    color: AppColors.surfaceCard,
+    elevation: 0,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.all(AppRadius.large),
+      side: BorderSide(color: AppColors.border, width: 1),
+    ),
+    margin: EdgeInsets.zero,
+  );
+
+  static AppBarTheme _buildAppBarTheme(String fontFamily) => AppBarTheme(
+    backgroundColor: AppColors.surfaceCard,
+    foregroundColor: AppColors.textPrimary,
+    elevation: 0,
+    scrolledUnderElevation: 1,
+    centerTitle: true,
+    titleTextStyle: TextStyle(
+      fontSize: 18,
+      fontWeight: FontWeight.w700,
+      color: AppColors.textPrimary,
+      fontFamily: fontFamily,
+    ),
+  );
+
+  static DialogThemeData _buildDialogTheme(String fontFamily) => DialogThemeData(
+    backgroundColor: Colors.white,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.all(AppRadius.xl),
+    ),
+    elevation: 8,
+    titleTextStyle: TextStyle(
+      fontSize: 18,
+      fontWeight: FontWeight.w700,
+      color: AppColors.textPrimary,
+      fontFamily: fontFamily,
+    ),
+    contentTextStyle: TextStyle(
+      fontSize: 14,
+      color: AppColors.textSecondary,
+      fontFamily: fontFamily,
+    ),
+  );
+
+  static SnackBarThemeData _buildSnackBarTheme(String fontFamily) => SnackBarThemeData(
+    behavior: SnackBarBehavior.floating,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.all(AppRadius.medium),
+    ),
+    contentTextStyle: TextStyle(
+      fontFamily: fontFamily,
+      fontWeight: FontWeight.w500,
+      fontSize: 14,
+    ),
+  );
 
   static const TextTheme _textTheme = TextTheme(
     displayLarge: TextStyle(
@@ -231,7 +449,7 @@ class AppTheme {
     ),
   );
 
-  static final CardThemeData _cardTheme = CardThemeData(
+  static final CardThemeData _cardThemeLegacy = CardThemeData(
     color: AppColors.surfaceCard,
     elevation: 0,
     shape: const RoundedRectangleBorder(

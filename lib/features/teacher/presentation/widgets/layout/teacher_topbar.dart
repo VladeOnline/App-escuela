@@ -8,6 +8,7 @@ import '../../../../../core/theme/app_theme.dart';
 import '../../../../auth/presentation/auth_notifier.dart';
 import '../modals/change_password_modal.dart';
 import '../modals/help_modal.dart';
+import '../modals/settings_modal.dart';
 
 class TeacherTopbar extends StatelessWidget implements PreferredSizeWidget {
   const TeacherTopbar({
@@ -211,6 +212,7 @@ class _UserMenuButton extends StatelessWidget {
       onSelected: (action) => switch (action) {
         _UserMenuAction.changePassword => onChangePassword(),
         _UserMenuAction.changePhoto => onChangePhoto(),
+        _UserMenuAction.settings => SettingsModal.show(context),
         _UserMenuAction.logout => onLogout(),
       },
       itemBuilder: (_) => [
@@ -269,6 +271,7 @@ class _UserMenuButton extends StatelessWidget {
         const PopupMenuDivider(),
         _menuItem(_UserMenuAction.changePhoto, Icons.photo_camera_outlined, 'Cambiar foto'),
         _menuItem(_UserMenuAction.changePassword, Icons.lock_outline_rounded, 'Cambiar contrasena'),
+        _menuItem(_UserMenuAction.settings, Icons.settings_outlined, 'Configuracion'),
         const PopupMenuDivider(),
         _menuItem(
           _UserMenuAction.logout,
@@ -364,7 +367,7 @@ class _UserMenuButton extends StatelessWidget {
   }
 }
 
-enum _UserMenuAction { changePassword, changePhoto, logout }
+enum _UserMenuAction { changePassword, changePhoto, settings, logout }
 
 
 

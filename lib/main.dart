@@ -11,6 +11,7 @@ import 'features/students/domain/usecases/validate_student_usecase.dart';
 import 'features/students/presentation/notifiers/students_notifier.dart';
 import 'features/students/presentation/pages/student_home_page.dart';
 import 'features/teacher/presentation/pages/teacher_dashboard_page.dart';
+import 'providers/app_settings_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,6 +41,7 @@ class AppEscuela extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthNotifier()),
+        ChangeNotifierProvider(create: (_) => AppSettingsNotifier()),
         ChangeNotifierProxyProvider<AuthNotifier, StudentsNotifier>(
           create: (_) => StudentsNotifier(
             repository: ApiStudentRepository(token: ''),
@@ -51,16 +53,18 @@ class AppEscuela extends StatelessWidget {
           ),
         ),
       ],
-      child: MaterialApp(
-        title: 'Refuerzo Escolar',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.light,
-        initialRoute: AppRoutes.login,
-        routes: {
-          AppRoutes.login: (_) => const LoginPage(),
-          AppRoutes.teacherHome: (_) => const TeacherDashboardPage(),
-          AppRoutes.studentHome: (_) => const StudentHomePage(),
-        },
+      child: Consumer<AppSettingsNotifier>(
+        builder: (context, settings, _) => MaterialApp(
+          title: 'Refuerzo Escolar',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.getTheme(settings.fontFamily),
+          initialRoute: AppRoutes.login,
+          routes: {
+            AppRoutes.login: (_) => const LoginPage(),
+            AppRoutes.teacherHome: (_) => const TeacherDashboardPage(),
+            AppRoutes.studentHome: (_) => const StudentHomePage(),
+          },
+        ),
       ),
     );
   }
