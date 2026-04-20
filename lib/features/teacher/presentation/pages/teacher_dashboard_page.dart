@@ -9,6 +9,7 @@ import '../../../../features/modules/data/repositories/api_module_repository.dar
 import '../../../../features/modules/domain/entities/module_entities.dart';
 import '../../../../features/modules/presentation/pages/modules_page.dart';
 import '../../../../features/reports/presentation/pages/reports_page.dart';
+import 'settings_page.dart';
 import '../../../../features/students/domain/entities/student_entity.dart';
 import '../../../../features/students/presentation/notifiers/students_notifier.dart';
 import '../../../../features/students/presentation/pages/student_form_page.dart';
@@ -55,7 +56,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
         repository: moduleRepository,
       ),
       3 => const ReportsPage(),
-      4 => const _ComingSoonView(label: 'Ajustes'),
+      4 => const SettingsPage(),
       _ => const SizedBox.shrink(),
     };
   }
