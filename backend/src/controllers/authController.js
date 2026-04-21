@@ -137,7 +137,7 @@ const actualizarFotoPerfil = async (req, res) => {
     const { id } = req.usuario;
     const { foto_perfil_url: fotoPerfilUrl } = req.body;
 
-    if (!isValidPhotoPayload(fotoPerfilUrl)) {
+    if (fotoPerfilUrl !== null && !isValidPhotoPayload(fotoPerfilUrl)) {
       return res.status(400).json({
         message: 'La foto debe ser una imagen valida en formato data URL (data:image/...;base64,...)',
       });
@@ -154,7 +154,9 @@ const actualizarFotoPerfil = async (req, res) => {
     }
 
     return res.json({
-      message: 'Foto de perfil actualizada correctamente',
+      message: fotoPerfilUrl === null
+        ? 'Foto de perfil eliminada correctamente'
+        : 'Foto de perfil actualizada correctamente',
       usuario: {
         id: usuarioActualizado._id,
         nombre: usuarioActualizado.nombre,
@@ -168,4 +170,3 @@ const actualizarFotoPerfil = async (req, res) => {
 };
 
 module.exports = { login, registrarDocente, registrarEstudiante, actualizarFotoPerfil };
-
