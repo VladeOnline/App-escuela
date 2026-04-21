@@ -195,6 +195,55 @@ class AuthNotifier extends ChangeNotifier {
     }
   }
 
+  Future<bool> removeProfilePhoto() async {
+    final token = _state.token;
+    if (token == null || token.isEmpty) {
+      _emit(
+        _state.copyWith(
+          status: AuthStatus.failure,
+          failure: const AuthFailure(
+            'Sesion no valida. Vuelve a iniciar sesion.',
+          ),
+        ),
+      );
+      return false;
+    }
+
+    try {
+      final response = await AuthService.removeProfilePhoto(token: token);
+      final usuario =
+          (response['usuario'] as Map?)?.cast<String, dynamic>() ??
+          <String, dynamic>{};
+      final rawPhotoUrl = usuario['foto_perfil_url']?.toString();
+      final refreshedPhotoUrl = (rawPhotoUrl == null || rawPhotoUrl.isEmpty)
+          ? ''
+          : rawPhotoUrl;
+
+      _emit(
+        _state.copyWith(
+          status: AuthStatus.authenticated,
+          userPhotoUrl: refreshedPhotoUrl,
+          studentPhotoUrl: _state.isStudent
+              ? refreshedPhotoUrl
+              : _state.studentPhotoUrl,
+          failure: null,
+        ),
+      );
+      return true;
+    } on AuthFailure catch (failure) {
+      _emit(_state.copyWith(status: AuthStatus.failure, failure: failure));
+      return false;
+    } catch (_) {
+      _emit(
+        _state.copyWith(
+          status: AuthStatus.failure,
+          failure: const AuthFailure('No se pudo quitar la foto de perfil.'),
+        ),
+      );
+      return false;
+    }
+  }
+
   void updateUserPhotoUrl(String photoUrl) {
     _emit(
       _state.copyWith(

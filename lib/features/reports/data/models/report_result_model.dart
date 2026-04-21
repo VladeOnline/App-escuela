@@ -1,4 +1,4 @@
-import '../../domain/entities/report_result_entity.dart';
+﻿import '../../domain/entities/report_result_entity.dart';
 
 /// Modelo para mapear ReportResult desde el JSON del backend
 class ReportResultModel {
@@ -6,6 +6,7 @@ class ReportResultModel {
   final String estudianteId;
   final String evaluacionId;
   final String evaluacionTitulo;
+  final String materia;
   final int puntuacion;
   final DateTime fecha;
   final bool aprobado;
@@ -16,6 +17,7 @@ class ReportResultModel {
     required this.estudianteId,
     required this.evaluacionId,
     required this.evaluacionTitulo,
+    required this.materia,
     required this.puntuacion,
     required this.fecha,
     required this.aprobado,
@@ -24,40 +26,50 @@ class ReportResultModel {
 
   /// Crear instancia desde JSON del backend
   factory ReportResultModel.fromJson(Map<String, dynamic> json) {
+    final rawEvaluacion = json['evaluacion_id'];
+    final nestedTitulo = rawEvaluacion is Map<String, dynamic>
+        ? (rawEvaluacion['titulo']?.toString() ?? rawEvaluacion['nombre']?.toString())
+        : null;
+
     return ReportResultModel(
-      id: json['_id'] ?? '',
-      estudianteId: json['estudiante_id'] ?? '',
-      evaluacionId: json['evaluacion_id'] ?? '',
-      evaluacionTitulo: json['evaluacion_id']?['titulo'] ?? 'Sin título',
+      id: json['id']?.toString() ?? json['_id']?.toString() ?? '',
+      estudianteId: json['estudianteId']?.toString() ?? json['estudiante_id']?.toString() ?? '',
+      evaluacionId: json['evaluacionId']?.toString() ?? json['evaluacion_id']?.toString() ?? '',
+      evaluacionTitulo:
+          json['evaluacionTitulo']?.toString() ?? nestedTitulo ?? 'Sin título',
+      materia: json['materia']?.toString() ?? '',
       puntuacion: (json['puntuacion'] as num?)?.toInt() ?? 0,
-      fecha: json['fecha'] != null 
+      fecha: json['fecha'] != null
           ? DateTime.parse(json['fecha'] as String)
           : DateTime.now(),
-      aprobado: json['aprobado'] ?? false,
+      aprobado: json['aprobado'] == true,
       intentos: (json['intentos'] as num?)?.toInt() ?? 1,
     );
   }
 
   /// Convertir a JSON
   Map<String, dynamic> toJson() => {
-    '_id': id,
-    'estudiante_id': estudianteId,
-    'evaluacion_id': evaluacionId,
-    'puntuacion': puntuacion,
-    'fecha': fecha.toIso8601String(),
-    'aprobado': aprobado,
-    'intentos': intentos,
-  };
+        'id': id,
+        'estudianteId': estudianteId,
+        'evaluacionId': evaluacionId,
+        'evaluacionTitulo': evaluacionTitulo,
+        'materia': materia,
+        'puntuacion': puntuacion,
+        'fecha': fecha.toIso8601String(),
+        'aprobado': aprobado,
+        'intentos': intentos,
+      };
 
   /// Convertir a Entidad
   ReportResultEntity toEntity() => ReportResultEntity(
-    id: id,
-    estudianteId: estudianteId,
-    evaluacionId: evaluacionId,
-    evaluacionTitulo: evaluacionTitulo,
-    puntuacion: puntuacion,
-    fecha: fecha,
-    aprobado: aprobado,
-    intentos: intentos,
-  );
+        id: id,
+        estudianteId: estudianteId,
+        evaluacionId: evaluacionId,
+        evaluacionTitulo: evaluacionTitulo,
+        materia: materia,
+        puntuacion: puntuacion,
+        fecha: fecha,
+        aprobado: aprobado,
+        intentos: intentos,
+      );
 }

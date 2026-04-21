@@ -1,4 +1,4 @@
-import 'package:pdf/pdf.dart';
+﻿import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import '../features/reports/domain/entities/individual_report_entity.dart';
@@ -233,7 +233,7 @@ class PdfReportingService {
   static pw.Widget _buildEvaluacionesTable(IndividualReportEntity report) {
     final datos = report.resultados.map((r) {
       final calificacion = r.puntuacion;
-      final estatus = r.aprobado ? '✓ Aprobado' : '✗ No aprobado';
+      final estatus = r.aprobado ? 'Aprobado' : 'No aprobado';
       return [
         r.evaluacionTitulo,
         '$calificacion%',

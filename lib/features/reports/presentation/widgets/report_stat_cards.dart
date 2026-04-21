@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../../../../core/theme/app_theme.dart';
 import '../../domain/entities/individual_report_entity.dart';
-import '../mock/report_mock_data.dart';
 
 /// 4 tarjetas de estadísticas con fondo de color.
 /// "Aprobadas" usa un verde más claro que "Prom. General" para distinguirse.
@@ -10,8 +9,6 @@ class ReportStatCards extends StatelessWidget {
   const ReportStatCards({super.key, required this.report});
 
   final IndividualReportEntity report;
-
-  int get _approved => report.resultados.where((r) => r.aprobado).length;
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +38,7 @@ class ReportStatCards extends StatelessWidget {
         _StatCard(
           icon: Icons.check_circle_outline_rounded,
           label: 'Aprobadas',
-          value: '$_approved',
+          value: '${report.aprobadas}',
           cardColor: const Color(0xFFF0FDF4),
           borderColor: const Color(0xFFBBF7D0),
           valueColor: const Color(0xFF16A34A),   // verde más brillante
@@ -51,7 +48,7 @@ class ReportStatCards extends StatelessWidget {
         _StatCard(
           icon: Icons.star_outline_rounded,
           label: 'Puntos XP',
-          value: '${ReportMockData.xpPoints}',
+          value: '${report.xpPoints}',
           cardColor: const Color(0xFFFFFBEB),
           borderColor: const Color(0xFFFDE68A),
           valueColor: const Color(0xFF92400E),

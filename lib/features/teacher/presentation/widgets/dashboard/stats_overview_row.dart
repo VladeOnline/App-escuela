@@ -9,30 +9,34 @@ class StatsOverviewRow extends StatelessWidget {
   final List<DashboardStat> stats;
 
   factory StatsOverviewRow.mock() {
+    return StatsOverviewRow.withStudentCount(totalStudents: 8);
+  }
+
+  factory StatsOverviewRow.withStudentCount({required int totalStudents}) {
     return StatsOverviewRow(
-      stats: const [
+      stats: [
         DashboardStat(
           label: 'Estudiantes',
-          value: '8',
+          value: '$totalStudents',
           icon: Icons.people_alt_rounded,
           color: AppColors.primary,
           sublabel: 'este año',
         ),
-        DashboardStat(
+        const DashboardStat(
           label: 'Casos graves',
           value: '2',
           icon: Icons.warning_amber_rounded,
           color: AppColors.error,
           sublabel: 'requieren atención',
         ),
-        DashboardStat(
+        const DashboardStat(
           label: 'Sesiones recientes',
           value: '10',
           icon: Icons.play_circle_outline_rounded,
           color: AppColors.accent,
           sublabel: 'últimos 7 días',
         ),
-        DashboardStat(
+        const DashboardStat(
           label: 'Progreso promedio',
           value: '70%',
           icon: Icons.trending_up_rounded,

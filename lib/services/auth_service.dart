@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../core/constants/app_constants.dart';
 import '../core/errors/app_failure.dart';
@@ -33,6 +33,19 @@ class AuthService {
     required String token,
     required String photoDataUrl,
   }) async {
+    return _patchProfilePhoto(token: token, photoDataUrl: photoDataUrl);
+  }
+
+  static Future<Map<String, dynamic>> removeProfilePhoto({
+    required String token,
+  }) async {
+    return _patchProfilePhoto(token: token, photoDataUrl: null);
+  }
+
+  static Future<Map<String, dynamic>> _patchProfilePhoto({
+    required String token,
+    required String? photoDataUrl,
+  }) async {
     final response = await http.patch(
       Uri.parse('${AppConstants.apiBaseUrl}/auth/me/foto-perfil'),
       headers: {
@@ -46,7 +59,9 @@ class AuthService {
       return jsonDecode(response.body) as Map<String, dynamic>;
     }
 
-    final fallback = 'No se pudo actualizar la foto de perfil.';
+    final fallback = photoDataUrl == null
+        ? 'No se pudo quitar la foto de perfil.'
+        : 'No se pudo actualizar la foto de perfil.';
     try {
       final data = jsonDecode(response.body) as Map<String, dynamic>;
       throw AuthFailure(data['message']?.toString() ?? fallback);
@@ -55,5 +70,3 @@ class AuthService {
     }
   }
 }
-
-

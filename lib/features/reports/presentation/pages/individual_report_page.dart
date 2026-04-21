@@ -1,11 +1,15 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
 import '../../../../../core/constants/app_constants.dart';
 import '../../../../../core/theme/app_theme.dart';
+import '../../data/repositories/report_repository_impl.dart';
+import '../notifiers/report_notifier.dart';
 import '../../../../../features/students/domain/entities/student_entity.dart';
 import '../../../../../features/students/presentation/notifiers/students_notifier.dart';
 import '../../../../../services/pdf_reporting_service.dart';
+import '../../../../../shared/widgets/grade_badge.dart';
 import '../../domain/entities/individual_report_entity.dart';
 import '../mock/report_mock_data.dart';
 import '../widgets/gamification_strip.dart';
@@ -23,8 +27,24 @@ class IndividualReportPage extends StatefulWidget {
 
 class _IndividualReportPageState extends State<IndividualReportPage> {
   StudentEntity? _selected;
+  late final http.Client _httpClient;
+  late final IndividualReportNotifier _reportNotifier;
 
-  IndividualReportEntity get _report => ReportMockData.individualReport;
+  @override
+  void initState() {
+    super.initState();
+    _httpClient = http.Client();
+    _reportNotifier = IndividualReportNotifier(
+      ReportRepositoryImpl(httpClient: _httpClient),
+    );
+  }
+
+  @override
+  void dispose() {
+    _reportNotifier.dispose();
+    _httpClient.close();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,20 +56,49 @@ class _IndividualReportPageState extends State<IndividualReportPage> {
         _LeftPanel(
           students: students,
           selected: _selected,
-          report: _selected != null ? _report : null,
-          onChanged: (s) => setState(() => _selected = s),
+          report: _reportNotifier.report,
+          onChanged: (s) async {
+            setState(() => _selected = s);
+            await _reportNotifier.getIndividualReport(s.id);
+          },
         ),
         Expanded(
           child: _selected == null
               ? const _EmptyState()
-              : _RightPanel(report: _report),
+              : AnimatedBuilder(
+                  animation: _reportNotifier,
+                  builder: (_, __) {
+                    if (_reportNotifier.isLoading) {
+                      return const Center(
+                        child: CircularProgressIndicator(
+                          color: AppColors.primary,
+                        ),
+                      );
+                    }
+                    if (_reportNotifier.state == ReportLoadState.error) {
+                      return Center(
+                        child: Text(
+                          _reportNotifier.error ?? 'No se pudo cargar el reporte',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: AppColors.error,
+                              ),
+                        ),
+                      );
+                    }
+                    final report = _reportNotifier.report;
+                    if (report == null) {
+                      return const _EmptyState();
+                    }
+                    return _RightPanel(report: report);
+                  },
+                ),
         ),
       ],
     );
   }
 }
 
-// ── Estado vacío ──────────────────────────────────────────────────────────────
+// â”€â”€ Estado vacÃ­o â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _EmptyState extends StatelessWidget {
   const _EmptyState();
@@ -71,7 +120,7 @@ class _EmptyState extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            'Su reporte aparecerá aquí',
+            'Su reporte aparecerÃ¡ aquÃ­',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: AppColors.textHint,
                 ),
@@ -82,9 +131,9 @@ class _EmptyState extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Panel izquierdo
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _LeftPanel extends StatefulWidget {
   const _LeftPanel({
@@ -156,7 +205,7 @@ class _LeftPanelState extends State<_LeftPanel> {
 
           return Column(
             children: [
-              // ── Mitad superior ───────────────────────────────────
+              // â”€â”€ Mitad superior â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
               SizedBox(
                 height: halfH,
                 child: Column(
@@ -227,7 +276,7 @@ class _LeftPanelState extends State<_LeftPanel> {
 
               const Divider(height: 1, color: AppColors.border),
 
-              // ── Mitad inferior ───────────────────────────────────
+              // â”€â”€ Mitad inferior â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
               SizedBox(
                 height: halfH - 1,
                 child: widget.report == null
@@ -263,7 +312,7 @@ class _LeftPanelState extends State<_LeftPanel> {
   }
 }
 
-// ── Filtro por grado con hover border animado ─────────────────────────────────
+// â”€â”€ Filtro por grado con hover border animado â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _GradeFilterButton extends StatefulWidget {
   const _GradeFilterButton({required this.selected, required this.onSelect});
@@ -324,7 +373,7 @@ class _GradeFilterButtonState extends State<_GradeFilterButton> {
             child: MouseRegion(
               cursor: SystemMouseCursors.click,
               child: Text(
-                AppConstants.gradeLabels[g] ?? '$g° grado',
+                AppConstants.gradeLabels[g] ?? '$gÂ° grado',
                 style: TextStyle(
                   color: widget.selected == g
                       ? AppColors.primary
@@ -369,7 +418,7 @@ class _GradeFilterButtonState extends State<_GradeFilterButton> {
   }
 }
 
-// ── Lista de estudiantes ──────────────────────────────────────────────────────
+// â”€â”€ Lista de estudiantes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _StudentList extends StatelessWidget {
   const _StudentList({
@@ -425,7 +474,7 @@ class _StudentRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final color      = AppColors.forGrade(student.grade);
     final gradeLabel = AppConstants.gradeLabels[student.grade]
-        ?? '${student.grade}° grado';
+        ?? '${student.grade}Â° grado';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 2),
@@ -446,16 +495,11 @@ class _StudentRow extends StatelessWidget {
           ),
           child: Row(
             children: [
-              CircleAvatar(
+              StudentAvatar(
+                initials: student.initials,
+                grade: student.grade,
                 radius: 18,
-                backgroundColor: color.withValues(alpha: 0.15),
-                child: Text(
-                  student.initials,
-                  style: TextStyle(
-                    color: color, fontSize: 12,
-                    fontWeight: FontWeight.w800, fontFamily: 'Nunito',
-                  ),
-                ),
+                photoUrl: student.photoUrl,
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
@@ -492,7 +536,7 @@ class _StudentRow extends StatelessWidget {
   }
 }
 
-// ── Promedio de evaluaciones ──────────────────────────────────────────────────
+// â”€â”€ Promedio de evaluaciones â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _EvalAverageCard extends StatelessWidget {
   const _EvalAverageCard({required this.results});
@@ -555,77 +599,104 @@ class _EvalAverageCard extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Panel derecho — adaptable: sin scroll en pantallas grandes, con scroll si hace falta
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Panel derecho â€” adaptable: sin scroll en pantallas grandes, con scroll si hace falta
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _RightPanel extends StatelessWidget {
   const _RightPanel({required this.report});
   final IndividualReportEntity report;
 
+  List<SubjectPerformance> get _subjectPerformance {
+    return report.rendimientoPorMateria
+        .map(
+          (s) => SubjectPerformance(
+            name: s.nombre,
+            color: SubjectColors.forName(s.nombre),
+            reading: s.lectura,
+            writing: s.escritura,
+          ),
+        )
+        .toList();
+  }
+
+  List<WeekPoint> get _progressHistory {
+    return report.progresoSemanal
+        .map((p) => WeekPoint(week: p.week, value: p.value))
+        .toList();
+  }
+
+  List<BadgeData> get _badges {
+    if (report.insignias.isEmpty) return const [];
+    return report.insignias.take(2).map((name) {
+      final n = name.toLowerCase();
+      if (n.contains('racha')) {
+        return const BadgeData(
+          icon: Icons.local_fire_department_rounded,
+          label: 'Racha activa',
+          color: Color(0xFFEF4444),
+        );
+      }
+      if (n.contains('lector')) {
+        return const BadgeData(
+          icon: Icons.star_rounded,
+          label: 'Lector estrella',
+          color: Color(0xFFF59E0B),
+        );
+      }
+      return BadgeData(
+        icon: Icons.emoji_events_rounded,
+        label: name,
+        color: const Color(0xFF10B981),
+      );
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     final gradeLabel =
         AppConstants.gradeLabels[report.estudianteGrado] ??
-        '${report.estudianteGrado}° grado';
+        '${report.estudianteGrado}Â° grado';
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        const minContentH = 580.0;
-        final useScroll   = constraints.maxHeight < minContentH;
-
-        final content = Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _StudentHeader(report: report, gradeLabel: gradeLabel),
-              const SizedBox(height: AppSpacing.sm),
-              ReportStatCards(report: report),
-              const SizedBox(height: AppSpacing.sm),
-              _SectionCard(
-                child: SubjectPerformanceBars(
-                  subjects: ReportMockData.subjectPerformance,
-                ),
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _StudentHeader(report: report, gradeLabel: gradeLabel),
+            const SizedBox(height: AppSpacing.sm),
+            ReportStatCards(report: report),
+            const SizedBox(height: AppSpacing.sm),
+            _SectionCard(
+              child: SubjectPerformanceBars(
+                subjects: _subjectPerformance,
               ),
-              const SizedBox(height: AppSpacing.sm),
-              if (!useScroll)
-                Expanded(
-                  child: _SectionCard(
-                    child: ProgressLineChart(
-                      points: ReportMockData.progressHistory,
-                    ),
-                  ),
-                )
-              else
-                _SectionCard(
-                  child: ProgressLineChart(
-                    points: ReportMockData.progressHistory,
-                  ),
-                ),
-              const SizedBox(height: AppSpacing.sm),
-              _SectionCard(
-                child: GamificationStrip(
-                  ranking:   ReportMockData.ranking,
-                  xp:        ReportMockData.xpPoints,
-                  levelName: ReportMockData.levelName,
-                  badges:    ReportMockData.badges,
-                ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            _SectionCard(
+              child: ProgressLineChart(
+                points: _progressHistory,
               ),
-              if (useScroll) const SizedBox(height: AppSpacing.md),
-            ],
-          ),
-        );
-
-        return useScroll
-            ? SingleChildScrollView(child: content)
-            : content;
-      },
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            _SectionCard(
+              child: GamificationStrip(
+                ranking: report.ranking,
+                xp: report.xpPoints,
+                levelName: report.levelName,
+                badges: _badges,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+          ],
+        ),
+      ),
     );
   }
 }
 
-// ── Header ────────────────────────────────────────────────────────────────────
+// â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _StudentHeader extends StatelessWidget {
   const _StudentHeader({required this.report, required this.gradeLabel});
@@ -641,13 +712,13 @@ class _StudentHeader extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '${report.estudianteNombre} — $gradeLabel',
+                '${report.estudianteNombre} - $gradeLabel',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
               ),
               Text(
-                'Activa · Última actividad: hoy',
+                'Activa - Ultima actividad: hoy',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: AppColors.textHint,
                     ),
@@ -686,7 +757,7 @@ class _StudentHeader extends StatelessWidget {
   }
 }
 
-// ── Card contenedora ──────────────────────────────────────────────────────────
+// â”€â”€ Card contenedora â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _SectionCard extends StatelessWidget {
   const _SectionCard({required this.child});
@@ -706,3 +777,4 @@ class _SectionCard extends StatelessWidget {
     );
   }
 }
+
