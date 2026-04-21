@@ -76,6 +76,7 @@ class TeacherTopbar extends StatelessWidget implements PreferredSizeWidget {
             onLogout: onLogout,
             onChangePassword: () => ChangePasswordModal.show(context),
             onChangePhoto: () => _pickAndUploadPhoto(context),
+            onRemovePhoto: () => _removeProfilePhoto(context),
           ),
         ],
       ),
@@ -153,6 +154,34 @@ class TeacherTopbar extends StatelessWidget implements PreferredSizeWidget {
     if (lower.endsWith('.webp')) return 'image/webp';
     return 'image/jpeg';
   }
+
+  Future<void> _removeProfilePhoto(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final authNotifier = context.read<AuthNotifier>();
+
+    final ok = await authNotifier.removeProfilePhoto();
+    if (!context.mounted) return;
+
+    if (ok) {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Foto de perfil eliminada.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          authNotifier.state.failure?.message ??
+              'No se pudo eliminar la foto de perfil.',
+        ),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
 }
 
 class _TopbarIconButton extends StatelessWidget {
@@ -191,6 +220,7 @@ class _UserMenuButton extends StatelessWidget {
     required this.onLogout,
     required this.onChangePassword,
     required this.onChangePhoto,
+    required this.onRemovePhoto,
   });
 
   final String teacherName;
@@ -198,24 +228,33 @@ class _UserMenuButton extends StatelessWidget {
   final VoidCallback onLogout;
   final VoidCallback onChangePassword;
   final VoidCallback onChangePhoto;
+  final VoidCallback onRemovePhoto;
+  static final Map<String, ImageProvider> _photoProviderCache = {};
 
   ImageProvider _resolvePhotoProvider(String? value) {
     if (value == null || value.trim().isEmpty) {
       return const AssetImage('assets/images/buho_profesor.png');
     }
     final trimmed = value.trim();
+    final cached = _photoProviderCache[trimmed];
+    if (cached != null) return cached;
+
     if (trimmed.startsWith('data:image/')) {
       final comma = trimmed.indexOf(',');
       if (comma > 0 && comma < trimmed.length - 1) {
         try {
           final bytes = base64Decode(trimmed.substring(comma + 1));
-          return MemoryImage(bytes);
+          final provider = MemoryImage(bytes);
+          _photoProviderCache[trimmed] = provider;
+          return provider;
         } catch (_) {
           return const AssetImage('assets/images/buho_profesor.png');
         }
       }
     }
-    return NetworkImage(trimmed);
+    final provider = NetworkImage(trimmed);
+    _photoProviderCache[trimmed] = provider;
+    return provider;
   }
 
   @override
@@ -232,6 +271,9 @@ class _UserMenuButton extends StatelessWidget {
         switch (action) {
           case _UserMenuAction.changePhoto:
             onChangePhoto();
+            break;
+          case _UserMenuAction.removePhoto:
+            onRemovePhoto();
             break;
           case _UserMenuAction.changePassword:
             onChangePassword();
@@ -261,6 +303,7 @@ class _UserMenuButton extends StatelessWidget {
                   child: Image(
                     image: _resolvePhotoProvider(teacherPhotoUrl),
                     fit: BoxFit.cover,
+                    gaplessPlayback: true,
                     errorBuilder: (_, __, ___) => Image.asset(
                       'assets/images/buho_profesor.png',
                       fit: BoxFit.cover,
@@ -301,6 +344,12 @@ class _UserMenuButton extends StatelessWidget {
           'Cambiar foto',
         ),
         _menuItem(
+          _UserMenuAction.removePhoto,
+          Icons.delete_outline_rounded,
+          'Quitar foto',
+          color: AppColors.error,
+        ),
+        _menuItem(
           _UserMenuAction.changePassword,
           Icons.lock_outline_rounded,
           'Cambiar contrasena',
@@ -333,6 +382,7 @@ class _UserMenuButton extends StatelessWidget {
                 child: Image(
                   image: _resolvePhotoProvider(teacherPhotoUrl),
                   fit: BoxFit.cover,
+                  gaplessPlayback: true,
                   errorBuilder: (_, __, ___) => Image.asset(
                     'assets/images/buho_profesor.png',
                     fit: BoxFit.cover,
@@ -384,4 +434,4 @@ class _UserMenuButton extends StatelessWidget {
   }
 }
 
-enum _UserMenuAction { changePhoto, changePassword, logout }
+enum _UserMenuAction { changePhoto, removePhoto, changePassword, logout }

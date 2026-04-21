@@ -28,6 +28,7 @@ class IndividualReportNotifier extends ChangeNotifier {
   Future<void> getIndividualReport(String estudianteId) async {
     _state = ReportLoadState.loading;
     _error = null;
+    _report = null;
     notifyListeners();
 
     try {

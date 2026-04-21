@@ -674,9 +674,7 @@ class _ModuleCardState extends State<_ModuleCard>
                                   const BorderRadius.all(AppRadius.full),
                             ),
                             child: Text(
-                              count == 0
-                                  ? 'Sin ejercicios'
-                                  : '$count ejercicio${count != 1 ? 's' : ''}',
+                              '$count ejercicio${count != 1 ? 's' : ''}',
                               style: TextStyle(
                                 fontSize: 10, fontFamily: 'Nunito',
                                 fontWeight: FontWeight.w700,

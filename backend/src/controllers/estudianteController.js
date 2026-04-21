@@ -1,4 +1,4 @@
-﻿const Estudiante = require('../models/studentModel');
+const Estudiante = require('../models/studentModel');
 const Usuario = require('../models/userModel');
 const bcrypt = require('bcryptjs');
 
@@ -212,7 +212,6 @@ const eliminarEstudiante = async (req, res) => {
 };
 
 module.exports = { obtenerEstudiantes, crearEstudiante, editarEstudiante, eliminarEstudiante };
-
 
 
 

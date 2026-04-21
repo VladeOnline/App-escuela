@@ -10,13 +10,14 @@ import '../../../../features/modules/domain/entities/module_entities.dart';
 import '../../../../features/modules/presentation/pages/modules_page.dart';
 import '../../../../features/reports/presentation/pages/reports_page.dart';
 import 'settings_page.dart';
+import '../../domain/models/dashboard_stat.dart';
 import '../../../../features/students/domain/entities/student_entity.dart';
 import '../../../../features/students/presentation/notifiers/students_notifier.dart';
 import '../../../../features/students/presentation/pages/student_form_page.dart';
 import '../../../../shared/widgets/app_snackbar.dart';
 import '../../../../shared/widgets/confirm_dialog.dart';
 import '../../../../shared/widgets/grade_badge.dart';
-import '../widgets/dashboard/stats_overview_row.dart';
+import '../widgets/dashboard/stat_card.dart';
 import '../widgets/layout/teacher_sidebar.dart';
 import '../widgets/layout/teacher_topbar.dart';
 
@@ -105,7 +106,23 @@ class _DashboardView extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _StatsCard(child: StatsOverviewRow.mock()),
+        _StatsCard(
+          child: AnimatedBuilder(
+            animation: notifier,
+            builder: (_, __) {
+              final totalActive = notifier.state.students.length;
+              return StatCard(
+                stat: DashboardStat(
+                  label: 'Total de estudiantes activos',
+                  value: '$totalActive',
+                  icon: Icons.people_alt_rounded,
+                  color: AppColors.primary,
+                  sublabel: 'este año',
+                ),
+              );
+            },
+          ),
+        ),
         const SizedBox(height: AppSpacing.lg),
         _StudentsCard(notifier: notifier),
       ],

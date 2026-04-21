@@ -50,6 +50,26 @@ abstract class ReportMockData {
         estudianteGrado: 1,
         totalEvaluaciones: 8,
         promedio: 73,
+        aprobadas: 4,
+        xpPoints: 340,
+        ranking: 2,
+        levelName: 'Explorador',
+        insignias: const ['Lector Estrella', 'Racha 5 días'],
+        rendimientoPorMateria: const [
+          ReportSubjectPerformanceEntity(nombre: 'Español', lectura: 78, escritura: 60),
+          ReportSubjectPerformanceEntity(nombre: 'Est. Sociales', lectura: 88, escritura: 80),
+          ReportSubjectPerformanceEntity(nombre: 'Cívica', lectura: 70, escritura: 55),
+          ReportSubjectPerformanceEntity(nombre: 'Ciencias', lectura: 65, escritura: 50),
+          ReportSubjectPerformanceEntity(nombre: 'Matemáticas', lectura: 68, escritura: 72),
+        ],
+        progresoSemanal: const [
+          ReportProgressPointEntity(week: 'Sem 1', value: 55),
+          ReportProgressPointEntity(week: 'Sem 2', value: 60),
+          ReportProgressPointEntity(week: 'Sem 3', value: 58),
+          ReportProgressPointEntity(week: 'Sem 4', value: 65),
+          ReportProgressPointEntity(week: 'Sem 5', value: 70),
+          ReportProgressPointEntity(week: 'Sem 6', value: 73),
+        ],
         resultados: _mockResults,
       );
 

@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Contenido = require('../models/contenidoModel');
+const Ejercicio = require('../models/ejercicioModel');
 const { registrarLog } = require('../utils/helpers');
 
 // ─────────────────────────────────────────────
@@ -77,12 +78,40 @@ const obtenerContenidos = async (req, res) => {
     if (tipo_modulo) filtro.tipo_modulo = tipo_modulo;
     if (grado)       filtro.grado = Number(grado);
 
-    const contenidos = await Contenido.find(filtro)
-      .sort({ grado: 1, titulo: 1 });
+    const contenidos = await Contenido.find(filtro).sort({ grado: 1, titulo: 1 });
+
+    const contenidoIds = contenidos.map((c) => c._id);
+    let totalesPorContenido = new Map();
+
+    if (contenidoIds.length > 0) {
+      const agregados = await Ejercicio.aggregate([
+        {
+          $match: {
+            contenido_id: { $in: contenidoIds },
+            activo: true
+          }
+        },
+        {
+          $group: {
+            _id: '$contenido_id',
+            total: { $sum: 1 }
+          }
+        }
+      ]);
+
+      totalesPorContenido = new Map(
+        agregados.map((item) => [String(item._id), item.total])
+      );
+    }
+
+    const contenidosConTotales = contenidos.map((contenido) => ({
+      ...contenido.toObject(),
+      totalEjercicios: totalesPorContenido.get(String(contenido._id)) ?? 0
+    }));
 
     res.status(200).json({
       total: contenidos.length,
-      contenidos
+      contenidos: contenidosConTotales
     });
 
   } catch (error) {

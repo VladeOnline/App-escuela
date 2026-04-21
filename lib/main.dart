@@ -47,13 +47,21 @@ class AppEscuela extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthNotifier()),
         ChangeNotifierProxyProvider<AuthNotifier, StudentsNotifier>(
           create: (_) => StudentsNotifier(
+            authToken: '',
             repository: ApiStudentRepository(token: ''),
             validator: ValidateStudentUseCase(),
           ),
-          update: (_, auth, previous) => StudentsNotifier(
-            repository: ApiStudentRepository(token: auth.state.token ?? ''),
-            validator: ValidateStudentUseCase(),
-          ),
+          update: (_, auth, previous) {
+            final token = auth.state.token ?? '';
+            if (previous != null && previous.authToken == token) {
+              return previous;
+            }
+            return StudentsNotifier(
+              authToken: token,
+              repository: ApiStudentRepository(token: token),
+              validator: ValidateStudentUseCase(),
+            );
+          },
         ),
       ],
       child: MaterialApp(

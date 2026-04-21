@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'dart:convert';
 import '../../../../../core/theme/app_theme.dart';
 
-// ─── Modelos ───
+// â”€â”€â”€ Modelos â”€â”€â”€
 
 class NavItem {
   const NavItem({
@@ -31,7 +31,7 @@ class NavSubItem {
   final int index;
 }
 
-// ─── Sidebar ───
+// â”€â”€â”€ Sidebar â”€â”€â”€
 
 class TeacherSidebar extends StatefulWidget {
   const TeacherSidebar({
@@ -146,7 +146,7 @@ class _TeacherSidebarState extends State<TeacherSidebar> {
   }
 }
 
-// ─── Avatar header ───
+// â”€â”€â”€ Avatar header â”€â”€â”€
 
 // TODO(back): reemplazar [teacherName] con el nombre real desde AuthNotifier.state.
 class _TeacherAvatarHeader extends StatelessWidget {
@@ -162,6 +162,7 @@ class _TeacherAvatarHeader extends StatelessWidget {
   final String? teacherPhotoUrl;
   final bool collapsed;
   final VoidCallback onToggle;
+  static final Map<String, ImageProvider> _photoProviderCache = {};
 
   String get _greeting {
     final h = DateTime.now().hour;
@@ -175,18 +176,25 @@ class _TeacherAvatarHeader extends StatelessWidget {
       return const AssetImage('assets/images/buho_profesor.png');
     }
     final trimmed = value.trim();
+    final cached = _photoProviderCache[trimmed];
+    if (cached != null) return cached;
+
     if (trimmed.startsWith('data:image/')) {
       final comma = trimmed.indexOf(',');
       if (comma > 0 && comma < trimmed.length - 1) {
         try {
           final bytes = base64Decode(trimmed.substring(comma + 1));
-          return MemoryImage(bytes);
+          final provider = MemoryImage(bytes);
+          _photoProviderCache[trimmed] = provider;
+          return provider;
         } catch (_) {
           return const AssetImage('assets/images/buho_profesor.png');
         }
       }
     }
-    return NetworkImage(trimmed);
+    final provider = NetworkImage(trimmed);
+    _photoProviderCache[trimmed] = provider;
+    return provider;
   }
 
   Widget _avatar(double size) => Container(
@@ -201,6 +209,7 @@ class _TeacherAvatarHeader extends StatelessWidget {
           child: Image(
             image: _resolvePhotoProvider(teacherPhotoUrl),
             fit: BoxFit.cover,
+            gaplessPlayback: true,
             errorBuilder: (_, __, ___) => Image.asset('assets/images/buho_profesor.png', fit: BoxFit.cover),
           ),
         ),
@@ -213,7 +222,8 @@ class _TeacherAvatarHeader extends StatelessWidget {
           onPressed: onToggle,
           tooltip: expanded ? 'Colapsar menú' : 'Expandir menú',
           padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          constraints: const BoxConstraints.tightFor(width: 28, height: 28),
+          visualDensity: VisualDensity.compact,
           icon: AnimatedRotation(
             turns: expanded ? 0 : 0.5,
             duration: const Duration(milliseconds: 220),
@@ -227,7 +237,10 @@ class _TeacherAvatarHeader extends StatelessWidget {
     if (collapsed) {
       return Column(
         children: [
-          SizedBox(height: 36, child: Center(child: _collapseBtn(expanded: false))),
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.sm),
+            child: Center(child: _collapseBtn(expanded: false)),
+          ),
           const Divider(height: 1, color: AppColors.border),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
@@ -263,7 +276,7 @@ class _TeacherAvatarHeader extends StatelessWidget {
   }
 }
 
-// ─── Nav items ───
+// â”€â”€â”€ Nav items â”€â”€â”€
 
 class _SingleNavItem extends StatelessWidget {
   const _SingleNavItem({required this.item, required this.collapsed, required this.isActive, required this.onTap});
@@ -443,7 +456,7 @@ class _SubItemList extends StatelessWidget {
   }
 }
 
-// ─── Painter ───
+// â”€â”€â”€ Painter â”€â”€â”€
 
 class _BranchLinePainter extends CustomPainter {
   const _BranchLinePainter({required this.color});
@@ -463,7 +476,7 @@ class _BranchLinePainter extends CustomPainter {
   bool shouldRepaint(_BranchLinePainter old) => old.color != color;
 }
 
-// ─── Logout ───
+// â”€â”€â”€ Logout â”€â”€â”€
 
 class _LogoutButton extends StatelessWidget {
   const _LogoutButton({required this.collapsed, required this.onLogout});
@@ -497,3 +510,4 @@ class _LogoutButton extends StatelessWidget {
     );
   }
 }
+

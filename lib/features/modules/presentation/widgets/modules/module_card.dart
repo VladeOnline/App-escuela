@@ -4,7 +4,6 @@ import '../../../../../core/theme/app_theme.dart';
 import '../../../data/repositories/api_module_repository.dart';
 import '../../../domain/entities/module_entities.dart';
 import '../../pages/module_detail_page.dart';
-import 'create_module_card.dart';
 import 'delete_module_button.dart';
 import 'module_card_themes.dart';
 
@@ -62,9 +61,19 @@ class _ModuleCardState extends State<ModuleCard> with TickerProviderStateMixin {
       onEnter: _onEnter,
       onExit: _onExit,
       child: GestureDetector(
-        onTap: () => Navigator.of(context).push(MaterialPageRoute(
-          builder: (_) => ModuleDetailPage(module: widget.module, repository: widget.repository, isTeacher: widget.isTeacher),
-        )),
+        onTap: () async {
+          await Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => ModuleDetailPage(
+                module: widget.module,
+                repository: widget.repository,
+                isTeacher: widget.isTeacher,
+              ),
+            ),
+          );
+          if (!mounted) return;
+          widget.onDeleted();
+        },
         child: ScaleTransition(
           scale: _scale,
           child: AnimatedContainer(
@@ -89,7 +98,7 @@ class _ModuleCardState extends State<ModuleCard> with TickerProviderStateMixin {
                     opacity: _hovered ? 0.6 : 0.3,
                     child: AnimatedBuilder(
                       animation: _dotsCtrl ?? const AlwaysStoppedAnimation(0),
-                      builder: (_, __) => CustomPaint(
+                      builder: (_, child) => CustomPaint(
                         painter: DotsPainter(color: t.accent, seed: widget.module.id.hashCode, shift: _shift.value),
                       ),
                     ),

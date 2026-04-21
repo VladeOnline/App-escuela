@@ -1,4 +1,4 @@
-﻿const Usuario = require('../models/userModel');
+const Usuario = require('../models/userModel');
 const Estudiante = require('../models/studentModel');
 const Gamificacion = require('../models/gamificacionModel');
 const bcrypt = require('bcryptjs');
@@ -168,5 +168,4 @@ const actualizarFotoPerfil = async (req, res) => {
 };
 
 module.exports = { login, registrarDocente, registrarEstudiante, actualizarFotoPerfil };
-
 

@@ -49,11 +49,15 @@ class StudentsState {
 
 class StudentsNotifier extends ChangeNotifier {
   StudentsNotifier({
+    required String authToken,
     required StudentRepository repository,
     required ValidateStudentUseCase validator,
-  })  : _repository = repository,
+  })  : _authToken = authToken,
+        _repository = repository,
         _validator = validator;
 
+  final String _authToken;
+  String get authToken => _authToken;
   final StudentRepository _repository;
   final ValidateStudentUseCase _validator;
 
