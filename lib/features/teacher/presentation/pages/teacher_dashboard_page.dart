@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/constants/app_constants.dart';
@@ -8,13 +8,13 @@ import '../../../../features/auth/presentation/auth_notifier.dart';
 import '../../../../features/modules/data/repositories/api_module_repository.dart';
 import '../../../../features/modules/domain/entities/module_entities.dart';
 import '../../../../features/modules/presentation/pages/modules_page.dart';
+import '../../../../features/reports/presentation/pages/reports_page.dart';
 import '../../../../features/students/domain/entities/student_entity.dart';
 import '../../../../features/students/presentation/notifiers/students_notifier.dart';
 import '../../../../features/students/presentation/pages/student_form_page.dart';
 import '../../../../shared/widgets/app_snackbar.dart';
 import '../../../../shared/widgets/confirm_dialog.dart';
 import '../../../../shared/widgets/grade_badge.dart';
-import '../../../../features/teacher/domain/models/dashboard_stat.dart';
 import '../widgets/dashboard/stats_overview_row.dart';
 import '../widgets/layout/teacher_sidebar.dart';
 import '../widgets/layout/teacher_topbar.dart';
@@ -34,6 +34,11 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
     Navigator.of(context).pushReplacementNamed(AppRoutes.login);
   }
 
+  String get _teacherName =>
+      context.read<AuthNotifier>().state.userName ?? 'Profesor';
+
+  String get _usuarioId => context.read<AuthNotifier>().state.userId ?? '';
+
   Widget _buildContent(int index) {
     final studentsNotifier = context.read<StudentsNotifier>();
     final token = context.read<AuthNotifier>().state.token ?? '';
@@ -42,38 +47,31 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
     return switch (index) {
       0 => _DashboardView(notifier: studentsNotifier),
       1 => ModulesPage(
-          moduleType: ModuleType.reading,
-          repository: moduleRepository,
-        ),
+        moduleType: ModuleType.reading,
+        repository: moduleRepository,
+      ),
       2 => ModulesPage(
-          moduleType: ModuleType.writing,
-          repository: moduleRepository,
-        ),
-      3 => ModulesPage(
-          moduleType: ModuleType.math,
-          repository: moduleRepository,
-        ),
-      4 => const _ComingSoonView(label: 'Reportes'),
-      5 => const _ComingSoonView(label: 'Ajustes'),
+        moduleType: ModuleType.writing,
+        repository: moduleRepository,
+      ),
+      3 => const ReportsPage(),
+      4 => const _ComingSoonView(label: 'Ajustes'),
       _ => const SizedBox.shrink(),
     };
   }
 
   @override
   Widget build(BuildContext context) {
-    final authState = context.watch<AuthNotifier>().state;
-    final teacherName = (authState.userName == null || authState.userName!.trim().isEmpty)
-        ? 'Docente'
-        : authState.userName!.trim();
-    final teacherPhotoUrl = authState.userPhotoUrl;
+    final photoUrl = context.watch<AuthNotifier>().state.userPhotoUrl;
 
     return Scaffold(
       body: Row(
         children: [
           TeacherSidebar(
             selectedIndex: _selectedIndex,
-            teacherName: teacherName,
-            teacherPhotoUrl: teacherPhotoUrl,
+            teacherName: _teacherName,
+            usuarioId: _usuarioId,
+            teacherPhotoUrl: photoUrl,
             onSelectIndex: (i) => setState(() => _selectedIndex = i),
             onLogout: _onLogout,
           ),
@@ -81,8 +79,8 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
             child: Column(
               children: [
                 TeacherTopbar(
-                  teacherName: teacherName,
-                  teacherPhotoUrl: teacherPhotoUrl,
+                  teacherName: _teacherName,
+                  teacherPhotoUrl: photoUrl,
                   onLogout: _onLogout,
                 ),
                 Expanded(child: _buildContent(_selectedIndex)),
@@ -95,64 +93,23 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
   }
 }
 
-class _DashboardView extends StatefulWidget {
+class _DashboardView extends StatelessWidget {
   const _DashboardView({required this.notifier});
 
   final StudentsNotifier notifier;
 
   @override
-  State<_DashboardView> createState() => _DashboardViewState();
-}
-
-class _DashboardViewState extends State<_DashboardView> {
-  @override
   Widget build(BuildContext context) => SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            AnimatedBuilder(
-              animation: widget.notifier,
-              builder: (_, _) => _StatsCard(
-                child: StatsOverviewRow(
-                  stats: [
-                    DashboardStat(
-                      label: 'Estudiantes',
-                      value: '${widget.notifier.state.students.length}',
-                      icon: Icons.people_alt_rounded,
-                      color: AppColors.primary,
-                      sublabel: 'registrados',
-                    ),
-                    const DashboardStat(
-                      label: 'Casos graves',
-                      value: '2',
-                      icon: Icons.warning_amber_rounded,
-                      color: AppColors.error,
-                      sublabel: 'requieren atención',
-                    ),
-                    const DashboardStat(
-                      label: 'Sesiones recientes',
-                      value: '10',
-                      icon: Icons.play_circle_outline_rounded,
-                      color: AppColors.accent,
-                      sublabel: 'últimos 7 días',
-                    ),
-                    const DashboardStat(
-                      label: 'Progreso promedio',
-                      value: '70%',
-                      icon: Icons.trending_up_rounded,
-                      color: AppColors.secondary,
-                      sublabel: 'avance general',
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            _StudentsCard(notifier: widget.notifier),
-          ],
-        ),
-      );
+    padding: const EdgeInsets.all(AppSpacing.lg),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _StatsCard(child: StatsOverviewRow.mock()),
+        const SizedBox(height: AppSpacing.lg),
+        _StudentsCard(notifier: notifier),
+      ],
+    ),
+  );
 }
 
 class _StatsCard extends StatelessWidget {
@@ -173,7 +130,7 @@ class _StatsCard extends StatelessWidget {
       'septiembre',
       'octubre',
       'noviembre',
-      'diciembre'
+      'diciembre',
     ];
     final now = DateTime.now();
     return 'Resumen de ${months[now.month - 1]} ${now.year}';
@@ -212,7 +169,7 @@ class _StatsCard extends StatelessWidget {
                 height: 120,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.07),
+                  color: Colors.white.withOpacity(0.07),
                 ),
               ),
             ),
@@ -225,7 +182,7 @@ class _StatsCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.10),
+                    color: Colors.white.withOpacity(0.10),
                     width: 1.5,
                   ),
                 ),
@@ -239,9 +196,9 @@ class _StatsCard extends StatelessWidget {
                 height: 80,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.05),
+                  color: Colors.white.withOpacity(0.05),
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.08),
+                    color: Colors.white.withOpacity(0.08),
                     width: 1,
                   ),
                 ),
@@ -255,7 +212,7 @@ class _StatsCard extends StatelessWidget {
                 height: 35,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.06),
+                  color: Colors.white.withOpacity(0.06),
                 ),
               ),
             ),
@@ -280,8 +237,8 @@ class _StatsCard extends StatelessWidget {
                       gradient: LinearGradient(
                         stops: const [0.0, 0.35, 1.0],
                         colors: [
-                          Colors.white.withValues(alpha: 0.6),
-                          Colors.white.withValues(alpha: 0.4),
+                          Colors.white.withOpacity(0.6),
+                          Colors.white.withOpacity(0.4),
                           Colors.transparent,
                         ],
                       ),
@@ -315,8 +272,9 @@ class _StudentsCardState extends State<_StudentsCard> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) => widget.notifier.loadStudents());
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => widget.notifier.loadStudents(),
+    );
     widget.notifier.addListener(_onStateChange);
   }
 
@@ -327,29 +285,8 @@ class _StudentsCardState extends State<_StudentsCard> {
     super.dispose();
   }
 
-
-  @override
-  void didUpdateWidget(covariant _StudentsCard oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.notifier != widget.notifier) {
-      oldWidget.notifier.removeListener(_onStateChange);
-      widget.notifier.addListener(_onStateChange);
-
-      final auth = context.read<AuthNotifier>().state;
-      if (!auth.isAuthenticated || !auth.isTeacher) return;
-
-      if (widget.notifier.state.status == StudentsStatus.initial &&
-          widget.notifier.state.students.isEmpty) {
-        WidgetsBinding.instance
-            .addPostFrameCallback((_) => widget.notifier.loadStudents());
-      }
-    }
-  }
   void _onStateChange() {
     if (!mounted) return;
-    final auth = context.read<AuthNotifier>().state;
-    if (!auth.isAuthenticated || !auth.isTeacher) return;
-
     final s = widget.notifier.state;
     if (s.successMessage != null) {
       AppSnackbar.showSuccess(context, s.successMessage!);
@@ -388,10 +325,7 @@ class _StudentsCardState extends State<_StudentsCard> {
   Future<void> _editStudent(StudentEntity s) async {
     await Navigator.of(context).push<bool>(
       MaterialPageRoute(
-        builder: (_) => StudentFormPage(
-          notifier: widget.notifier,
-          student: s,
-        ),
+        builder: (_) => StudentFormPage(notifier: widget.notifier, student: s),
       ),
     );
   }
@@ -478,12 +412,8 @@ class _StudentsCardState extends State<_StudentsCard> {
                         horizontal: AppSpacing.md,
                       ),
                       decoration: BoxDecoration(
-                        border: Border.all(
-                          color: AppColors.border,
-                          width: 1.5,
-                        ),
-                        borderRadius:
-                            const BorderRadius.all(AppRadius.medium),
+                        border: Border.all(color: AppColors.border, width: 1.5),
+                        borderRadius: const BorderRadius.all(AppRadius.medium),
                         color: AppColors.surfaceCard,
                       ),
                       child: DropdownButton<int?>(
@@ -525,19 +455,21 @@ class _StudentsCardState extends State<_StudentsCard> {
                   onPressed: _addStudent,
                   icon: const Icon(Icons.person_add_alt_1_rounded, size: 18),
                   label: const Text('Nuevo estudiante'),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.md,
-                    ),
-                    minimumSize: const Size(0, 56),
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(AppRadius.medium),
-                    ),
-                  ).copyWith(
-                    mouseCursor:
-                        const WidgetStatePropertyAll(SystemMouseCursors.click),
-                  ),
+                  style:
+                      FilledButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.md,
+                        ),
+                        minimumSize: const Size(0, 56),
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(AppRadius.medium),
+                        ),
+                      ).copyWith(
+                        mouseCursor: const WidgetStatePropertyAll(
+                          SystemMouseCursors.click,
+                        ),
+                      ),
                 ),
               ],
             ),
@@ -554,23 +486,79 @@ class _StudentsCardState extends State<_StudentsCard> {
               ? const Padding(
                   padding: EdgeInsets.all(AppSpacing.xl),
                   child: Center(
-                    child: CircularProgressIndicator(
-                      color: AppColors.primary,
-                    ),
+                    child: CircularProgressIndicator(color: AppColors.primary),
                   ),
                 )
+              : state.failure != null
+              ? _StudentsErrorState(
+                  message: state.failure!.message,
+                  onRetry: widget.notifier.loadStudents,
+                )
               : state.isEmpty
-                  ? _EmptyState(hasFilters: hasFilters, onAdd: _addStudent)
-                  : Padding(
-                      padding: const EdgeInsets.all(AppSpacing.md),
-                      child: _StudentGrid(
-                        students: state.students,
-                        onEdit: _editStudent,
-                        onDelete: _deleteStudent,
-                      ),
-                    ),
+              ? _EmptyState(hasFilters: hasFilters, onAdd: _addStudent)
+              : Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: _StudentGrid(
+                    students: state.students,
+                    onEdit: _editStudent,
+                    onDelete: _deleteStudent,
+                  ),
+                ),
         ),
       ],
+    );
+  }
+}
+
+class _StudentsErrorState extends StatelessWidget {
+  const _StudentsErrorState({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.xl),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: AppColors.error.withValues(alpha: 0.08),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.cloud_off_rounded,
+                size: 40,
+                color: AppColors.error.withValues(alpha: 0.6),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              'No se pudieron cargar estudiantes',
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            FilledButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh_rounded, size: 18),
+              label: const Text('Reintentar'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -582,38 +570,37 @@ class _ComingSoonView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: AppColors.secondary.withValues(alpha: 0.10),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.construction_rounded,
-                size: 40,
-                color: AppColors.secondary.withValues(alpha: 0.6),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              label,
-              style: Theme.of(context)
-                  .textTheme
-                  .headlineLarge
-                  ?.copyWith(color: AppColors.textSecondary),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              'Esta sección estará disponible en el próximo sprint',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-          ],
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          width: 80,
+          height: 80,
+          decoration: BoxDecoration(
+            color: AppColors.secondary.withOpacity(0.10),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            Icons.construction_rounded,
+            size: 40,
+            color: AppColors.secondary.withOpacity(0.6),
+          ),
         ),
-      );
+        const SizedBox(height: AppSpacing.md),
+        Text(
+          label,
+          style: Theme.of(
+            context,
+          ).textTheme.headlineLarge?.copyWith(color: AppColors.textSecondary),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Text(
+          'Esta sección estará disponible en el próximo sprint',
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+      ],
+    ),
+  );
 }
 
 class _StudentGrid extends StatelessWidget {
@@ -629,30 +616,30 @@ class _StudentGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => LayoutBuilder(
-        builder: (_, constraints) {
-          final cols = constraints.maxWidth > 900
-              ? 4
-              : constraints.maxWidth > 600
-                  ? 3
-                  : 2;
-          return GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: cols,
-              crossAxisSpacing: AppSpacing.md,
-              mainAxisSpacing: AppSpacing.md,
-              childAspectRatio: 0.85,
-            ),
-            itemCount: students.length,
-            itemBuilder: (_, i) => _StudentCard(
-              student: students[i],
-              onEdit: onEdit,
-              onDelete: onDelete,
-            ),
-          );
-        },
+    builder: (_, constraints) {
+      final cols = constraints.maxWidth > 900
+          ? 4
+          : constraints.maxWidth > 600
+          ? 3
+          : 2;
+      return GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: cols,
+          crossAxisSpacing: AppSpacing.md,
+          mainAxisSpacing: AppSpacing.md,
+          childAspectRatio: 0.85,
+        ),
+        itemCount: students.length,
+        itemBuilder: (_, i) => _StudentCard(
+          student: students[i],
+          onEdit: onEdit,
+          onDelete: onDelete,
+        ),
       );
+    },
+  );
 }
 
 class _StudentCard extends StatelessWidget {
@@ -683,7 +670,7 @@ class _StudentCard extends StatelessWidget {
                 children: [
                   Container(
                     width: double.infinity,
-                    color: gradeColor.withValues(alpha: 0.07),
+                    color: gradeColor.withOpacity(0.07),
                     child: Center(
                       child: StudentAvatar(
                         initials: student.initials,
@@ -773,10 +760,9 @@ class _StudentCard extends StatelessWidget {
                       const SizedBox(width: AppSpacing.sm),
                       Text(
                         '${student.age} años',
-                        style:
-                            Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  fontSize: 12,
-                        ),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodyMedium?.copyWith(fontSize: 12),
                       ),
                     ],
                   ),
@@ -786,28 +772,31 @@ class _StudentCard extends StatelessWidget {
                       spacing: 6,
                       runSpacing: 6,
                       children: [
-                        ...student.conditions.take(2).map(
-                          (c) => Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColors.primary.withValues(alpha: 0.10),
-                              borderRadius:
-                                  const BorderRadius.all(AppRadius.full),
-                            ),
-                            child: Text(
-                              c,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                fontFamily: 'Nunito',
-                                color: AppColors.primary,
+                        ...student.conditions
+                            .take(2)
+                            .map(
+                              (c) => Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withOpacity(0.10),
+                                  borderRadius: const BorderRadius.all(
+                                    AppRadius.full,
+                                  ),
+                                ),
+                                child: Text(
+                                  c,
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    fontFamily: 'Nunito',
+                                    color: AppColors.primary,
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
-                        ),
                         if (student.conditions.length > 2)
                           Container(
                             padding: const EdgeInsets.symmetric(
@@ -816,8 +805,9 @@ class _StudentCard extends StatelessWidget {
                             ),
                             decoration: BoxDecoration(
                               color: AppColors.surface,
-                              borderRadius:
-                                  const BorderRadius.all(AppRadius.full),
+                              borderRadius: const BorderRadius.all(
+                                AppRadius.full,
+                              ),
                               border: Border.all(color: AppColors.border),
                             ),
                             child: Text(
@@ -851,63 +841,52 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.08),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  hasFilters
-                      ? Icons.search_off_rounded
-                      : Icons.people_outline_rounded,
-                  size: 40,
-                  color: AppColors.primary.withValues(alpha: 0.5),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              Text(
-                hasFilters
-                    ? 'No se encontraron estudiantes'
-                    : 'Aún no hay estudiantes',
-                style: Theme.of(context)
-                    .textTheme
-                    .headlineMedium
-                    ?.copyWith(color: AppColors.textSecondary),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                hasFilters
-                    ? 'Intenta con otro nombre o grado'
-                    : 'Agrega el primer estudiante para comenzar',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              if (!hasFilters) ...[
-                const SizedBox(height: AppSpacing.lg),
-                ElevatedButton.icon(
-                  onPressed: onAdd,
-                  icon: const Icon(Icons.person_add_alt_1_rounded, size: 18),
-                  label: const Text('Agregar estudiante'),
-                ),
-              ],
-            ],
+    padding: const EdgeInsets.all(AppSpacing.xl),
+    child: Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.08),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              hasFilters
+                  ? Icons.search_off_rounded
+                  : Icons.people_outline_rounded,
+              size: 40,
+              color: AppColors.primary.withOpacity(0.5),
+            ),
           ),
-        ),
-      );
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            hasFilters
+                ? 'No se encontraron estudiantes'
+                : 'Aún no hay estudiantes',
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            hasFilters
+                ? 'Intenta con otro nombre o grado'
+                : 'Agrega el primer estudiante para comenzar',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          if (!hasFilters) ...[
+            const SizedBox(height: AppSpacing.lg),
+            ElevatedButton.icon(
+              onPressed: onAdd,
+              icon: const Icon(Icons.person_add_alt_1_rounded, size: 18),
+              label: const Text('Agregar estudiante'),
+            ),
+          ],
+        ],
+      ),
+    ),
+  );
 }
-
-
-
-
-
-
-
-
-
-
