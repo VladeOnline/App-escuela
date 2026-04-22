@@ -37,6 +37,7 @@ class _ExerciseDetailPageState extends State<ExerciseDetailPage> {
   ExerciseResult? _result;
   // Inicia en [waiting] para que el timer no corra hasta cerrar el dialog.
   ExercisePhase _phase = ExercisePhase.waiting;
+  Key _exerciseKey = UniqueKey();
 
   @override
   void initState() {
@@ -103,11 +104,10 @@ class _ExerciseDetailPageState extends State<ExerciseDetailPage> {
   /// Muestra el dialog de aviso antes de reintentar.
   /// El niño puede reintentar cuantas veces quiera, pero ya no gana puntos.
   Future<void> _onRetry() async {
-    final confirmed = await _RetryConfirmDialog.show(context);
-    if (!mounted || confirmed != true) return;
     setState(() {
       _result = null;
       _phase = ExercisePhase.answering;
+      _exerciseKey = UniqueKey(); // ← nueva key = widget se recrea limpio
     });
   }
 
@@ -116,12 +116,24 @@ class _ExerciseDetailPageState extends State<ExerciseDetailPage> {
   Future<void> _onContinue() async {
     if (_result == null) return;
     setState(() => _phase = ExercisePhase.celebrating);
-    await ExerciseResultDialog.show(
+
+    final shouldRetry = await ExerciseResultDialog.show(
       context,
       result: _result!,
       exercise: widget.exercise,
     );
-    if (mounted) Navigator.of(context).pop(true);
+
+    if (!mounted) return;
+
+    if (shouldRetry == true) {
+      setState(() {
+        _result = null;
+        _phase = ExercisePhase.answering;
+        _exerciseKey = UniqueKey(); // ← recrea limpio también desde el dialog
+      });
+    } else {
+      Navigator.of(context).pop();
+    }
   }
 
   @override
@@ -134,7 +146,6 @@ class _ExerciseDetailPageState extends State<ExerciseDetailPage> {
             exercise: widget.exercise,
             onShowInstructions: _showInstructions,
           ),
-          // El timer solo avanza cuando la fase es [answering]
           ExerciseTimerBar(running: _phase == ExercisePhase.answering),
           Expanded(
             child: SingleChildScrollView(
@@ -143,6 +154,7 @@ class _ExerciseDetailPageState extends State<ExerciseDetailPage> {
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 760),
                   child: ExerciseTypeContent(
+                    key: _exerciseKey, // ← aquí se aplica la key
                     exercise: widget.exercise,
                     onResult: _onVerify,
                     onRetry: _onRetry,
