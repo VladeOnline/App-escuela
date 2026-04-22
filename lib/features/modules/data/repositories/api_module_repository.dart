@@ -367,7 +367,10 @@ class ApiModuleRepository {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         final lista = (data['ejercicios'] as List).cast<Map<String, dynamic>>();
-        final exercises = lista.map(_exerciseFromJson).toList();
+        final exercises = lista
+            .map(_exerciseFromJson)
+            .where((exercise) => exercise.type != ExerciseType.ordering)
+            .toList();
         return (exercises: exercises, failure: null);
       }
 

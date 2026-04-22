@@ -64,6 +64,18 @@ class _ExerciseFormPageState extends State<ExerciseFormPage> {
 
   bool _isLoading = false;
 
+  Iterable<TextEditingController> get _allControllers => [
+    _titleCtrl,
+    _instructionsCtrl,
+    _questionCtrl,
+    _explanationCtrl,
+    _statementCtrl,
+    _templateCtrl,
+    _blankAnswerCtrl,
+    _hintCtrl,
+    ..._optionCtrls,
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -79,7 +91,9 @@ class _ExerciseFormPageState extends State<ExerciseFormPage> {
   void _loadExerciseData(ExerciseEntity ex) {
     _titleCtrl.text        = ex.title;
     _instructionsCtrl.text = ex.instructions;
-    _type                  = ex.type;
+    _type = ex.type == ExerciseType.ordering
+        ? ExerciseType.multipleChoice
+        : ex.type;
     _difficulty            = ex.difficulty;
     _subject               = ex.subject;
 
@@ -112,11 +126,7 @@ class _ExerciseFormPageState extends State<ExerciseFormPage> {
 
   @override
   void dispose() {
-    for (final c in [
-      _titleCtrl, _instructionsCtrl, _questionCtrl, _explanationCtrl,
-      _statementCtrl, _templateCtrl, _blankAnswerCtrl, _hintCtrl,
-      ..._optionCtrls,
-    ]) {
+    for (final c in _allControllers) {
       c.dispose();
     }
     super.dispose();
@@ -138,11 +148,7 @@ class _ExerciseFormPageState extends State<ExerciseFormPage> {
   // --- Limpiar ---
 
   void _onClear() {
-    for (final c in [
-      _titleCtrl, _instructionsCtrl, _questionCtrl, _explanationCtrl,
-      _statementCtrl, _templateCtrl, _blankAnswerCtrl, _hintCtrl,
-      ..._optionCtrls,
-    ]) {
+    for (final c in _allControllers) {
       c.clear();
     }
     setState(() { _correctIndex = 0; _correctBool = true; });

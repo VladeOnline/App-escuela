@@ -44,16 +44,24 @@ class ExFormTypeDropdown extends StatelessWidget {
   const ExFormTypeDropdown({super.key, required this.value, required this.onChanged});
   final ExerciseType value;
   final ValueChanged<ExerciseType?> onChanged;
+  static const List<ExerciseType> _enabledTypes = <ExerciseType>[
+    ExerciseType.multipleChoice,
+    ExerciseType.fillInTheBlank,
+    ExerciseType.trueOrFalse,
+  ];
 
   @override
   Widget build(BuildContext context) {
+    final safeValue = _enabledTypes.contains(value)
+        ? value
+        : ExerciseType.multipleChoice;
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: DropdownButtonFormField<ExerciseType>(
-        value: value,
+        value: safeValue,
         onChanged: onChanged,
         decoration: const InputDecoration(),
-        items: ExerciseType.values.map((t) => DropdownMenuItem(
+        items: _enabledTypes.map((t) => DropdownMenuItem(
           value: t,
           child: MouseRegion(cursor: SystemMouseCursors.click, child: Text(t.label)),
         )).toList(),
