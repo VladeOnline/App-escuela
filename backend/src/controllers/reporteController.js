@@ -61,16 +61,42 @@ const getIndividualReport = async (req, res) => {
       };
     });
 
-    const totalEvaluaciones = resultadosPayload.length;
-    const sumaPuntuaciones = resultadosPayload.reduce((sum, r) => sum + r.puntuacion, 0);
+    // Opción 3: una fila por evaluación + intentos totales.
+    // La "nota final" y estatus se toman del último intento (más reciente).
+    const resultadosPorEvaluacion = new Map();
+    for (const item of resultadosPayload) {
+      const key = item.evaluacionId || item.id;
+      const existing = resultadosPorEvaluacion.get(key);
+
+      if (!existing) {
+        resultadosPorEvaluacion.set(key, { ...item, intentos: 1 });
+        continue;
+      }
+
+      const existingDate = new Date(existing.fecha).getTime();
+      const currentDate = new Date(item.fecha).getTime();
+      const totalIntentos = (Number(existing.intentos) || 0) + 1;
+
+      if (currentDate >= existingDate) {
+        resultadosPorEvaluacion.set(key, { ...item, intentos: totalIntentos });
+      } else {
+        resultadosPorEvaluacion.set(key, { ...existing, intentos: totalIntentos });
+      }
+    }
+
+    const resultadosAgrupados = Array.from(resultadosPorEvaluacion.values())
+      .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+    const totalEvaluaciones = resultadosAgrupados.length;
+    const sumaPuntuaciones = resultadosAgrupados.reduce((sum, r) => sum + r.puntuacion, 0);
     const promedio = totalEvaluaciones > 0
       ? Math.round(sumaPuntuaciones / totalEvaluaciones)
       : 0;
-    const aprobadas = resultadosPayload.filter((r) => r.aprobado).length;
+    const aprobadas = resultadosAgrupados.filter((r) => r.aprobado).length;
 
     // Rendimiento por materia separando Lectura/Escritura por tipo de modulo.
     const bucket = new Map();
-    for (const item of resultadosPayload) {
+    for (const item of resultadosAgrupados) {
       if (!bucket.has(item.materia)) {
         bucket.set(item.materia, {
           sum: 0,
@@ -119,7 +145,7 @@ const getIndividualReport = async (req, res) => {
       const end = new Date(start);
       end.setDate(end.getDate() + 7);
 
-      const weekScores = resultadosPayload
+      const weekScores = resultadosAgrupados
         .filter((r) => {
           const f = new Date(r.fecha);
           return f >= start && f < end;
@@ -165,7 +191,7 @@ const getIndividualReport = async (req, res) => {
         promedio,
         aprobadas,
       },
-      resultados: resultadosPayload.map((r) => ({
+      resultados: resultadosAgrupados.map((r) => ({
         id: r.id,
         estudianteId: r.estudianteId,
         evaluacionId: r.evaluacionId,

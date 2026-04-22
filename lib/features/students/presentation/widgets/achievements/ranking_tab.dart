@@ -12,21 +12,24 @@ class RankingTab extends StatefulWidget {
     required this.grade,
     required this.studentId,
     required this.studentPoints,
+    required this.refreshToken,
   });
 
   final RankingRepository repository;
   final int grade;
   final String studentId;
   final int studentPoints;
+  final int refreshToken;
 
   @override
   State<RankingTab> createState() => _RankingTabState();
 }
 
 class _RankingTabState extends State<RankingTab> {
-  RankingPeriod _period = RankingPeriod.semana;
+  RankingPeriod _period = RankingPeriod.total;
   RankingResult? _result;
   bool _isLoading = true;
+  int _activeRequestId = 0;
 
   @override
   void initState() {
@@ -34,14 +37,25 @@ class _RankingTabState extends State<RankingTab> {
     _loadRanking();
   }
 
+  @override
+  void didUpdateWidget(covariant RankingTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.grade != widget.grade ||
+        oldWidget.studentPoints != widget.studentPoints ||
+        oldWidget.refreshToken != widget.refreshToken) {
+      _loadRanking();
+    }
+  }
+
   Future<void> _loadRanking() async {
+    final requestId = ++_activeRequestId;
     setState(() => _isLoading = true);
     final result = await widget.repository.getRanking(
       grade: widget.grade,
       period: _period,
       top: 10,
     );
-    if (!mounted) return;
+    if (!mounted || requestId != _activeRequestId) return;
     setState(() {
       _result = result;
       _isLoading = false;
@@ -50,7 +64,10 @@ class _RankingTabState extends State<RankingTab> {
 
   void _changePeriod(RankingPeriod p) {
     if (p == _period) return;
-    setState(() => _period = p);
+    setState(() {
+      _period = p;
+      _result = null;
+    });
     _loadRanking();
   }
 
@@ -250,8 +267,9 @@ class _RankingRow extends StatelessWidget {
   };
 
   ImageProvider _photo(String? v) {
-    if (v == null || v.trim().isEmpty)
+    if (v == null || v.trim().isEmpty) {
       return const AssetImage('assets/images/buho_alumno.png');
+    }
     final t = v.trim();
     if (t.startsWith('data:image/')) {
       final c = t.indexOf(',');
@@ -266,7 +284,7 @@ class _RankingRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final pos = entry.posicion;
     final posColor = _posColors[pos] ?? AppColors.textSecondary;
-    final isTop3 = pos != null && pos <= 3;
+    final isTop3 = pos <= 3;
 
     return Container(
       padding: const EdgeInsets.symmetric(

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../../../core/theme/app_theme.dart';
 
@@ -8,12 +8,16 @@ class SubjectStatCards extends StatelessWidget {
     required this.totalExercises,
     required this.completedExercises,
     required this.pendingExercises,
+    required this.successCount,
+    required this.successTotal,
     required this.successRate,
   });
 
   final int totalExercises;
   final int completedExercises;
   final int pendingExercises;
+  final int successCount;
+  final int successTotal;
   final double successRate;
 
   Color _rateColor(double r) {
@@ -61,7 +65,9 @@ class SubjectStatCards extends StatelessWidget {
                   icon: Icons.trending_up_rounded,
                   label: 'Tasa de éxito',
                   value: '${(successRate * 100).toStringAsFixed(0)}%',
-                  subtitle: _rateLabel(successRate),
+                  subtitle: successTotal > 0
+                      ? '$successCount de $successTotal intentos'
+                      : _rateLabel(successRate),
                   gradientColors: [
                     _rateColor(successRate),
                     _rateColor(successRate).withValues(alpha: 0.7),

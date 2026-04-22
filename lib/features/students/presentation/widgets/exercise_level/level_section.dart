@@ -14,6 +14,7 @@ class LevelSection extends StatefulWidget {
     required this.moduleType,
     required this.repository,
     required this.onModuleTap,
+    required this.onDataRefresh,
   });
 
   final DifficultyLevel level;
@@ -21,6 +22,7 @@ class LevelSection extends StatefulWidget {
   final ModuleType moduleType;
   final ApiModuleRepository repository;
   final Future<void> Function(ModuleEntity) onModuleTap;
+  final Future<void> Function() onDataRefresh;
 
   @override
   State<LevelSection> createState() => _LevelSectionState();
@@ -64,6 +66,7 @@ class _LevelSectionState extends State<LevelSection>
                       subjectStats: widget.subjectStats,
                       level: widget.level,
                       repository: widget.repository,
+                      onDataRefresh: widget.onDataRefresh,
                     ))
               : const SizedBox.shrink(),
         ),
@@ -200,11 +203,13 @@ class _SubjectGrid extends StatelessWidget {
     required this.subjectStats,
     required this.level,
     required this.repository,
+    required this.onDataRefresh,
   });
 
   final Map<Subject, SubjectStats> subjectStats;
   final DifficultyLevel level;
   final ApiModuleRepository repository;
+  final Future<void> Function() onDataRefresh;
 
   @override
   Widget build(BuildContext context) {
@@ -225,16 +230,19 @@ class _SubjectGrid extends StatelessWidget {
                 width: cardWidth,
                 child: _SubjectCard(
                   stats: entry.value,
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => SubjectExercisePage(
-                        subject: entry.value.subject,
-                        level: level,
-                        modules: entry.value.modules,
-                        repository: repository,
+                  onTap: () async {
+                    await Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => SubjectExercisePage(
+                          subject: entry.value.subject,
+                          level: level,
+                          modules: entry.value.modules,
+                          repository: repository,
+                        ),
                       ),
-                    ),
-                  ),
+                    );
+                    await onDataRefresh();
+                  },
                 ),
               ),
           ],

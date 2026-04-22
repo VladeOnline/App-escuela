@@ -197,9 +197,53 @@ const obtenerEjercicios = async (req, res) => {
     const ejercicios = await Ejercicio.find(filtro)
       .populate('contenido_id', 'titulo grado'); // traemos solo título y grado del contenido
 
+    let statsPorEjercicio = {};
+    if (estudiante_id && ejercicios.length > 0) {
+      const ejercicioIds = ejercicios.map((e) => e._id);
+      const stats = await Resultado.aggregate([
+        {
+          $match: {
+            estudiante_id: new mongoose.Types.ObjectId(estudiante_id),
+            ejercicio_id: { $in: ejercicioIds },
+          },
+        },
+        {
+          $group: {
+            _id: '$ejercicio_id',
+            intentos: { $sum: 1 },
+            aciertos: {
+              $sum: {
+                $cond: ['$es_correcto', 1, 0],
+              },
+            },
+          },
+        },
+      ]);
+
+      statsPorEjercicio = Object.fromEntries(
+        stats.map((s) => [
+          s._id.toString(),
+          { intentos: s.intentos ?? 0, aciertos: s.aciertos ?? 0 },
+        ]),
+      );
+    }
+
+    const ejerciciosConStats = ejercicios.map((ejercicio) => {
+      const doc = ejercicio.toObject ? ejercicio.toObject() : ejercicio;
+      if (!estudiante_id) return doc;
+
+      const key = ejercicio._id.toString();
+      const stats = statsPorEjercicio[key] ?? { intentos: 0, aciertos: 0 };
+      return {
+        ...doc,
+        intentos_estudiante: stats.intentos,
+        aciertos_estudiante: stats.aciertos,
+      };
+    });
+
     res.status(200).json({
-      total: ejercicios.length,
-      ejercicios
+      total: ejerciciosConStats.length,
+      ejercicios: ejerciciosConStats
     });
 
   } catch (error) {

@@ -16,7 +16,6 @@ import 'package:http/http.dart' as http;
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/errors/app_failure.dart';
 import '../../domain/entities/module_entities.dart';
-import '../../domain/entities/subject.dart';
 
 /// Repositorio real que reemplaza al MockModuleRepository.
 /// Hace llamadas HTTP al backend en vez de usar datos hardcodeados.
@@ -94,9 +93,23 @@ class ApiModuleRepository {
   // Helpers de conversión: Backend → Frontend
   // ─────────────────────────────────────────────
 
-  ModuleType _moduleTypeFromString(String tipo) => switch (tipo) {
+  String _normalizeKey(String raw) {
+    return raw
+        .trim()
+        .toLowerCase()
+        .replaceAll('á', 'a')
+        .replaceAll('é', 'e')
+        .replaceAll('í', 'i')
+        .replaceAll('ó', 'o')
+        .replaceAll('ú', 'u')
+        .replaceAll('ñ', 'n')
+        .replaceAll(' ', '_');
+  }
+
+  ModuleType _moduleTypeFromString(String tipo) => switch (_normalizeKey(tipo)) {
     'escritura' => ModuleType.writing,
     'matematicas' => ModuleType.math,
+    'matematica' => ModuleType.math,
     _ => ModuleType.reading,
   };
 
@@ -114,8 +127,9 @@ class ApiModuleRepository {
     _ => ExerciseType.multipleChoice,
   };
 
-  Subject _subjectFromString(String materia) => switch (materia) {
+  Subject _subjectFromString(String materia) => switch (_normalizeKey(materia)) {
     'matematicas' => Subject.math,
+    'matematica' => Subject.math,
     'ciencias' => Subject.science,
     'estudios_sociales' => Subject.socialStudies,
     _ => Subject.spanish,
@@ -196,6 +210,12 @@ class ApiModuleRepository {
       subject: _subjectFromString(json['materia'] as String),
       content: (json['content'] as Map).cast<String, dynamic>(),
       isActive: (json['activo'] as bool?) ?? true,
+      studentAttempts: json['intentos_estudiante'] is int
+          ? json['intentos_estudiante'] as int
+          : int.tryParse('${json['intentos_estudiante'] ?? ''}') ?? 0,
+      studentCorrectAttempts: json['aciertos_estudiante'] is int
+          ? json['aciertos_estudiante'] as int
+          : int.tryParse('${json['aciertos_estudiante'] ?? ''}') ?? 0,
     );
   }
 
@@ -283,9 +303,6 @@ class ApiModuleRepository {
           'grado': module.grade,
         }),
       );
-      print('STATUS: ${response.statusCode}');
-      print('BODY: ${response.body}'); // ← agregá esta línea temporal
-
       if (response.statusCode == 201) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         // FIX: el backend devuelve el doc de Mongoose directamente bajo 'contenido'.

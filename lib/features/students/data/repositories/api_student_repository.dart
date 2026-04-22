@@ -28,6 +28,11 @@ class ApiStudentRepository implements StudentRepository {
     }
     return ServerFailure(fallbackMessage);
   }
+
+  bool _isDataImageUrl(String value) {
+    final trimmed = value.trim();
+    return trimmed.startsWith('data:image/') && trimmed.contains(';base64,');
+  }
   StudentEntity _studentFromJson(Map<String, dynamic> json) {
     final rawConditions = json['conditions'] ?? json['condiciones'];
     final usuarioMap = (json['usuario_id'] as Map?)?.cast<String, dynamic>();
@@ -132,7 +137,9 @@ class ApiStudentRepository implements StudentRepository {
         'edad': age,
         'conditions': conditions,
       };
-      if (photoDataUrl != null && photoDataUrl.trim().isNotEmpty) {
+      if (photoDataUrl != null &&
+          photoDataUrl.trim().isNotEmpty &&
+          _isDataImageUrl(photoDataUrl)) {
         payload['foto_perfil_url'] = photoDataUrl;
       }
 
@@ -192,7 +199,9 @@ class ApiStudentRepository implements StudentRepository {
         'edad': age,
         'conditions': conditions,
       };
-      if (photoDataUrl != null && photoDataUrl.trim().isNotEmpty) {
+      if (photoDataUrl != null &&
+          photoDataUrl.trim().isNotEmpty &&
+          _isDataImageUrl(photoDataUrl)) {
         payload['foto_perfil_url'] = photoDataUrl;
       }
 

@@ -29,6 +29,7 @@ class _ExerciseLevelPageState extends State<ExerciseLevelPage> {
   Map<String, List<ExerciseEntity>> _pendingMap = {};
   bool _isLoading = true;
   String? _errorMessage;
+  bool get _isMathCard => widget.moduleType == ModuleType.math;
 
   @override
   void initState() {
@@ -48,18 +49,48 @@ class _ExerciseLevelPageState extends State<ExerciseLevelPage> {
       final grade = authState.studentGrade ?? 1;
       final studentId = authState.studentId ?? '';
 
-      final result =
-          await widget.repository.getModulesByType(widget.moduleType);
-      if (result.failure != null) {
-        setState(() {
-          _errorMessage = result.failure!.message;
-          _isLoading = false;
-        });
-        return;
+      late List<ModuleEntity> gradeModules;
+      if (_isMathCard) {
+        final readingRes =
+            await widget.repository.getModulesByType(ModuleType.reading);
+        final writingRes =
+            await widget.repository.getModulesByType(ModuleType.writing);
+        final mathRes = await widget.repository.getModulesByType(ModuleType.math);
+
+        final firstFailure =
+            readingRes.failure ?? writingRes.failure ?? mathRes.failure;
+        if (firstFailure != null) {
+          setState(() {
+            _errorMessage = firstFailure.message;
+            _isLoading = false;
+          });
+          return;
+        }
+
+        final byId = <String, ModuleEntity>{};
+        for (final module in [
+          ...readingRes.modules,
+          ...writingRes.modules,
+          ...mathRes.modules,
+        ]) {
+          if (module.grade == grade) {
+            byId[module.id] = module;
+          }
+        }
+        gradeModules = byId.values.toList();
+      } else {
+        final result =
+            await widget.repository.getModulesByType(widget.moduleType);
+        if (result.failure != null) {
+          setState(() {
+            _errorMessage = result.failure!.message;
+            _isLoading = false;
+          });
+          return;
+        }
+        gradeModules = result.modules.where((m) => m.grade == grade).toList();
       }
 
-      final gradeModules =
-          result.modules.where((m) => m.grade == grade).toList();
       final exercisesMap = <String, List<ExerciseEntity>>{};
       final pendingMap = <String, List<ExerciseEntity>>{};
 
@@ -68,7 +99,14 @@ class _ExerciseLevelPageState extends State<ExerciseLevelPage> {
           module.id,
           studentId: studentId.isNotEmpty ? studentId : null,
         );
-        exercisesMap[module.id] = allRes.exercises;
+        final allExercises = _isMathCard
+            ? allRes.exercises
+                .where((exercise) => exercise.subject == Subject.math)
+                .toList()
+            : allRes.exercises
+                .where((exercise) => exercise.subject != Subject.math)
+                .toList();
+        exercisesMap[module.id] = allExercises;
 
         if (studentId.isNotEmpty) {
           final pendingRes = await widget.repository.getExercisesByModule(
@@ -76,10 +114,22 @@ class _ExerciseLevelPageState extends State<ExerciseLevelPage> {
             studentId: studentId,
             pendingOnly: true,
           );
-          pendingMap[module.id] = pendingRes.exercises;
+          pendingMap[module.id] = _isMathCard
+              ? pendingRes.exercises
+                  .where((exercise) => exercise.subject == Subject.math)
+                  .toList()
+              : pendingRes.exercises
+                  .where((exercise) => exercise.subject != Subject.math)
+                  .toList();
         } else {
-          pendingMap[module.id] = allRes.exercises;
+          pendingMap[module.id] = allExercises;
         }
+      }
+
+      if (_isMathCard) {
+        gradeModules = gradeModules
+            .where((module) => (exercisesMap[module.id] ?? const []).isNotEmpty)
+            .toList();
       }
 
       if (!mounted) return;
@@ -103,8 +153,16 @@ class _ExerciseLevelPageState extends State<ExerciseLevelPage> {
   int get _pendingExercises =>
       _pendingMap.values.fold(0, (s, e) => s + e.length);
   int get _completedExercises => _totalExercises - _pendingExercises;
+  int get _totalAttempts =>
+      _exercisesMap.values.expand((e) => e).fold(0, (s, e) => s + e.studentAttempts);
+  int get _correctAttempts =>
+      _exercisesMap.values
+          .expand((e) => e)
+          .fold(0, (s, e) => s + e.studentCorrectAttempts);
+  int get _successCount => _totalAttempts > 0 ? _correctAttempts : _completedExercises;
+  int get _successTotal => _totalAttempts > 0 ? _totalAttempts : _totalExercises;
   double get _successRate =>
-      _totalExercises == 0 ? 0 : _completedExercises / _totalExercises;
+      _successTotal == 0 ? 0 : _successCount / _successTotal;
 
   Map<DifficultyLevel, Map<Subject, SubjectStats>> get _grouped {
     if (_modules.isEmpty) return {};
@@ -137,7 +195,7 @@ class _ExerciseLevelPageState extends State<ExerciseLevelPage> {
         );
       }
 
-      if (allEx.isEmpty) {
+      if (allEx.isEmpty && !_isMathCard) {
         result[DifficultyLevel.basic] ??= {};
         final subjectMap = result[DifficultyLevel.basic]!;
         final existing = subjectMap[Subject.spanish];
@@ -207,9 +265,12 @@ class _ExerciseLevelPageState extends State<ExerciseLevelPage> {
       totalExercises: _totalExercises,
       completedExercises: _completedExercises,
       pendingExercises: _pendingExercises,
+      successCount: _successCount,
+      successTotal: _successTotal,
       successRate: _successRate,
       repository: widget.repository,
       onModuleTap: _onModuleTap,
+      onDataRefresh: _loadData,
     );
   }
 
@@ -340,9 +401,12 @@ class _ExerciseLevelContent extends StatelessWidget {
     required this.totalExercises,
     required this.completedExercises,
     required this.pendingExercises,
+    required this.successCount,
+    required this.successTotal,
     required this.successRate,
     required this.repository,
     required this.onModuleTap,
+    required this.onDataRefresh,
   });
 
   final ModuleType moduleType;
@@ -350,9 +414,12 @@ class _ExerciseLevelContent extends StatelessWidget {
   final int totalExercises;
   final int completedExercises;
   final int pendingExercises;
+  final int successCount;
+  final int successTotal;
   final double successRate;
   final ApiModuleRepository repository;
   final Future<void> Function(ModuleEntity) onModuleTap;
+  final Future<void> Function() onDataRefresh;
 
   @override
   Widget build(BuildContext context) {
@@ -367,6 +434,8 @@ class _ExerciseLevelContent extends StatelessWidget {
               totalExercises: totalExercises,
               completedExercises: completedExercises,
               pendingExercises: pendingExercises,
+              successCount: successCount,
+              successTotal: successTotal,
               successRate: successRate,
             ),
             const SizedBox(height: AppSpacing.xl),
@@ -377,6 +446,7 @@ class _ExerciseLevelContent extends StatelessWidget {
                 moduleType: moduleType,
                 repository: repository,
                 onModuleTap: onModuleTap,
+                onDataRefresh: onDataRefresh,
               ),
               const SizedBox(height: AppSpacing.xl),
             ],

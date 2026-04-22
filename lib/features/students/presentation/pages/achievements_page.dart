@@ -20,17 +20,27 @@ class _AchievementsPageState extends State<AchievementsPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   late RankingRepository _rankingRepo;
+  int _rankingRefreshToken = 0;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(_handleTabChange);
     final token = context.read<AuthNotifier>().state.token ?? '';
     _rankingRepo = RankingRepository(token: token);
   }
 
+  void _handleTabChange() {
+    if (_tabController.indexIsChanging) return;
+    if (_tabController.index == 1) {
+      setState(() => _rankingRefreshToken++);
+    }
+  }
+
   @override
   void dispose() {
+    _tabController.removeListener(_handleTabChange);
     _tabController.dispose();
     super.dispose();
   }
@@ -189,6 +199,7 @@ class _AchievementsPageState extends State<AchievementsPage>
                               grade: grade,
                               studentId: studentId,
                               studentPoints: points,
+                              refreshToken: _rankingRefreshToken,
                             ),
                           ],
                         ),

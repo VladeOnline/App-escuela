@@ -12,9 +12,32 @@ const normalizeConditions = (value) => {
 const isValidPhotoPayload = (value) => {
   if (value == null) return true;
   if (typeof value !== 'string') return false;
-  if (!value.startsWith('data:image/')) return false;
-  if (!value.includes(';base64,')) return false;
-  return value.length <= 2_500_000;
+  const trimmed = value.trim();
+  if (!trimmed) return false;
+
+  // Compatibilidad con datos existentes (URLs absolutas o rutas relativas).
+  if (
+    trimmed.startsWith('http://') ||
+    trimmed.startsWith('https://') ||
+    trimmed.startsWith('/uploads/')
+  ) {
+    return true;
+  }
+
+  if (!trimmed.startsWith('data:image/')) return false;
+  const marker = ';base64,';
+  const markerIndex = trimmed.indexOf(marker);
+  if (markerIndex <= 0) return false;
+
+  const base64Data = trimmed.substring(markerIndex + marker.length);
+  if (!base64Data) return false;
+
+  try {
+    const bytes = Buffer.from(base64Data, 'base64');
+    return bytes.length > 0 && bytes.length <= 2 * 1024 * 1024;
+  } catch (_) {
+    return false;
+  }
 };
 
 const serializeEstudiante = (estudianteDoc) => {
@@ -49,7 +72,8 @@ const crearEstudiante = async (req, res) => {
 
     if (!isValidPhotoPayload(fotoPerfilUrl)) {
       return res.status(400).json({
-        message: 'La foto debe ser una imagen valida en formato data URL (data:image/...;base64,...)',
+        message:
+          'La foto debe ser una URL valida o una imagen data URL (data:image/...;base64,...) de maximo 2 MB',
       });
     }
 
@@ -156,7 +180,8 @@ const editarEstudiante = async (req, res) => {
       if (fotoPerfilUrl !== undefined) {
         if (!isValidPhotoPayload(fotoPerfilUrl)) {
           return res.status(400).json({
-            message: 'La foto debe ser una imagen valida en formato data URL (data:image/...;base64,...)',
+            message:
+              'La foto debe ser una URL valida o una imagen data URL (data:image/...;base64,...) de maximo 2 MB',
           });
         }
         usuarioUpdates.foto_perfil_url = fotoPerfilUrl;

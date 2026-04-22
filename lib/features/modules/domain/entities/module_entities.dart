@@ -109,6 +109,8 @@ class ExerciseEntity {
   final DifficultyLevel difficulty;
   final Subject subject;
   final bool isActive;
+  final int studentAttempts;
+  final int studentCorrectAttempts;
 
   /// Contenido específico del ejercicio según su tipo.
   /// Para multipleChoice: lista de opciones + índice de respuesta correcta.
@@ -127,6 +129,8 @@ class ExerciseEntity {
     required this.content,
     this.subject = Subject.spanish,
     this.isActive = true,
+    this.studentAttempts = 0,
+    this.studentCorrectAttempts = 0,
   });
 
   int get points => difficulty.basePoints;

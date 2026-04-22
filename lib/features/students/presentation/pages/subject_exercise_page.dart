@@ -102,8 +102,14 @@ class _SubjectExercisePageState extends State<SubjectExercisePage> {
   }
 
   int get _completedCount => _allExercises.length - _pendingExercises.length;
-  double get _successRate =>
-      _allExercises.isEmpty ? 0 : _completedCount / _allExercises.length;
+  int get _totalAttempts =>
+      _allExercises.fold(0, (sum, e) => sum + e.studentAttempts);
+  int get _correctAttempts =>
+      _allExercises.fold(0, (sum, e) => sum + e.studentCorrectAttempts);
+  int get _successCount => _totalAttempts > 0 ? _correctAttempts : _completedCount;
+  int get _successTotal => _totalAttempts > 0 ? _totalAttempts : _allExercises.length;
+  int get _failedCount => _successTotal - _successCount;
+  double get _successRate => _successTotal == 0 ? 0 : _successCount / _successTotal;
   Set<String> get _pendingIds => _pendingExercises.map((e) => e.id).toSet();
 
   Future<void> _openExercise(ExerciseEntity exercise) async {
@@ -150,6 +156,9 @@ class _SubjectExercisePageState extends State<SubjectExercisePage> {
       exercises: _allExercises,
       pendingIds: _pendingIds,
       successRate: _successRate,
+      successCount: _successCount,
+      successTotal: _successTotal,
+      failedCount: _failedCount,
       completedCount: _completedCount,
       totalCount: _allExercises.length,
       subject: widget.subject,
@@ -282,6 +291,9 @@ class _ExerciseContent extends StatelessWidget {
     required this.exercises,
     required this.pendingIds,
     required this.successRate,
+    required this.successCount,
+    required this.successTotal,
+    required this.failedCount,
     required this.completedCount,
     required this.totalCount,
     required this.subject,
@@ -291,6 +303,9 @@ class _ExerciseContent extends StatelessWidget {
   final List<ExerciseEntity> exercises;
   final Set<String> pendingIds;
   final double successRate;
+  final int successCount;
+  final int successTotal;
+  final int failedCount;
   final int completedCount;
   final int totalCount;
   final Subject subject;
@@ -306,8 +321,9 @@ class _ExerciseContent extends StatelessWidget {
           // Barra de tasa — fondo blanco propio
           _SuccessRateBar(
             successRate: successRate,
-            completedCount: completedCount,
-            totalCount: totalCount,
+            successCount: successCount,
+            totalCount: successTotal,
+            failedCount: failedCount,
           ),
           const SizedBox(height: AppSpacing.lg),
 
@@ -386,18 +402,19 @@ class _ExerciseContent extends StatelessWidget {
 class _SuccessRateBar extends StatelessWidget {
   const _SuccessRateBar({
     required this.successRate,
-    required this.completedCount,
+    required this.successCount,
     required this.totalCount,
+    required this.failedCount,
   });
 
   final double successRate;
-  final int completedCount;
+  final int successCount;
   final int totalCount;
+  final int failedCount;
 
   @override
   Widget build(BuildContext context) {
     final failRate = 1 - successRate;
-    final pendingCount = totalCount - completedCount;
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -460,7 +477,7 @@ class _SuccessRateBar extends StatelessWidget {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  '${(successRate * 100).toStringAsFixed(0)}% ($completedCount)',
+                  '${(successRate * 100).toStringAsFixed(0)}% ($successCount)',
                   style: const TextStyle(
                     fontSize: 11,
                     fontFamily: 'Nunito',
@@ -479,7 +496,7 @@ class _SuccessRateBar extends StatelessWidget {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  '${(failRate * 100).toStringAsFixed(0)}% ($pendingCount)',
+                  '${(failRate * 100).toStringAsFixed(0)}% ($failedCount)',
                   style: const TextStyle(
                     fontSize: 11,
                     fontFamily: 'Nunito',

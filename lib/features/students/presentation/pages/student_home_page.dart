@@ -66,40 +66,58 @@ class _StudentHomePageState extends State<StudentHomePage> {
 
       final readingRes = await _repository.getModulesByType(ModuleType.reading);
       final writingRes = await _repository.getModulesByType(ModuleType.writing);
-      final mathRes    = await _repository.getModulesByType(ModuleType.math);
+      final mathRes = await _repository.getModulesByType(ModuleType.math);
 
       int reading = 0;
       int writing = 0;
-      int math    = 0;
+      int math = 0;
 
-      if (studentId.isNotEmpty) {
-        for (final m in readingRes.modules.where((m) => m.grade == grade)) {
+      final readingModules = readingRes.modules.where((m) => m.grade == grade);
+      final writingModules = writingRes.modules.where((m) => m.grade == grade);
+      final mathModules = mathRes.modules.where((m) => m.grade == grade);
+
+      Future<void> accumulateForModules(
+        Iterable<ModuleEntity> modules,
+        ModuleType defaultBucket,
+      ) async {
+        for (final m in modules) {
           final r = await _repository.getExercisesByModule(
-            m.id, studentId: studentId, pendingOnly: true);
-          if (r.failure == null) reading += r.exercises.length;
+            m.id,
+            studentId: studentId.isNotEmpty ? studentId : null,
+            pendingOnly: studentId.isNotEmpty,
+          );
+          if (r.failure != null) continue;
+
+          for (final exercise in r.exercises) {
+            if (exercise.subject == Subject.math) {
+              math += 1;
+              continue;
+            }
+            switch (defaultBucket) {
+              case ModuleType.reading:
+                reading += 1;
+                break;
+              case ModuleType.writing:
+                writing += 1;
+                break;
+              case ModuleType.math:
+                math += 1;
+                break;
+            }
+          }
         }
-        for (final m in writingRes.modules.where((m) => m.grade == grade)) {
-          final r = await _repository.getExercisesByModule(
-            m.id, studentId: studentId, pendingOnly: true);
-          if (r.failure == null) writing += r.exercises.length;
-        }
-        for (final m in mathRes.modules.where((m) => m.grade == grade)) {
-          final r = await _repository.getExercisesByModule(
-            m.id, studentId: studentId, pendingOnly: true);
-          if (r.failure == null) math += r.exercises.length;
-        }
-      } else {
-        reading = readingRes.modules.where((m) => m.grade == grade).length;
-        writing = writingRes.modules.where((m) => m.grade == grade).length;
-        math    = mathRes.modules.where((m) => m.grade == grade).length;
       }
+
+      await accumulateForModules(readingModules, ModuleType.reading);
+      await accumulateForModules(writingModules, ModuleType.writing);
+      await accumulateForModules(mathModules, ModuleType.math);
 
       if (!mounted) return;
       setState(() {
         _readingCount = reading;
         _writingCount = writing;
-        _mathCount    = math;
-        _isLoading    = false;
+        _mathCount = math;
+        _isLoading = false;
       });
     } finally {
       _isReloading = false;
